@@ -2,6 +2,8 @@ const { Router } = require('express')
 const router = Router();
 const {getConductors, postConductors,getConductorById,deleteConductorById,updateConductor} = require('../controllers/index.controller')
 const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil} = require('../controllers/movil.controller')
+const {postInventory,getInventory,deleteInventory,putInventory} = require('../controllers/inventory.controller')
+
 
 //Conductores
 router.get('/conductors', getConductors)
@@ -17,6 +19,11 @@ router.post('/movil',postMovil)
 router.delete('/movil/:movil_id',deleteMovilById)
 router.put('/movil/:movil_Id',updateMovil)
 
+//Inventario
+router.post('/inventory',postInventory)
+router.get('/inventory',getInventory)
+router.delete('/inventory/:inventory_id',deleteInventory)
+router.put('/inventory/:inventory_id',putInventory)
 
 module.exports = router
 

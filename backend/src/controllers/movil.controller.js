@@ -11,8 +11,16 @@ const pool = new Pool({
 
 
 const getMovils = async (req, res) =>{
-    const response =  await  pool.query('SELECT * FROM movil');
-    res.status(200).json(response.rows)
+    const response =  await  pool.query('SELECT * FROM movil',
+    (error, results) => {
+        if(error){
+            console.log('error', error)
+            return res.status(500).send(error)
+        }
+       return  res.status(201).send(results.rows)
+       
+    });
+   
  };
  
  const postMovil = async (req, res) =>{
@@ -34,8 +42,16 @@ const getMovils = async (req, res) =>{
   };
  
   const getMovilById = async (req,res) => {
-     const response =  await  pool.query('SELECT * FROM movil where movil_id = $1',[req.params.movil_id]);
-     res.status(200).json(response.rows)
+     const response =  await  pool.query('SELECT * FROM movil where movil_id = $1',[req.params.movil_id],
+     (error, results) => {
+        if(error){
+            console.log('error', error)
+            return res.status(500).send(error)
+        }
+       return res.status(201).send(results.rows)
+    });
+    
+    
   };
  
   //endpoint delete conductor, solo se borra este, ningun otro dato asociado al mismo (en otra tabla).

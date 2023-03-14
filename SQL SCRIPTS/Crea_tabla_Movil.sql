@@ -4,6 +4,6 @@ CREATE TABLE Movil(
 	movil_State varchar (50) not null,
 	movil_Observations varchar(200),
 	movil_Type varchar (20) not null,
-	Foreign key (inventory_Id) References Inventory (inventory_Id)
+	Foreign key (inventory_Id) References Inventory (inventory_Id) ON UPDATE CASCADE
 
 )
