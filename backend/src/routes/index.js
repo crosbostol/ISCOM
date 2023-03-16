@@ -5,7 +5,24 @@ const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil} = require('
 const {postInventory,getInventory,deleteInventory,putInventory} = require('../controllers/inventory.controller')
 const {  getProducts,postProduct,getProductById,deleteProductById,updateProduct} = require('../controllers/product.controller')
 const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct} = require('../controllers/inv-pro.controller')
+const { getItem,postItem,getItemById,deleteItemById,updateItem} = require('../controllers/item.controller')
+const {  getItmOt,getItmByOt,postItmOt,deleteItmOtById,updateItmOt} = require('../controllers/ot-item.controller')
 
+//Relacion item ot
+router.get('/itmot',getItmOt)
+router.get('/itmot/:ot_id',getItmByOt)
+router.post('/itmot',postItmOt)
+router.delete('/itmot/:item_id/:ot_id',deleteItmOtById)
+router.put('/itmot/:item_Id/:ot_Id',updateItmOt)
+
+
+
+//Partidas
+router.get('/item', getItem)
+router.get('/item/:item_id',getItemById)
+router.post('/item',postItem)
+router.delete('/item/:item_id',deleteItemById)
+router.put('/item/:item_Id',updateItem)
 
 //Conductores
 router.get('/conductors', getConductors)
@@ -29,7 +46,7 @@ router.put('/inventory/:inventory_id',putInventory)
 
 //Productos
 router.get('/product', getProducts)
-router.get('/product/:movil_id',getProductById )
+router.get('/product/:product_id',getProductById )
 router.post('/product',postProduct)
 router.delete('/product/:product_id',deleteProductById)
 router.put('/product/:product_Id',updateProduct)

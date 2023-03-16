@@ -41,7 +41,7 @@ const getProducts = async (req, res) =>{
   };
  
   const getProductById = async (req,res) => {
-     const response =  await  pool.query('SELECT * FROM product where product_id = $1',[req.params.movil_id],
+     const response =  await  pool.query('SELECT * FROM product where product_id = $1',[req.params.product_id],
      (error, results) => {
         if(error){
             console.log('error', error)
