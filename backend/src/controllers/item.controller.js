@@ -73,6 +73,7 @@ const getItem = async (req, res) =>{
  
   const updateItem = async (req,res) => {
     const {item_id, description,item_value,item_type,item_unit} = req.body
+    console.log(req.body)
     const item_Id = req.params.item_Id
     const values =[item_id, description,item_value, item_type,item_unit, item_Id]
     const sql = 'UPDATE item SET item_id = $1, description=$2,item_value = $3 ,item_type=$4, item_unit=$5 WHERE item_Id = $6'

@@ -7,6 +7,29 @@ const {  getProducts,postProduct,getProductById,deleteProductById,updateProduct}
 const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct} = require('../controllers/inv-pro.controller')
 const { getItem,postItem,getItemById,deleteItemById,updateItem} = require('../controllers/item.controller')
 const {  getItmOt,getItmByOt,postItmOt,deleteItmOtById,updateItmOt} = require('../controllers/ot-item.controller')
+const {getOt,postOt,getOtById,RejectOtById,updateOt,getFinishedOtsByRangeDate,getRejectedOts,getOtsByState} = require('../controllers/ot.controller')
+const { getImagebyOt,postImage,getImageById,deleteImageById,updateImage} = require('../controllers/image.controller')
+
+
+
+
+//images
+router.get('/image/ot/:ot_id',getImagebyOt)
+router.post('/image',postImage)
+router.get('/image/:image_id',getImageById)
+router.delete('/image/:image_id',deleteImageById)
+router.put('/image/:image_id',updateImage)
+
+
+//ot
+router.put('/ot/reject/:ot_id',RejectOtById)
+router.put('/ot/:ot_id',updateOt)
+router.get('/ot/finished/:date_start/:date_finished',getFinishedOtsByRangeDate)
+router.get('/ot/rejected',getRejectedOts)
+router.get('/ot',getOt)
+router.post('/ot',postOt)
+router.get('/ot/:ot_id',getOtById)
+router.get('/ot/state/:state',getOtsByState)
 
 //Relacion item ot
 router.get('/itmot',getItmOt)
