@@ -38,9 +38,6 @@ const getImagebyOt = async (req, res) =>{
             }
             res.status(201).send(results)
         });
-
-
-     
   };
  
   const getImageById = async (req,res) => {

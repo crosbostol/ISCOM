@@ -9,9 +9,17 @@ const { getItem,postItem,getItemById,deleteItemById,updateItem} = require('../co
 const {  getItmOt,getItmByOt,postItmOt,deleteItmOtById,updateItmOt} = require('../controllers/ot-item.controller')
 const {getOt,postOt,getOtById,RejectOtById,updateOt,getFinishedOtsByRangeDate,getRejectedOts,getOtsByState} = require('../controllers/ot.controller')
 const { getImagebyOt,postImage,getImageById,deleteImageById,updateImage} = require('../controllers/image.controller')
-
-
-
+const {getProOtbyOt,
+    getProOtbyProduct,
+    deleteProOt,
+        postProOt,
+        updateProOt} = require('../controllers/pro-ot.controller')
+//ot-pro
+router.get('/pro-ot/ot/:ot_id',getProOtbyOt)
+router.get('/pro-ot/product/:product_id',getProOtbyProduct)
+router.delete('/pro-ot/:ot_id/:product_id',deleteProOt)
+router.post('/pro-ot/',postProOt)
+router.put('/pro-ot/:ot_id/:product_id',updateProOt)
 
 //images
 router.get('/image/ot/:ot_id',getImagebyOt)

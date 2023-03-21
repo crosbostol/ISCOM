@@ -96,12 +96,8 @@ const getOt = async (req, res) =>{
         return fields.map((e,i) => e+ `=$${i+1}`);
      }
      totalLenght = fields.length + 1
-     
-   
     const fullQuery = `UPDATE ot SET ${columnas(fields)} where ot_id=$${totalLenght}`;
- 
      values2 = values.push(ot_id)
-     
     pool.query(
       fullQuery,
       values,
