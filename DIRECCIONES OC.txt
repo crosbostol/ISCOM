@@ -1,0 +1,65 @@
+
+medidas: 120x120
+PEDRO PRADO, 280  BUIN
+https://www.google.cl/maps/place/33°44'27.9"S+70°44'27.7"W/@-33.741071,-70.743225,17z/data=!3m1!4b1!4m4!3m3!8m2!3d-33.741071!4d-70.741031
+--------------------------------------
+OTILIA BRAVO 286 BUIN
+SOLO GUARDA LLAVES
+https://www.google.cl/maps/place/Pje.+Otilia+Bravo+286,+Maipo,+Buin,+Región+Metropolitana/@-33.7286129,-70.7769597,17z/data=!3m1!4b1!4m6!3m5!1s0x966321ac3b201589:0xa66a35005268961!8m2!3d-33.728613!4d-70.7724804!16s%2Fg%2F11c29cvbxl
+---------------------------------------
+medidas: sin información
+presidente ferederico errazuriz 651 Buin
+https://www.google.cl/maps/place/Pdte.+Federico+Errázuriz,+Buin,+Región+Metropolitana/@-33.7231894,-70.7416407,19z/data=!4m6!3m5!1s0x9663211f42bcc81b:0x70dc96c2eb0c2b33!8m2!3d-33.7231972!4d-70.7414959!16s%2Fg%2F11fmz2493h
+---------------------------------------
+medidas 1x1
+Interior 0,30x0,40
+VICENTE GARCIA HUIDOBRO, 258  BUIN
+https://www.google.com/maps?q=García+Huidobro+258,+Buin,+Región+Metropolitana&ftid=0x9663211befafbec1:0xbe4045b1fbb93c1b
+---------------
+-----------------------------------------
+medidas: 0,64
+guarda llave
+PJE LONQUIMAY, 33  BUIN
+https://www.google.cl/maps/place/33°43'36.1"S+70°46'20.7"W/@-33.7266975,-70.774622,17z/data=!3m1!4b1!4m4!3m3!8m2!3d-33.726702!4d-70.772428---------------------------------------
+---------------------------
+medidas 0,64
+guarda llave
+LUZ MARIA CORRALES, 049  BUIN
+https://www.google.cl/maps/place/33°43'51.0"S+70°46'37.6"W/@-33.7311222,-70.7775677,19z/data=!4m4!3m3!8m2!3d-33.73082!4d-70.777105---------------------------------------
+
+
+---------------------------------------
+---------------------------------------
+
+---------------------------------------
+---------------------------------------
+
+---------------------------------------
+
+LOS ALMACIGOS	1668	BUIN	https://www.google.com/maps/place/Pje.+Los+Almácigos+01668,+Buin,+Región+Metropolitana/@-33.7114073,-70.7399922,18z/data=!4m6!3m5!1s0x966320dd8123d203:0x1f6789f8e6c62887!8m2!3d-33.711124!4d-70.740424!16s%2Fg%2F11rpkk2l3l
+LA COSECHA	1668	BUIN	https://www.google.com/maps/place/Pje+La+Cosecha+1668,+Buin,+Región+Metropolitana/@-33.7098562,-70.7428991,17z/data=!3m1!4b1!4m6!3m5!1s0x966320dd0fffa4a7:0xc334ab6e04fcec72!8m2!3d-33.7098607!4d-70.7384198!16s%2Fg%2F11c5dwqhs4
+ILUSION Y BUINENSE	153	BUIN	https://www.google.com/maps/place/Pje.+Ilusion+153,+Buin,+Región+Metropolitana/@-33.7120053,-70.7446707,17z/data=!3m1!4b1!4m5!3m4!1s0x966320e70d9e4b67:0x4d9f9f78f70f2229!8m2!3d-33.7120098!4d-70.7424767
+PJE.ILUSION BUINENSE	152	BUIN	https://www.google.com/maps/place/Pje.+Ilusion+153,+Buin,+Región+Metropolitana/@-33.7120053,-70.7446707,17z/data=!3m1!4b1!4m5!3m4!1s0x966320e70d9e4b67:0x4d9f9f78f70f2229!8m2!3d-33.7120098!4d-70.7424767
+PJE.EL CAMELLON 	72	 BUIN	https://www.google.com/maps/place/Pje.+el+camellon+72,+Buin,+Región+Metropolitana/@-33.7118602,-70.739217,17z/data=!3m1!4b1!4m5!3m4!1s0x966320dd046d7c95:0xae4f508e45d03a2e!8m2!3d-33.7118647!4d-70.737023
+goycolea con pedro lago			https://www.google.com/maps/place/Pedro+Lagos+%26+Avenida+Goycolea,+Santiago,+San+Ramón,+Región+Metropolitana/@-33.5452507,-70.6418653,17z/data=!3m1!4b1!4m6!3m5!1s0x9662da6e91b9a557:0xc8c6e28d67efc7e9!8m2!3d-33.5452553!4d-70.637386!16s%2Fg%2F11h9w2scbh
+PJE.LUISA FERNANDA	, 1119 	La pintana	https://www.google.com/maps/place/Luisa+Fernanda+1119,+8831292+La+Pintana,+Región+Metropolitana/@-33.5566386,-70.6177451,17z/data=!3m1!4b1!4m6!3m5!1s0x9662d0a5a45cc61f:0xf07e58215b080176!8m2!3d-33.5566432!4d-70.6132658!16s%2Fg%2F11cshl2wqw
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+0

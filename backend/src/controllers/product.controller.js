@@ -24,9 +24,9 @@ const getProducts = async (req, res) =>{
  
  const postProduct = async (req, res) =>{
      
-     const {product_id, product_name,product_category, product_unit} = req.body
-     const sql = 'INSERT INTO product (product_id, product_name,product_category, product_unit) VALUES ($1,$2,$3,$4)'
-     const values =[product_id, product_name,product_category, product_unit]
+     const { product_name,product_category, product_unit} = req.body
+     const sql = 'INSERT INTO product ( product_name,product_category, product_unit) VALUES ($1,$2,$3)'
+     const values =[ product_name,product_category, product_unit]
      const response =  await  pool.query(sql,values,
         (error, results) => {
             if(error){

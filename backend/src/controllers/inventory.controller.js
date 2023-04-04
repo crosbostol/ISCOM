@@ -24,11 +24,20 @@ const postInventory = async (req, res) =>{
        });
  };
 
+const getUniqueInventories = async (req, res) =>{
+    const sql = 'SELECT inventory_id from inventory'
+    await pool.query(sql,(error, results) => {
+        if(error){
+            console.log('error', error)
+            return res.status(500).send(error)
+        }
+       return res.status(201).send(results)
+    });
+}
+
  const getInventory = async (req, res) =>{
-     
-    
-    const sql = 'Select inventory_id from inventory'
-   
+    const sql = 'SELECT inv.inventory_id, pro.product_id, pro.product_name, inv_pro.quantity FROM inventory inv INNER JOIN inv_pro ON inv_pro.inventory_id = inv.inventory_id INNER JOIN product pro ON pro.product_id = inv_pro.product_id'
+ 
     const response =  await  pool.query(sql,
        (error, results) => {
            if(error){
@@ -38,6 +47,22 @@ const postInventory = async (req, res) =>{
           return res.status(201).send(results)
        });
  };
+
+
+ const getInventoryById = async (req,res) => {
+    const response =  await  pool.query('SELECT inv.inventory_id, pro.product_id, pro.product_name, inv_pro.quantity, pro.product_unit,pro.product_category  FROM inventory inv INNER JOIN inv_pro ON inv_pro.inventory_id = inv.inventory_id INNER JOIN product pro ON pro.product_id = inv_pro.product_id WHERE inv.inventory_id = $1',[req.params.inventory_id],
+    (error, results) => {
+       if(error){
+           console.log('error', error)
+           return res.status(500).send(error)
+       }
+      return res.status(201).send(results.rows)
+   });
+   
+   
+ };
+
+
 
  const deleteInventory = async (req, res) => {
     const inventory_id = req.params.inventory_id
@@ -78,6 +103,8 @@ const postInventory = async (req, res) =>{
     postInventory,
     getInventory,
     deleteInventory,
-    putInventory
+    putInventory,
+    getInventoryById,
+    getUniqueInventories
     
  }

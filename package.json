@@ -1,25 +1,21 @@
-
-  {
+{
     "name": "backend",
     "version": "1.0.0",
     "description": "RESTful API with Node.js, Express, and PostgreSQL",
     "main": "index.js",
     "scripts": {
-      "back": " nodemon backend/src/index.js"
+        "back": " nodemon backend/src/index.js"
+      
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
-      "express": "^4.18.2",
-      "pg": "^8.10.0"
+        "express": "^4.18.2",
+        "pg": "^8.10.0",
+        "startbootstrap-sb-admin-2": "^4.1.4"
     },
     "devDependencies": {
-      "nodemon": "^2.0.21"
+        "nodemon": "^2.0.21"
     }
-  
-  
-
-
- 
 }

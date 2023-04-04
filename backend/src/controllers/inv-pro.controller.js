@@ -109,11 +109,11 @@ console.log(req.params.product_id)
   };
  
   const updateInvPro = async (req,res) => {
-    const {product_id, inventory_id,quantity} = req.body
+    const {quantity} = req.body
     const product_Id = req.params.product_Id
     const inventory_Id = req.params.inventory_Id
-    const values =[product_id, inventory_id,quantity, product_Id,inventory_Id]
-    const sql = 'UPDATE inv_pro SET product_id = $1, inventory_id=$2,quantity = $3  WHERE product_Id = $4 and inventory_id = $5'
+    const values =[quantity, product_Id,inventory_Id]
+    const sql = 'UPDATE inv_pro SET quantity = $1  WHERE product_Id = $2 and inventory_id = $3'
      
     
       await pool.query(sql, values,
@@ -129,6 +129,20 @@ console.log(req.params.product_id)
  
   }
  
+  const getProductsNotInInventory = async (req,res) => {
+
+    const sql = 'SELECT product_id, product_name, product_category, product_unit FROM product WHERE product_id NOT IN ( SELECT product_id FROM inv_pro WHERE inventory_id = $1)'
+    const values = [req.params.inventory_id]
+    await pool.query(sql, values,
+        (error, results) => {
+            if(error){
+                console.log('error', error)
+                return res.status(500).send(error)
+            }
+            res.status(201).send(results)
+        })
+  }
+
  
  
  module.exports = {
@@ -138,6 +152,7 @@ console.log(req.params.product_id)
     deleteInvProById,
     updateInvPro,
     getInvProByInventoryId,
-    getTotalOfProduct
+    getTotalOfProduct,
+    getProductsNotInInventory
    
  }

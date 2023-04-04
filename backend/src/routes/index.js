@@ -2,9 +2,9 @@ const { Router } = require('express')
 const router = Router();
 const {getConductors, postConductors,getConductorById,deleteConductorById,updateConductor} = require('../controllers/index.controller')
 const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil} = require('../controllers/movil.controller')
-const {postInventory,getInventory,deleteInventory,putInventory} = require('../controllers/inventory.controller')
+const {postInventory,getInventory,deleteInventory,putInventory,getInventoryById,getUniqueInventories} = require('../controllers/inventory.controller')
 const {  getProducts,postProduct,getProductById,deleteProductById,updateProduct} = require('../controllers/product.controller')
-const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct} = require('../controllers/inv-pro.controller')
+const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct,getProductsNotInInventory} = require('../controllers/inv-pro.controller')
 const { getItem,postItem,getItemById,deleteItemById,updateItem} = require('../controllers/item.controller')
 const {  getItmOt,getItmByOt,postItmOt,deleteItmOtById,updateItmOt} = require('../controllers/ot-item.controller')
 const {getOt,postOt,getOtById,RejectOtById,updateOt,getFinishedOtsByRangeDate,getRejectedOts,getOtsByState} = require('../controllers/ot.controller')
@@ -72,6 +72,8 @@ router.put('/movil/:movil_Id',updateMovil)
 //Inventario
 router.post('/inventory',postInventory)
 router.get('/inventory',getInventory)
+router.get('/inventory/unique',getUniqueInventories)
+router.get('/inventory/:inventory_id',getInventoryById)
 router.delete('/inventory/:inventory_id',deleteInventory)
 router.put('/inventory/:inventory_id',putInventory)
 
@@ -90,7 +92,7 @@ router.delete('/invpro/:product_id/:inventory_id',deleteInvProById)
 router.put('/invpro/:product_Id/:inventory_Id',updateInvPro)
 router.get('/invpro/:inventory_id',getInvProByInventoryId)//OBTENER EL INVENTARIO DE UN MOVIL
 router.get('/invpro/products/:product_id',getTotalOfProduct)// TOTAL DE UN PRODUCTO ENTRE TODOS LOS INVENTARIOS
-
+router.get('/invpro/products/not-in/:inventory_id',getProductsNotInInventory)
 
 
 
