@@ -38,5 +38,9 @@ export class ApiService {
   getProductNotInInventory(inventory_id : string){
     return this.http.get(`/api/invpro/products/not-in/${inventory_id}`)
   }
+  getInfoOtForTable(){
+    return this.http.get('/api/ottable')
+  }
+
 
 }

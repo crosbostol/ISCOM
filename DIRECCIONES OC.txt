@@ -49,6 +49,37 @@ PJE.LUISA FERNANDA	, 1119 	La pintana	https://www.google.com/maps/place/Luisa+Fe
 
 
 
+García Huidobro 0, Buin, Región Metropolitana	https://www.google.com/maps?q=García+Huidobro,+Buin,+Región+Metropolitana&ftid=0x9663211ecbe605d7:0xe84de585f262127b
+Zafiro 036, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=Zafiro+036,+9500549+Maipo,+Buin,+Región+Metropolitana&ftid=0x96632124a55947cb:0xa9d9680046ba74a6
+Arturo Matte 0208, Buin, Región Metropolitana	https://www.google.com/maps/place/Arturo+Matte+0208,+Buin,+Región+Metropolitana/@-33.7262578,-70.7343287,17z/data=!3m1!4b1!4m6!3m5!1s0x966321248135b3b5:0x77dc2a102a4de2af!8m2!3d-33.7262578!4d-70.7343287!16s%2Fg%2F11jtvblwwt
+García Huidobro 258, Buin, Región Metropolitana	german		https://www.google.com/maps?q=García+Huidobro+258,+Buin,+Región+Metropolitana&ftid=0x9663211befafbec1:0xbe4045b1fbb93c1b
+El Arriero 228, Buin, Región Metropolitana	https://www.google.com/maps?q=El+Arriero+228,+Buin,+Región+Metropolitana&ftid=0x9663212485b629af:0xd5d579c13ef9de02
+El Guardavías 219, Buin, Región Metropolitana		https://www.google.com/maps?q=El+Guardavías+219,+Buin,+Región+Metropolitana&ftid=0x9663213a070dd00b:0x7cc74e4a57acac5a
+Los Arados 01392, Alto Jahuel, Buin, Región Metropolitana	https://www.google.com/maps?q=Los+Arados,+Alto+Jahuel,+Buin,+Región+Metropolitana&ftid=0x9663268d5c794401:0x6c1e73d46162d780
+Cam. Buin Maipo 5, Maipo, Buin, Región Metropolitana	https://www.google.com/maps/place/Cam.+Buin+Maipo,+Maipo,+Buin,+Región+Metropolitana/@-33.7320493,-70.7692556,17z/data=!3m1!4b1!4m6!3m5!1s0x96632107e69c1737:0x8939840b8ac5360f!8m2!3d-33.7320493!4d-70.7692556!16s%2Fg%2F1tdvqyyt
+Los Alerces 212, Alto Jahuel, Buin, Región Metropolitana	https://www.google.com/maps?q=Los+Alerces+212,+Alto+Jahuel,+Buin,+Región+Metropolitana&ftid=0x9663268f756f047f:0xb9a93402ce01f6a
+
+
+Colo Colo 173, Maipo, Buin, Región Metropolitan	https://www.google.com/maps?q=Colo+Colo+173,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b3e70d96a7:0x861fc645546ba75d
+C. Luz Maria Corrales 49, Maipo, Buin, Región Metropolitana	https://www.google.com/maps/place/C.+Luz+Maria+Corrales,+Maipo,+Buin,+Región+Metropolitana/@-33.7309086,-70.7771657,17z/data=!3m1!4b1!4m6!3m5!1s0x966321b188be17c9:0x7a3744aa028b0136!8m2!3d-33.7309086!4d-70.7771657!16s%2Fg%2F1tff474j
+C. el Pastor 254, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=C.+el+Pastor+254,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ad7dc116ab:0xcb7825e6149d0206
+Errazuriz 964, Buin, Región Metropolitana	https://www.google.com/maps?q=Errazuriz+964,+Buin,+Región+Metropolitana&ftid=0x9663216abf3a5fa1:0x6f931f8f457edf8e
+Errazuriz 968, Buin, Región Metropolitana	https://www.google.com/maps?q=Errazuriz+964,+Buin,+Región+Metropolitana&ftid=0x9663216abf3a5fa1:0x6f931f8f457edf8e
+Pje. Maximiliano Valdés 2854 Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=Pje.+Maximiliano+Valdés+2854,+9510457+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ab987ca6db:0x123fc9202b8a4c01
+Pje. Las Golondrinas 113, Maipo, Buin, Región Metropolitana	enzo	https://www.google.com/maps?q=Pje.+Las+Golondrinas+113,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b2360ff53d:0x5fc6f6b18467f171
+C. García 242, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=C.+García+242,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ade5861ff3:0x20c897ec10b944b9
+Pje. Las Golondrinas 126, Maipo, Buin, Región Metropolitana	rojas	https://www.google.com/maps?q=Pje.+Las+Golondrinas+126,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b3b27f57e5:0xb455ed02b00cd97f
+
+
+PJE.EL GUARDAVIAS	173	buin	https://www.google.cl/maps/place/El+Guardavías+173,+Buin,+Región+Metropolitana/@-33.7317717,-70.7308775,17z/data=!3m1!4b1!4m6!3m5!1s0x966321309ff4070f:0x32856e0aeecc3df8!8m2!3d-33.7317762!4d-70.7286835!16s%2Fg%2F11hp7wp_ls
+JULIO VALENZUELA I	844	buin	https://www.google.cl/maps/place/Calle+Julio+Valenzuela,+Buin,+Región+Metropolitana/@-33.7470322,-70.752173,17z/data=!3m1!4b1!4m6!3m5!1s0x9663216dd0e35c41:0xc448f9e7f462023d!8m2!3d-33.7470367!4d-70.749979!16s%2Fg%2F11h7fdd5py
+PJE NACIMIENTO	48	buin	https://www.google.cl/maps/place/33°43'57.0"S+70°47'07.6"W/@-33.7324805,-70.787637,17z/data=!3m1!4b1!4m4!3m3!8m2!3d-33.732485!4d-70.785443
+presidente errazuriz	651	BUIN	https://www.google.cl/maps/place/Errazuriz+0651,+9500723+Maipo,+Buin,+Región+Metropolitana/@-33.7221505,-70.7423038,20z/data=!4m6!3m5!1s0x9663211f0aec8175:0x27467ef53fc0d266!8m2!3d-33.721976!4d-70.7422388!16s%2Fg%2F11hpcr89j7
+PEDRO PRADO	280	BUIN	https://www.google.cl/maps/place/Pedro+Prado+280,+Buin,+Región+Metropolitana/@-33.7410662,-70.7432248,17z/data=!3m1!4b1!4m6!3m5!1s0x9663216aaed7d4fb:0xd72da1b8cd166aff!8m2!3d-33.7410707!4d-70.7410308!16s%2Fg%2F11hp9k8ly4
+otilia bravo	286	BUIN	https://www.google.cl/maps/place/Pje.+Otilia+Bravo+286,+Maipo,+Buin,+Región+Metropolitana/@-33.7286085,-70.7746744,17z/data=!3m1!4b1!4m6!3m5!1s0x966321ac3b201589:0xa66a35005268961!8m2!3d-33.728613!4d-70.7724804!16s%2Fg%2F11c29cvbxl
+PJE LONQUIMAY	33	BUIN	https://www.google.cl/maps/place/Pje.+Lonquimay,+Maipo,+Buin,+Región+Metropolitana/@-33.7266973,-70.7746225,17z/data=!3m1!4b1!4m6!3m5!1s0x966321ac67135db1:0x2938cd9e39071594!8m2!3d-33.7267018!4d-70.7724285!16s%2Fg%2F11bwfxfk0h
+Navidad 	15	BUIN	https://www.google.cl/maps/place/Navidad+15,+Maipo,+Buin,+Región+Metropolitana/@-33.7320569,-70.7874308,17z/data=!3m1!4b1!4m5!3m4!1s0x966321b5dfc21695:0xa9931c1f66d353a8!8m2!3d-33.7320614!4d-70.7852368
+HUMERTO ALLENDE	44	EL BOSQUE	https://www.google.cl/maps/place/Humberto+Allende+44,+El+Bosque,+Región+Metropolitana/@-33.5652459,-70.6851908,17z/data=!3m1!4b1!4m6!3m5!1s0x9662dbc5c3f34d63:0xcdf7bafe570ccc6a!8m2!3d-33.5652504!4d-70.6829968!16s%2Fg%2F11jxb700bq
 
 
 
@@ -57,9 +88,50 @@ PJE.LUISA FERNANDA	, 1119 	La pintana	https://www.google.com/maps/place/Luisa+Fe
 
 
 
+VICENTE GARCIA HUIDOBRO	258	BUIN	https://www.google.com/maps?q=García+Huidobro+258,+Buin,+Región+Metropolitana&ftid=0x9663211befafbec1:0xbe4045b1fbb93c1b
+LUZ MARIA CORRALES	49	BUIN	https://www.google.com/maps/place/C.+Luz+Maria+Corrales,+Maipo,+Buin,+Región+Metropolitana/@-33.7309086,-70.7771657,17z/data=!3m1!4b1!4m6!3m5!1s0x966321b188be17c9:0x7a3744aa028b0136!8m2!3d-33.7309086!4d-70.7771657!16s%2Fg%2F1tff474j
+El arriero 	228	buin	https://www.google.com/maps?q=El+Arriero+228,+Buin,+Región+Metropolitana&ftid=0x9663212485b629af:0xd5d579c13ef9de02
+El guardavia 219 	219	buin	https://www.google.com/maps?q=El+Guardavías+219,+Buin,+Región+Metropolitana&ftid=0x9663213a070dd00b:0x7cc74e4a57acac5a
+Las golondrinas 113 	113	buin	https://www.google.com/maps?q=Pje.+Las+Golondrinas+126,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b3b27f57e5:0xb455ed02b00cd97f
+Guillermo García Huidobro 0	0	buin	https://www.google.com/maps?q=García+Huidobro,+Buin,+Región+Metropolitana&ftid=0x9663211ecbe605d7:0xe84de585f262127b
+Zafiro 036	36	buin	https://www.google.com/maps?q=Zafiro+036,+9500549+Maipo,+Buin,+Región+Metropolitana&ftid=0x96632124a55947cb:0xa9d9680046ba74a6
+el guardavias 181	181	buin	https://www.google.com/maps?q=El+Guardavías+219,+Buin,+Región+Metropolitana&ftid=0x9663213a070dd00b:0x7cc74e4a57acac5a
+Pastor 256	256	buin	https://www.google.com/maps?q=C.+el+Pastor+254,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ad7dc116ab:0xcb7825e6149d0206
+pastor 255	255	buin	https://www.google.com/maps?q=C.+el+Pastor+254,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ad7dc116ab:0xcb7825e6149d0206
+pastor 257	257	buin	https://www.google.com/maps?q=C.+el+Pastor+254,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ad7dc116ab:0xcb7825e6149d0206
+Pastor 254	254	buin	https://www.google.com/maps?q=C.+el+Pastor+254,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ad7dc116ab:0xcb7825e6149d0206
+Errázuriz #964	964	buin	https://www.google.com/maps?q=Errazuriz+964,+Buin,+Región+Metropolitana&ftid=0x9663216abf3a5fa1:0x6f931f8f457edf8e
+Errázuriz #968	968	buin	https://www.google.com/maps?q=Errazuriz+964,+Buin,+Región+Metropolitana&ftid=0x9663216abf3a5fa1:0x6f931f8f457edf8e
+GARCIA, 242  BUIN	242	buin	https://www.google.com/maps?q=C.+García+242,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ade5861ff3:0x20c897ec10b944b9
+PJE MAXIMILIANO VALDES, 2854 	2854	buin	https://www.google.com/maps?q=Pje.+Maximiliano+Valdés+2854,+9510457+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321ab987ca6db:0x123fc9202b8a4c01
+PJE.LAS GOLONDRINAS, 126 (130) BUIN	126	buin	https://www.google.com/maps?q=Pje.+Las+Golondrinas+126,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b3b27f57e5:0xb455ed02b00cd97f
+LOS ALERCES, 212  BUIN	212	buin	https://www.google.com/maps?q=Los+Alerces+212,+Alto+Jahuel,+Buin,+Región+Metropolitana&ftid=0x9663268f756f047f:0xb9a93402ce01f6a3
+EL BOSQUE, 35 BUIN	35	buin	https://www.google.cl/maps/place/C.+El+Bosque+35,+Buin,+Región+Metropolitana/@-33.723743,-70.7365234,19z/data=!4m6!3m5!1s0x96632123e1234e63:0xbf6706f1574e119a!8m2!3d-33.7238658!4d-70.735932!16s%2Fg%2F11dzpthgzv
+PJE.ALBERTO SALINAS CARRASCO, 0162 BUIN	162	buin	https://www.google.cl/maps/place/Pje.+Alberto+Salinas+162,+Buin,+Región+Metropolitana/@-33.7272133,-70.7371557,20z/data=!4m6!3m5!1s0x9663212310fead39:0x4c591e13bd7aad08!8m2!3d-33.7272652!4d-70.7367621!16s%2Fg%2F11jzz0nnkz
+PJE LA MARINA, 10610 LA PINTANA	10610	la pintana	https://www.google.cl/maps/place/La+Marina+10610,+8831289+Santiago,+La+Pintana,+Región+Metropolitana/@-33.662282,-70.7662615,12z/data=!4m6!3m5!1s0x9662d0a50a79c163:0x5077a746ce7193b7!8m2!3d-33.55677!4d-70.61274!16s%2Fg%2F11pyj72n5s
+PJE.1, 874 BUIN 	874	buin	https://www.google.cl/maps/place/Pje.+Uno+874,+9500885+Buin,+Región+Metropolitana/@-33.7269596,-70.7487122,18z/data=!4m6!3m5!1s0x9663211b970315f7:0x8226fb595de888c4!8m2!3d-33.7267767!4d-70.7486156!16s%2Fg%2F11l9bm4q3d
 
 
+Los Arados 01392, Alto Jahuel, Buin, Región Metropolitana	https://www.google.com/maps?q=Los+Arados,+Alto+Jahuel,+Buin,+Región+Metropolitana&ftid=0x9663268d5c794401:0x6c1e73d46162d780
+Pje. Dr. García 285, Buin, Región Metropolitana	https://www.google.com/maps?q=Pje.+Dr.+García,+Buin,+Región+Metropolitana&ftid=0x966321aba54b52bd:0xf9a4532f53b9466f
+Orompello 190, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=Orompello+190,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b3e187d6b9:0x8de4a8f0d5a6040f
+Atanasio Pardo Vega 129, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=Atanasio+Pardo+Vega+129,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b3b5485ea7:0xd7d43099b25710fb
+C. Luz Maria Corrales 60, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=C.+Luz+Maria+Corrales+60,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b188a2edb1:0x25c8adbb9a0384a1
+Contreras 74, Maipo, Buin, Región Metropolitana	https://www.google.com/maps?q=Contreras+74,+Maipo,+Buin,+Región+Metropolitana&ftid=0x966321b18b7c17cb:0x897c19eac1bf4dae
+
+Juan XXIII 270,  Santiago, El Bosque, Región Metropolitana	https://www.google.com/maps?q=Juan+XXIII+269,+El+Bosque,+Región+Metropolitana&ftid=0x9662dbd94db79485:0x436837db4215d7ed
+Juan XXIII 269, El Bosque, Región Metropolitana	https://www.google.com/maps?q=Juan+XXIII+269,+El+Bosque,+Región+Metropolitana&ftid=0x9662dbd94db79485:0x436837db4215d7ed
+Los Mañíos 956,  El Bosque, Región Metropolitana	https://www.google.com/maps?q=Los+Mañíos+956,+8010737+El+Bosque,+Región+Metropolitana&ftid=0x9662dbd3faf07797:0xb6d82b5eac84e0f9
+Los Mañíos 954,  El Bosque, Región Metropolitana	https://www.google.com/maps/place/Los+Mañíos+956,+8010737+El+Bosque,+Región+Metropolitana/@-33.5731208,-70.6745937,17z/data=!3m1!4b1!4m6!3m5!1s0x9662dbd3faf07797:0xb6d82b5eac84e0f9!8m2!3d-33.5731208!4d-70.6745937!16s%2Fg%2F11c2d7h72f
+Los Mañíos 965,  El Bosque, Región Metropolitana	https://www.google.com/maps/place/Los+Mañíos+956,+8010737+El+Bosque,+Región+Metropolitana/@-33.5731208,-70.6745937,17z/data=!3m1!4b1!4m6!3m5!1s0x9662dbd3faf07797:0xb6d82b5eac84e0f9!8m2!3d-33.5731208!4d-70.6745937!16s%2Fg%2F11c2d7h72f
+Los Mañíos 955,  El Bosque, Región Metropolitana	https://www.google.com/maps/place/Los+Mañíos+956,+8010737+El+Bosque,+Región+Metropolitana/@-33.5731208,-70.6745937,17z/data=!3m1!4b1!4m6!3m5!1s0x9662dbd3faf07797:0xb6d82b5eac84e0f9!8m2!3d-33.5731208!4d-70.6745937!16s%2Fg%2F11c2d7h72f
+benedictino XV 228	https://www.google.com/maps/place/Benedicto+XV+222,+8011030+Santiago,+El+Bosque,+Región+Metropolitana/@-33.5760293,-70.6894193,17z/data=!4m6!3m5!1s0x9662dbdeaa7ce8f1:0xc68957006b77a19e!8m2!3d-33.57581!4d-70.68731!16s%2Fg%2F11sp48hq43
+BENEDICTO XV, 234  EL BOSQUE	https://www.google.com/maps/place/Benedicto+XV+222,+8011030+Santiago,+El+Bosque,+Región+Metropolitana/@-33.5760293,-70.6894193,17z/data=!4m6!3m5!1s0x9662dbdeaa7ce8f1:0xc68957006b77a19e!8m2!3d-33.57581!4d-70.68731!16s%2Fg%2F11sp48hq43
+BENEDICTO XV, 23?  EL BOSQUE	https://www.google.com/maps/place/Benedicto+XV+222,+8011030+Santiago,+El+Bosque,+Región+Metropolitana/@-33.5760293,-70.6894193,17z/data=!4m6!3m5!1s0x9662dbdeaa7ce8f1:0xc68957006b77a19e!8m2!3d-33.57581!4d-70.68731!16s%2Fg%2F11sp48hq43
+benedictino XV 222	https://www.google.com/maps/place/Benedicto+XV+222,+8011030+Santiago,+El+Bosque,+Región+Metropolitana/@-33.5760293,-70.6894193,17z/data=!4m6!3m5!1s0x9662dbdeaa7ce8f1:0xc68957006b77a19e!8m2!3d-33.57581!4d-70.68731!16s%2Fg%2F11sp48hq43
+benedictino XV 221	https://www.google.com/maps/place/Benedicto+XV+222,+8011030+Santiago,+El+Bosque,+Región+Metropolitana/@-33.5760293,-70.6894193,17z/data=!4m6!3m5!1s0x9662dbdeaa7ce8f1:0xc68957006b77a19e!8m2!3d-33.57581!4d-70.68731!16s%2Fg%2F11sp48hq43
+Mallorca 585,  Santiago, El Bosque, Región Metropolitana	https://www.google.com/maps/place/Benedicto+XV+222,+8011030+Santiago,+El+Bosque,+Región+Metropolitana/@-33.5758055,-70.689504,17z/data=!3m1!4b1!4m6!3m5!1s0x9662dbdeaa7ce8f1:0xc68957006b77a19e!8m2!3d-33.57581!4d-70.68731!16s%2Fg%2F11sp48hq43
+Diego de Rojas 13201,  El Bosque, Región Metropolitana	https://www.google.com/maps?q=Diego+de+Rojas+13201,+8011113+El+Bosque,+Región+Metropolitana&ftid=0x9662dbd91e7f664b:0xc4bb4325c3b63348
+Humberto Allende 44, El Bosque, Región Metropolitana	https://www.google.com/maps/place/Humberto+Allende+44,+El+Bosque,+Región+Metropolitana/@-33.5652459,-70.6851908,17z/data=!3m1!4b1!4m6!3m5!1s0x9662dbc5c3f34d63:0xcdf7bafe570ccc6a!8m2!3d-33.5652504!4d-70.6829968!16s%2Fg%2F11jxb700bq
 
 
-
-0

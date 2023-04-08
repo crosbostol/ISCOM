@@ -7,6 +7,7 @@ import { FormDialogComponent } from '../formDialog/form-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { AddDialogComponent } from '../dialogs/addDialog/add-dialog.component';
 import { AsociateDialogComponent } from '../dialogs/asociateDialog/asociate-dialog.component';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-mantenedor-inventario',
@@ -64,6 +65,8 @@ applyFilter(event: Event) {
     .then(payload =>{
       this.isData = true;
       this.dataSource = payload
+      this.dataSource = new MatTableDataSource(this.dataSource)
+
       console.log(this.dataSource)
     })
     .catch(err => {this.isData = false;
