@@ -3,7 +3,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { interval, take, lastValueFrom } from 'rxjs';
 import { FormularioComponent } from '../formulario/formulario.component';
 import {  MatDialogRef, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormDialogComponent } from '../formDialog/form-dialog.component';
+import { FormDialogComponent } from '../dialogs/formDialog/form-dialog.component';
 import { ActivatedRoute } from '@angular/router';
 import { AddDialogComponent } from '../dialogs/addDialog/add-dialog.component';
 import { AsociateDialogComponent } from '../dialogs/asociateDialog/asociate-dialog.component';

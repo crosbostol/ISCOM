@@ -1,0 +1,118 @@
+
+<div>
+  <h1 class="m-4" style="color: #00AEEF" > {{title}}</h1>
+</div>
+
+<div  class="w-auto" mat-dialog-content [align]="'left'">
+  <form [formGroup]="formGroup">
+    <div  [ngSwitch]="data.url">
+
+      <!-- FORMULARIO EDIT INVENTARIO -->
+      <div *ngSwitchCase="'mantenedorInventario'">
+      <div style="overflow-y: hidden;">
+        <mat-form-field class=" w-100  col-8" appearance="outline">
+          <input formControlName="product_category" matInput type="text" [placeholder]="data.values.product_category" >
+          <mat-error *ngIf="!formGroup.controls['product_category'].valid
+          && formGroup.controls['product_category'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class=" w-100 col-8" appearance="outline">
+          <input formControlName="product_name" matInput type="text" [placeholder]="data.values.product_name" >
+          <mat-error *ngIf="!formGroup.controls['product_name'].valid
+          && formGroup.controls['product_name'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class=" w-100 col-8" appearance="outline">
+          <input  formControlName="product_unit" matInput type="text" [placeholder]="data.values.product_unit" >
+          <mat-error *ngIf="!formGroup.controls['product_unit'].valid
+          && formGroup.controls['product_unit'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class=" w-100 col-8" appearance="outline">
+          <input formControlName="quantity" matInput type="text" [placeholder]="data.values.quantity" >
+          <mat-error *ngIf="!formGroup.controls['quantity'].valid
+          && formGroup.controls['quantity'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        </div>
+      </div>
+      <!-- FORMULARIO EDIT INVENTARIO -->
+
+
+  <!-- FORMULARIO EDIT OT-->
+      <div *ngSwitchCase="'mantenedorOt'" >
+      <div style="overflow-y: hidden; overflow-x: hidden;">
+        <mat-form-field class=" w-100  col-8" appearance="outline">
+          <input formControlName="ot_state" matInput type="text" [placeholder]="data.values.ot_state" >
+          <mat-error *ngIf="!formGroup.controls['ot_state'].valid
+          && formGroup.controls['ot_state'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class=" w-100 col-8" appearance="outline">
+          <input formControlName="direction" matInput type="text" [placeholder]="data.values.direction" >
+          <mat-error *ngIf="!formGroup.controls['direction'].valid
+          && formGroup.controls['direction'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <div class="row">
+        <mat-form-field class=" w-50 col-8" appearance="outline">
+          <input formControlName="hydraulic_movil_id" matInput type="text" [placeholder]="data.values.hydraulic_movil_id" >
+          <mat-error *ngIf="!formGroup.controls['hydraulic_movil_id'].valid
+          && formGroup.controls['hydraulic_movil_id'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field class=" w-50 col-8" appearance="outline">
+          <input formControlName="n_hidraulico" matInput type="text" [placeholder]="data.values.n_hidraulico" >
+          <mat-error *ngIf="!formGroup.controls['n_hidraulico'].valid
+          && formGroup.controls['n_hidraulico'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field class=" w-50 col-8" appearance="outline">
+          <input  formControlName="civil_movil_id" matInput type="text" [placeholder]="data.values.civil_movil_id" >
+          <mat-error *ngIf="!formGroup.controls['civil_movil_id'].valid
+          && formGroup.controls['civil_movil_id'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field class=" w-50 col-8" appearance="outline">
+          <input formControlName="n_civil" matInput type="text" [placeholder]="data.values.n_civil" >
+          <mat-error *ngIf="!formGroup.controls['n_civil'].valid
+          && formGroup.controls['n_civil'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+        </div>
+      </div>
+      <!-- FORMULARIO EDIT OT-->
+
+
+
+
+    </div>
+  </form>
+  <div>
+    <button mat-raised-button mat-dialog-close="">Cancelas</button>
+    <button mat-raised-button [disabled]="!formGroup.valid || clicked " (click)="formButtonEvent(); clicked=true" class="btn-custom" >Confirmar</button>
+
+  </div>
+</div>

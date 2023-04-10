@@ -23,7 +23,7 @@ import { MantenedorMovilComponent } from './navegacion/mantenedor-movil/mantened
 import { MantenedorInventarioComponent } from './navegacion/mantenedor-inventario/mantenedor-inventario.component';
 import { PageNotFoundComponent } from './navegacion/page-not-found/page-not-found.component';
 import { NavigationComponent } from './navegacion/navigation/navigation.component';
-import { FormDialogComponent } from './navegacion/formDialog/form-dialog.component';
+import { FormDialogComponent } from './navegacion/dialogs/formDialog/form-dialog.component';
 import { FormularioComponent } from './navegacion/formulario/formulario.component';
 import { AddDialogComponent } from './navegacion/dialogs/addDialog/add-dialog.component';
 import { AsociateDialogComponent } from './navegacion/dialogs/asociateDialog/asociate-dialog.component';
