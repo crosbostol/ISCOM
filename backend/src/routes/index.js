@@ -1,7 +1,7 @@
 const { Router } = require('express')
 const router = Router();
 const {getConductors, postConductors,getConductorById,deleteConductorById,updateConductor} = require('../controllers/index.controller')
-const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil} = require('../controllers/movil.controller')
+const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil,getMovilOc} = require('../controllers/movil.controller')
 const {postInventory,getInventory,deleteInventory,putInventory,getInventoryById,getUniqueInventories} = require('../controllers/inventory.controller')
 const {  getProducts,postProduct,getProductById,deleteProductById,updateProduct} = require('../controllers/product.controller')
 const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct,getProductsNotInInventory} = require('../controllers/inv-pro.controller')
@@ -69,6 +69,7 @@ router.get('/movil/:movil_id',getMovilById)
 router.post('/movil',postMovil)
 router.delete('/movil/:movil_id',deleteMovilById)
 router.put('/movil/:movil_Id',updateMovil)
+router.get('/movil/get/oc',getMovilOc)
 
 //Inventario
 router.post('/inventory',postInventory)

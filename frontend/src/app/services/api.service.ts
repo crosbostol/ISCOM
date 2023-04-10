@@ -41,6 +41,8 @@ export class ApiService {
   getInfoOtForTable(){
     return this.http.get('/api/ottable')
   }
-
+  getMovilOc(){
+    return this.http.get('/api/movil/get/oc')
+  }
 
 }

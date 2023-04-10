@@ -27,6 +27,9 @@ disablepInput = true
   tit_btn: string;
   editing: boolean;
 titleAlert : string = "Requerido"
+public civil_chofer: any =[]
+
+
 
 @Output() close: EventEmitter<any> = new EventEmitter();
 
@@ -61,12 +64,13 @@ constructor(private apiService : ApiService,
          case "mantenedorOt":
           this.formGroup = this.formBuilder.group({
            'ot_state':[null, Validators.required],
-           'direction':[null, Validators.required],
+           'direction':[{value: '', disabled:true}, Validators.required],
            'civil_movil_id':[null, Validators.required],
            'hydraulic_movil_id':[null, Validators.required],
            'n_hidraulico':[null, Validators.required],
            'n_civil':[null, Validators.required],
           })
+          this.getMovilOc()
           break;
 
 
@@ -128,8 +132,23 @@ formButtonEvent(){
 
 }
 
+//Trae los móviles de civil y los nombres de los chóferes
+getMovilOc(){
+  const id = this.data.inventory
+  console.log("🚀 ~ file: mantenedor-inventario.component.ts:35 ~ MantenedorInventarioComponent ~ loadInventario ~ id:", id)
 
+  lastValueFrom(this.apiService.getMovilOc())
+  .then(payload =>{
 
+    this.civil_chofer = payload
+    this.civil_chofer = Object.values(this.civil_chofer.rows)
+    console.log(this.civil_chofer)
+  })
+  .catch(err => {
+    alert("Error al cargar los productos")
+    console.error(err)
+  });
+}
 
 
 }
