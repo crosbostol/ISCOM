@@ -22,6 +22,38 @@ const getItem = async (req, res) =>{
     });
    
  };
+
+ const getItemOH = async (req, res) =>{
+    
+    const item_type = 'AGUA POTABLE'
+    const response =  await  pool.query(`SELECT * FROM item WHERE item_type = '${item_type}'`,
+    (error, results) => {
+        if(error){
+            console.log('error', error)
+            return res.status(500).send(error)
+        }
+       return  res.status(201).send(results.rows)
+       
+    });
+   
+ };
+
+ const getItemOC = async (req, res) =>{
+    
+
+    const item_type = 'OBRAS'
+    const response =  await  pool.query(`SELECT * FROM item WHERE item_type = '${item_type}'`,
+    (error, results) => {
+        if(error){
+            console.log('error', error)
+            return res.status(500).send(error)
+        }
+       
+       return  res.status(201).send(results.rows)
+       
+    });
+   
+ };
  
  const postItem = async (req, res) =>{
      
@@ -99,7 +131,9 @@ const getItem = async (req, res) =>{
     postItem,
     getItemById,
     deleteItemById,
-    updateItem
+    updateItem,
+    getItemOH,
+    getItemOC
    
  }
 

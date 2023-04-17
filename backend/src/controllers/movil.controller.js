@@ -95,7 +95,6 @@ const getMovils = async (req, res) =>{
     const type = 'OBRA CIVIL'
     sql = `SELECT mo.movil_id, co.name FROM movil mo  LEFT JOIN conductor co ON co.movil_id = mo.movil_id WHERE mo.movil_type = '${type}'`;
     
-    console.log("🚀 ~ file: movil.controller.js:98 ~ getMovilOc ~ sql:", sql)
     await pool.query(sql, 
         (error, results) => {
             if(error){

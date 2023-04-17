@@ -5,7 +5,7 @@ const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil,getMovilOc} 
 const {postInventory,getInventory,deleteInventory,putInventory,getInventoryById,getUniqueInventories} = require('../controllers/inventory.controller')
 const {  getProducts,postProduct,getProductById,deleteProductById,updateProduct} = require('../controllers/product.controller')
 const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct,getProductsNotInInventory} = require('../controllers/inv-pro.controller')
-const { getItem,postItem,getItemById,deleteItemById,updateItem} = require('../controllers/item.controller')
+const { getItem,postItem,getItemById,deleteItemById,updateItem,getItemOC,getItemOH} = require('../controllers/item.controller')
 const {  getItmOt,getItmByOt,postItmOt,deleteItmOtById,updateItmOt} = require('../controllers/ot-item.controller')
 const {getOt,postOt,getOtById,RejectOtById,updateOt,getFinishedOtsByRangeDate,getRejectedOts,getOtsByState,getInfoOtForTable} = require('../controllers/ot.controller')
 const { getImagebyOt,postImage,getImageById,deleteImageById,updateImage} = require('../controllers/image.controller')
@@ -55,6 +55,8 @@ router.get('/item/:item_id',getItemById)
 router.post('/item',postItem)
 router.delete('/item/:item_id',deleteItemById)
 router.put('/item/:item_Id',updateItem)
+router.get('/item-oh',getItemOH)
+router.get('/item-oc',getItemOC)
 
 //Conductores
 router.get('/conductors', getConductors)

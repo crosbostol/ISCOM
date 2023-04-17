@@ -104,8 +104,8 @@ export class MantenedorOtComponent implements OnInit {
 
   openEditDialog(row:any){
   const dialogRef = this.dialog.open(FormDialogComponent,{
-    maxWidth: '28rem',
-        maxHeight: '32rem',
+    maxWidth: '53rem',
+        maxHeight: '43rem',
         height: '100%',
         width: '100%',
 

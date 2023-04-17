@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { inventoryDBModel,inv_proDBModel,productDBModel, } from 'src/model/transfer-objects';
+import { inventoryDBModel,inv_proDBModel,productDBModel,otDBModel, itm_otDBModel } from 'src/model/transfer-objects';
 
 @Injectable({
   providedIn: 'root'
@@ -43,6 +43,21 @@ export class ApiService {
   }
   getMovilOc(){
     return this.http.get('/api/movil/get/oc')
+  }
+
+  getItemOH(){
+    return this.http.get('/api/item-oh')
+  }
+  getItemOC(){
+    return this.http.get('/api/item-oc')
+  }
+
+  putOT(body: otDBModel): Observable<any>{
+    return this.http.put(`/api/ot/${body.ot_id}`, body)
+  }
+  postItmOt(body:itm_otDBModel):Observable<any>{
+    console.log("🚀 ~ file: api.service.ts:59 ~ ApiService ~ postItmOt ~ body:", body)
+    return this.http.post('/api/itmot', body)
   }
 
 }

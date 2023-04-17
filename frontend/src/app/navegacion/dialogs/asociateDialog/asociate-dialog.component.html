@@ -21,7 +21,7 @@
         <h4 class="mb-1"> Nombre del producto </h4>
 
         <mat-form-field class=" w-100 col-8" appearance="outline">
-          <mat-select formControlName="product_name" class="col-4" appearance="outline"  placeholder="Producto" class="w-25">
+          <mat-select formControlName="product_name" class="col-4" appearance="outline"  placeholder="Producto" class="w-100">
             <mat-option class="w-100" *ngFor="let product of products" [value]="product">
               {{ product.product_name }}
             </mat-option>

@@ -42,17 +42,17 @@
     hydraulic_movil_id:string,
     civil_movil_id:string,
     ot_state:string,
-    received_at:string,
+    received_at?:string,
     started_at:string,
-    finished_at:string,
+    finished_at?:string,
     observation:string,
-    street:string,
-    number_street:number,
-    commune:string,
-    fuga_location:string,
-    altitude:number,
-    latitude:number,
-    dismissed:boolean
+    street?:string,
+    number_street?:number,
+    commune?:string,
+    fuga_location?:string,
+    altitude?:number,
+    latitude?:number,
+    dismissed?:boolean
   }
   export interface pro_otDBModel{
     ot_id:string,
