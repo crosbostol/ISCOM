@@ -28,6 +28,7 @@ import { FormularioComponent } from './navegacion/formulario/formulario.componen
 import { AddDialogComponent } from './navegacion/dialogs/addDialog/add-dialog.component';
 import { AsociateDialogComponent } from './navegacion/dialogs/asociateDialog/asociate-dialog.component';
 
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
@@ -74,6 +75,7 @@ import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dial
     MatProgressSpinnerModule,
     MatDialogModule,
     FormsModule,
+    MatTabsModule
 
 
   ],

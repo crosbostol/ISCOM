@@ -3,50 +3,14 @@
   <h1 class="m-4" style="color: #00AEEF" > {{title}}</h1>
 </div>
 
-<div  class="w-auto" mat-dialog-content [align]="'left'">
-  <form [formGroup]="formGroup">
-    <div  [ngSwitch]="data.url">
+<div  [ngSwitch]="data.url">
+  <div *ngSwitchCase="'mantenedorOt'" >
 
-      <!-- FORMULARIO EDIT INVENTARIO -->
-      <div *ngSwitchCase="'mantenedorInventario'">
-      <div style="overflow-y: hidden; overflow-x: hidden;">
-        <h4 class="mb-1 refText"> Categoría</h4>
+<mat-tab-group>
+  <mat-tab label="Información OT">
+    <div  class="w-auto" mat-dialog-content [align]="'left'">
 
-        <mat-form-field class=" w-100  col-8" appearance="outline">
-          <input formControlName="product_category" matInput type="text" [placeholder]="data.values.product_category" >
-          <mat-error *ngIf="!formGroup.controls['product_category'].valid
-          && formGroup.controls['product_category'].touched">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-        <h4 class="mb-1 refText"> Unidad del producto </h4>
-
-        <mat-form-field class=" w-100 col-8" appearance="outline">
-          <input  formControlName="product_unit" matInput type="text" [placeholder]="data.values.product_unit" >
-          <mat-error *ngIf="!formGroup.controls['product_unit'].valid
-          && formGroup.controls['product_unit'].touched">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-        <h4 class="mb-1 refText"> Cantidad en inventario</h4>
-
-        <mat-form-field class=" w-100 col-8" appearance="outline">
-          <input formControlName="quantity" matInput type="text" [placeholder]="data.values.quantity" >
-          <mat-error *ngIf="!formGroup.controls['quantity'].valid
-          && formGroup.controls['quantity'].touched">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-        </div>
-      </div>
-      <!-- FORMULARIO EDIT INVENTARIO -->
-
-
-  <!-- FORMULARIO EDIT OT-->
-      <div *ngSwitchCase="'mantenedorOt'" >
+    <form [formGroup]="formGroup">
       <div style="overflow-y: hidden; overflow-x: hidden;">
 
         <h4 class="mb-1 refText"> Estado OT</h4>
@@ -120,56 +84,6 @@
         </mat-form-field>
       </div>
 
-      <div class="row">
-        <h4 class="mb-1 w-0 refText" style="width: 11.5%;">Partida</h4>
-        <h4 class="mb-1 w-50 refText" style="width: 20%;" > Desc. partida</h4>
-        <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Cantidad</h4>
-        <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Precio</h4>
-        <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Total</h4>
-      </div>
-
-      <div class="row">
-
-        <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
-          <input  (keyup)="onItemIdChanged($event)" formControlName="selectedItemId" matInput type="text" placeholder="1291" >
-          <mat-error *ngIf="!formGroup.controls['selectedItemId'].valid
-          && formGroup.controls['selectedItemId'].touched">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field class=" w-50 col-12" appearance="outline">
-          <input formControlName="description"  [value]="selectedItemDescription" matInput type="text" placeholder="1291" >
-
-        </mat-form-field>
-
-        <mat-form-field style="width: 8%; " class=" w-0 col-2" appearance="outline">
-          <input (keyup)="totalValue($event)"  formControlName="quantity" matInput type="text" placeholder="1291" >
-          <mat-error *ngIf="!formGroup.controls['quantity'].valid
-          && formGroup.controls['quantity'].touched">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field style="width: 16%;" class=" w-0 col-2" appearance="outline">
-          <input [value]="selectedItemValue" formControlName="price" matInput type="text" placeholder="12914" >
-          <mat-error *ngIf="!formGroup.controls['price'].valid
-          ">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
-          <input [value]="totalValueItem" formControlName="total" matInput type="number" placeholder="1291" >
-          <mat-error *ngIf="!formGroup.controls['total'].valid
-          ">
-            {{titleAlert}}
-          </mat-error>
-        </mat-form-field>
-
-
-      </div>
-
 
       <mat-form-field style="width: 100%;" class=" w-0 col-2" appearance="outline">
         <textarea [value]="" formControlName="observation" matInput type="text" placeholder="Observaciones" >
@@ -180,7 +94,174 @@
       </mat-form-field>
 
         </div>
+    </form>
+    </div>
+  </mat-tab>
+  <mat-tab label="Partidas OH">
+    <div  class="w-auto" mat-dialog-content [align]="'left'">
+
+    <form [formGroup]="formItemOt" (ngSubmit)="onSubmit()">
+
+      <div class="row">
+        <h4 class="mb-1 w-0 refText" style="width: 11.5%;">Partida</h4>
+        <h4 class="mb-1 w-50 refText" style="width: 20%;" > Desc. partida</h4>
+        <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Cantidad</h4>
+        <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Precio</h4>
+        <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Total</h4>
       </div>
+
+      <div class="row">
+        <!-- <ng-container formArrayName="_itemOT" *ngFor="let itemOT of _itemOT.controls; index as i">
+          <ng-container [formGroupName]="i"> -->
+
+              <!-- <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
+                <input  (keyup)="onItemIdChanged($event)" formControlName="selectedItemId" matInput type="text" placeholder="1291" >
+                <mat-error *ngIf="!formItemOt.controls['selectedItemId'].valid
+                && formItemOt.controls['selectedItemId'].touched">
+                  {{titleAlert}}
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field class=" w-50 col-12" appearance="outline">
+                <input formControlName="description"  [value]="selectedItemDescription" matInput type="text" placeholder="1291" >
+
+              </mat-form-field>
+
+              <mat-form-field style="width: 8%; " class=" w-0 col-2" appearance="outline">
+                <input (keyup)="totalValue($event)"  formControlName="quantity" matInput type="text" placeholder="1291" >
+                <mat-error *ngIf="!formItemOt.controls['quantity'].valid
+                && formItemOt.controls['quantity'].touched">
+                  {{titleAlert}}
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field style="width: 16%;" class=" w-0 col-2" appearance="outline">
+                <input [value]="selectedItemValue" formControlName="price" matInput type="text" placeholder="12914" >
+                <mat-error *ngIf="!formItemOt.controls['price'].valid
+                ">
+                  {{titleAlert}}
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
+                <input [value]="totalValueItem" formControlName="total" matInput type="number" placeholder="1291" >
+                <mat-error *ngIf="!formItemOt.controls['total'].valid
+                ">
+                  {{titleAlert}}
+                </mat-error>
+              </mat-form-field> -->
+
+              <div formArrayName="fields">
+                <div *ngFor="let field of fields.controls; let i=index" [formGroupName]="i">
+
+                  <!-- <div>
+                    <input type="text" id="field1-{{i}}" formControlName="selectedItemId">
+                  </div> -->
+
+                  <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
+                    <input  (keyup)="onItemIdChanged($event, i)" formControlName="selectedItemId" matInput type="text" placeholder="1291" >
+                    <mat-error *ngIf="!formItemOt.controls['selectedItemId'].valid
+                    && formItemOt.controls['selectedItemId'].touched">
+                      {{titleAlert}}
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field class=" w-50 col-12" appearance="outline">
+                    <input formControlName="description"  [value]="selectedItemDescription[i]" matInput type="text" placeholder="1291" >
+
+                  </mat-form-field>
+
+                  <mat-form-field style="width: 8%; " class=" w-0 col-2" appearance="outline">
+                    <input (keyup)="totalValue($event,i)"  formControlName="quantity" matInput type="text" placeholder="1291" >
+                    <mat-error *ngIf="!formItemOt.controls['quantity'].valid
+                    && formItemOt.controls['quantity'].touched">
+                      {{titleAlert}}
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field style="width: 16%;" class=" w-0 col-2" appearance="outline">
+                    <input [value]="selectedItemValue[i]" formControlName="price" matInput type="text" placeholder="12914" >
+                    <mat-error *ngIf="!formItemOt.controls['price'].valid
+                    ">
+                      {{titleAlert}}
+                    </mat-error>
+                  </mat-form-field>
+                  <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
+                    <input [value]="totalValueItem[i]" formControlName="total" matInput type="number" placeholder="1291" >
+                    <mat-error *ngIf="!formItemOt.controls['total'].valid
+                    ">
+                      {{titleAlert}}
+                    </mat-error>
+                  </mat-form-field>
+
+                  <button type="button" (click)="removeField(i)">Eliminar campo</button>
+                </div>
+              </div>
+
+              <button type="button" (click)="addField()">Agregar campo</button>
+
+              <button type="submit">Enviar</button>
+
+          <!-- </ng-container>
+
+        </ng-container>
+        <button type="button" (click)="additemOtForm()">Add</button> -->
+
+      </div>
+
+    </form>
+    </div>
+  </mat-tab>
+</mat-tab-group>
+  </div>
+</div>
+
+
+
+<div  class="w-auto" mat-dialog-content [align]="'left'">
+  <form [formGroup]="formGroup">
+    <div  [ngSwitch]="data.url">
+
+      <!-- FORMULARIO EDIT INVENTARIO -->
+      <div *ngSwitchCase="'mantenedorInventario'">
+      <div style="overflow-y: hidden; overflow-x: hidden;">
+        <h4 class="mb-1 refText"> Categoría</h4>
+
+        <mat-form-field class=" w-100  col-8" appearance="outline">
+          <input formControlName="product_category" matInput type="text" [placeholder]="data.values.product_category" >
+          <mat-error *ngIf="!formGroup.controls['product_category'].valid
+          && formGroup.controls['product_category'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <h4 class="mb-1 refText"> Unidad del producto </h4>
+
+        <mat-form-field class=" w-100 col-8" appearance="outline">
+          <input  formControlName="product_unit" matInput type="text" [placeholder]="data.values.product_unit" >
+          <mat-error *ngIf="!formGroup.controls['product_unit'].valid
+          && formGroup.controls['product_unit'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        <h4 class="mb-1 refText"> Cantidad en inventario</h4>
+
+        <mat-form-field class=" w-100 col-8" appearance="outline">
+          <input formControlName="quantity" matInput type="text" [placeholder]="data.values.quantity" >
+          <mat-error *ngIf="!formGroup.controls['quantity'].valid
+          && formGroup.controls['quantity'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+        </div>
+      </div>
+      <!-- FORMULARIO EDIT INVENTARIO -->
+
+
+  <!-- FORMULARIO EDIT OT-->
+
       <!-- FORMULARIO EDIT OT-->
 
 

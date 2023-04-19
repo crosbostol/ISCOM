@@ -3,7 +3,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { interval, take, lastValueFrom } from 'rxjs';
 import { FormularioComponent } from '../../formulario/formulario.component';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray } from '@angular/forms';
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 
@@ -22,11 +22,13 @@ cancelButtonText = "Cancel"
 categories: String[]
 title: string
 formGroup: FormGroup
+formItemOt: FormGroup
 formInvPro: {}
 disablepInput = true
   tit_btn: string;
   editing: boolean;
 titleAlert : string = "Requerido"
+itemOTForm = [{selectedItemId: '', ot_id:'', quantity:''}]
 public civil_chofer: any =[]
 public item_OH: any =[]
 public item_OC: any =[]
@@ -51,7 +53,7 @@ constructor(private apiService : ApiService,
     }
     this.dialogRef.updateSize('200vw','200vw')
   }
-
+fields: FormArray
   ngOnInit(){
     console.log(this.data.values)
     switch (this.data.url) {
@@ -64,6 +66,18 @@ constructor(private apiService : ApiService,
          })
         break;
          case "mantenedorOt":
+         this.formItemOt = this.formBuilder.group({
+          'selectedItemId':[null, Validators.required],
+          'quantity':[null, Validators.required],
+          'total':[null, Validators.required],
+          'price':[null, Validators.required],
+          'description':[null, Validators.required],
+
+          fields: this.formBuilder.array([ this.createField() ])
+         })
+
+         this.fields = this.formItemOt.get('fields') as FormArray;
+
           this.formGroup = this.formBuilder.group({
            'ot_state':[null, Validators.required],
            'direction':[{value: '', disabled:true}, Validators.required],
@@ -71,12 +85,10 @@ constructor(private apiService : ApiService,
            'hydraulic_movil_id':[null, Validators.required],
            'n_hidraulico':[null, Validators.required],
            'n_civil':[null, Validators.required],
-           'selectedItemId':[null, Validators.required],
-           'quantity':[null, Validators.required],
-           'price':[null, Validators.required],
-           'total':[null, Validators.required],
            'observation':[null, Validators.required],
-           'description':[null, Validators.required],
+          //  'selectedItemId':[null, Validators.required],
+          // 'quantity':[null, Validators.required],
+
           })
           this.getMovilOc()
           this.getItemOC()
@@ -90,6 +102,40 @@ constructor(private apiService : ApiService,
       this.tit_btn = "Editar";
       this.fillUp();
     }
+  }
+
+  createField(): FormGroup {
+    return this.formBuilder.group({
+      selectedItemId: ['', Validators.required],
+      description: ['', Validators.required],
+      quantity: ['', Validators.required],
+      price: ['', Validators.required],
+      total: ['', Validators.required],
+    });
+  }
+  addField(): void {
+    console.log("a")
+    this.fields.push(this.createField());
+  }
+  removeField(index: number): void {
+    this.fields.removeAt(index);
+  }
+  onSubmit(): void {
+    console.log(this.formItemOt.value);
+    console.log(this.formItemOt.value.fields)
+    this.formItemOt.value.fields.map(()=>console.log("a"))
+  }
+
+  get _itemOT(): FormArray {
+    return this.formItemOt.get('_itemOT') as FormArray;
+  }
+
+  additemOtForm(){
+    this._itemOT.push(this.formBuilder.group({
+      item_id:null,
+      ot_id:this.data.values.ot_id,
+      quantity:null
+    }))
   }
 
   public selectedOption: string
@@ -111,11 +157,12 @@ fillUp(){
       this.formGroup.controls['hydraulic_movil_id'].setValue(this.data.values.hydraulic_movil_id)
       this.formGroup.controls['n_hidraulico'].setValue(this.data.values.n_hidraulico)
       this.formGroup.controls['n_civil'].setValue(this.data.values.n_civil)
-      this.formGroup.controls['selectedItemId'].setValue(this.data.values.item_id)
+      this.formItemOt.controls['selectedItemId'].setValue(this.data.values.item_id)
       this.formGroup.controls['observation'].setValue(this.data.values.observation)
-      this.formGroup.controls['description'].setValue(this.data.values.description)
-      this.formGroup.controls['quantity'].setValue(this.data.values.quantity)
-      this.formGroup.controls['price'].setValue(this.data.values.price)
+      this.formItemOt.controls['description'].setValue(this.data.values.description)
+      this.formItemOt.controls['quantity'].setValue(this.data.values.quantity)
+      this.formItemOt.controls['price'].setValue(this.data.values.price)
+
 
       // luego consumir endpoint para traer los item id
       break;
@@ -146,6 +193,7 @@ formButtonEvent(){
          });
       break;
       case "mantenedorOt":
+        console.log(this.formItemOt)
         const currentDate = new Date();
         const formattedDate = moment(currentDate).format('YYYY-MM-DD')
         let formOT: otDBModel = {
@@ -156,18 +204,23 @@ formButtonEvent(){
           started_at: formattedDate,
           ot_id: this.data.values.ot_id
         }
-      let formOtItem: itm_otDBModel = {
-        item_id:this.formGroup.value.selectedItemId,
-        ot_id: this.data.values.ot_id,
-        quantity:this.formGroup.value.quantity,
 
 
-      }
-         const subOTitm = this.apiService.postItmOt(formOtItem)
-         .subscribe({
-           next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-           error: (error) => console.log(error),
-         });
+      this.formItemOt.value.fields.map((values: any)=>{
+        let formOtItem: itm_otDBModel = {
+          item_id:values.selectedItemId,
+          ot_id: this.data.values.ot_id,
+          quantity:values.quantity,
+
+
+        }
+        console.log(values);
+        const subOTitm = this.apiService.postItmOt(formOtItem)
+      .subscribe({
+        next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+        error: (error) => console.log(error),
+      });})
+
       break;
   }
 
@@ -236,25 +289,28 @@ NameOfConductor(row: any){
 
 }
 selectedItemId: string;
-selectedItemDescription: string;
-selectedItemValue: any;
+selectedItemDescription: string[] = new Array(10).fill('');;
+selectedItemValue: number[] = new Array(10).fill(0);;
+totalValueItem: number[] = new Array(10).fill(0);;
 
-onItemIdChanged(event: any, ) {
+onItemIdChanged(event: any, index:number ) {
   const selectedItem = this.item_OH.find((((item: { item_id: string; }) =>  item.item_id === event.target.value)));
+  console.log("🚀 ~ file: form-dialog.component.ts:289 ~ FormDialogComponent ~ onItemIdChanged ~  const selectedItem:",   selectedItem)
 
     if (selectedItem) {
-    this.selectedItemValue = parseFloat(selectedItem.item_value.replace(/[^0-9.-]+/g,""));
-    this.selectedItemDescription = selectedItem.description;
+      console.log("äa")
+    this.selectedItemValue[index] = parseFloat(selectedItem.item_value.replace(/[^0-9.-]+/g,""));
+    this.selectedItemDescription[index] = selectedItem.description;
 
   } else {
-    this.selectedItemDescription = '';
+    this.selectedItemDescription[index] = '';
 
   }
 }
-totalValueItem:any
 
-totalValue(event: any){
-this.totalValueItem = this.selectedItemValue * event.target.value
+
+totalValue(event: any, index:number){
+  this.totalValueItem[index] = this.selectedItemValue[index] * event.target.value
 
 }
 
