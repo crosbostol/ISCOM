@@ -60,4 +60,8 @@ export class ApiService {
     return this.http.post('/api/itmot', body)
   }
 
+  getProductsOh(){
+    return this.http.get('/api/product')
+  }
+
 }

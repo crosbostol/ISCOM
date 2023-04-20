@@ -6,16 +6,16 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dial
 import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray } from '@angular/forms';
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
-import { oTItemDialogComponent } from '../../formularios/otItemDialog/ot-item-dialog.component';
+
 @Component({
-  selector: 'app-form-dialog',
-  templateUrl: './form-dialog.component.html',
-  styleUrls: ['./form-dialog.component.scss']
+  selector: 'ot-item-dialog',
+  templateUrl: './ot-item-dialog.component.html',
+  styleUrls: ['./ot-item-dialog.component.scss']
 })
 
 
 
-export class FormDialogComponent implements OnInit {
+export class oTItemDialogComponent implements OnInit {
   clicked: boolean = false
   message: string = ""
 cancelButtonText = "Cancel"
@@ -39,7 +39,7 @@ public movilId: string
 
 constructor(private apiService : ApiService,
   @Inject(MAT_DIALOG_DATA) public data: any,
-  private dialogRef: MatDialogRef<FormDialogComponent>,
+  private dialogRef: MatDialogRef<oTItemDialogComponent>,
   private formBuilder:FormBuilder,
   private dialog: MatDialog
    )
@@ -57,14 +57,6 @@ fields: FormArray
   ngOnInit(){
     console.log(this.data.values)
     switch (this.data.url) {
-      case "mantenedorInventario":
-         this.formGroup = this.formBuilder.group({
-          'product_category': [{value: '', disabled:true}, Validators.required],
-          'product_name': [{value: '', disabled:true}, Validators.required],
-          'product_unit':[{value: '', disabled:true}, Validators.required],
-          'quantity': [null, Validators.required]
-         })
-        break;
          case "mantenedorOt":
          this.formItemOt = this.formBuilder.group({
           'selectedItemId':[null, Validators.required],
@@ -78,19 +70,6 @@ fields: FormArray
 
          this.fields = this.formItemOt.get('fields') as FormArray;
 
-          this.formGroup = this.formBuilder.group({
-           'ot_state':[null, Validators.required],
-           'direction':[{value: '', disabled:true}, Validators.required],
-           'civil_movil_id':[null, Validators.required],
-           'hydraulic_movil_id':[null, Validators.required],
-           'n_hidraulico':[null, Validators.required],
-           'n_civil':[null, Validators.required],
-           'observation':[null, Validators.required],
-          //  'selectedItemId':[null, Validators.required],
-          // 'quantity':[null, Validators.required],
-
-          })
-          this.getMovilOc()
           this.getItemOC()
           this.getItemOH()
           break;
@@ -141,13 +120,6 @@ fields: FormArray
   public selectedOption: string
 fillUp(){
   switch (this.data.url) {
-    case "mantenedorInventario":
-      this.title = "Editando "+ this.data.values.product_name +" de " + this.data.values.inventory_id
-        this.formGroup.controls['product_category'].setValue(this.data.values.product_category)
-        this.formGroup.controls['product_name'].setValue(this.data.values.product_name)
-        this.formGroup.controls['product_unit'].setValue(this.data.values.product_unit)
-        this.formGroup.controls['quantity'].setValue(this.data.values.quantity)
-      break;
     case "mantenedorOt":
       this.selectedOption = this.data.values.civil_movil_id
       this.title = "Editando "+ this.data.values.ot_id
@@ -177,54 +149,38 @@ fillUp(){
 formButtonEvent(){
   console.log(this.formGroup)
   console.log(this.data.values)
-  console.log(this.formItemOt.value.fields)
-
-  // switch (this.data.url) {
-  //   case "mantenedorInventario":
-  //     let formInvPro: inv_proDBModel = {
-  //       inventory_id: this.data.values.inventory_id,
-  //       product_id: this.data.values.product_id,
-  //       quantity: this.formGroup.value.quantity
-  //     }
-
-  //      // var formData: any = new FormData();
-  //      const sub = this.apiService.putInvPro(formInvPro)
-  //        .subscribe({
-  //          next: (response) => {sub.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //          error: (error) => console.log(error),
-  //        });
-  //     break;
-  //     case "mantenedorOt":
-  //       console.log(this.formItemOt)
-  //       const currentDate = new Date();
-  //       const formattedDate = moment(currentDate).format('YYYY-MM-DD')
-  //       let formOT: otDBModel = {
-  //         ot_state: this.formGroup.value.ot_state,
-  //         civil_movil_id: this.formGroup.value.civil_movil_id,
-  //         hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
-  //         observation: this.formGroup.value.observation,
-  //         started_at: formattedDate,
-  //         ot_id: this.data.values.ot_id
-  //       }
+  switch (this.data.url) {
+      case "mantenedorOt":
+        console.log(this.formItemOt)
+        const currentDate = new Date();
+        const formattedDate = moment(currentDate).format('YYYY-MM-DD')
+        let formOT: otDBModel = {
+          ot_state: this.formGroup.value.ot_state,
+          civil_movil_id: this.formGroup.value.civil_movil_id,
+          hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
+          observation: this.formGroup.value.observation,
+          started_at: formattedDate,
+          ot_id: this.data.values.ot_id
+        }
 
 
-  //     this.formItemOt.value.fields.map((values: any)=>{
-  //       let formOtItem: itm_otDBModel = {
-  //         item_id:values.selectedItemId,
-  //         ot_id: this.data.values.ot_id,
-  //         quantity:values.quantity,
+      this.formItemOt.value.fields.map((values: any)=>{
+        let formOtItem: itm_otDBModel = {
+          item_id:values.selectedItemId,
+          ot_id: this.data.values.ot_id,
+          quantity:values.quantity,
 
 
-  //       }
-  //       console.log(values);
-  //       const subOTitm = this.apiService.postItmOt(formOtItem)
-  //     .subscribe({
-  //       next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //       error: (error) => console.log(error),
-  //     });})
+        }
+        console.log(values);
+        const subOTitm = this.apiService.postItmOt(formOtItem)
+      .subscribe({
+        next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+        error: (error) => console.log(error),
+      });})
 
-  //     break;
-  // }
+      break;
+  }
 
 
 

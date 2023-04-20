@@ -10,7 +10,8 @@ const pool = new Pool({
 })
 
 const getProducts = async (req, res) =>{
-    const response =  await  pool.query('SELECT * FROM product',
+    const product_type = 'HIDRAULICO'
+    const response =  await  pool.query(`SELECT * FROM product where product_category = '${product_type}'`,
     (error, results) => {
         if(error){
             console.log('error', error)

@@ -1,0 +1,59 @@
+<div  class="w-auto" mat-dialog-content [align]="'left'">
+
+  <form [formGroup]="formMaterialOt" (ngSubmit)="onSubmit()">
+
+    <div class="row">
+      <h4 class="mb-1 w-0 refText" style="width: 11.5%;">Partida</h4>
+      <h4 class="mb-1 w-0 refText" style="width: 75%;" > Desc. partida</h4>
+      <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Cantidad</h4>
+    </div>
+
+    <div class="row">
+            <div formArrayName="fields">
+              <div *ngFor="let field of fields.controls; let i=index" [formGroupName]="i">
+
+                <!-- <div>
+                  <input type="text" id="field1-{{i}}" formControlName="selectedMaterialId">
+                </div> -->
+
+                <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
+                  <input  (keyup)="onItemIdChanged($event, i)" formControlName="selectedMaterialId" matInput type="text" placeholder="1291" >
+                  <mat-error *ngIf="!formMaterialOt.controls['selectedMaterialId'].valid
+                  && formMaterialOt.controls['selectedMaterialId'].touched">
+                    {{titleAlert}}
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field style="width: 77%; " class=" w-0 col-12" appearance="outline">
+                  <input formControlName="description"  [value]="selectedItemDescription[i]" matInput type="text" placeholder="1291" >
+
+                </mat-form-field>
+
+                <mat-form-field style="width: 11.5%; " class=" w-0 col-2" appearance="outline">
+                  <input (keyup)="totalValue($event,i)"  formControlName="quantity" matInput type="text" placeholder="1291" >
+                  <mat-error *ngIf="!formMaterialOt.controls['quantity'].valid
+                  && formMaterialOt.controls['quantity'].touched">
+                    {{titleAlert}}
+                  </mat-error>
+                </mat-form-field>
+
+
+
+
+                <button type="button" (click)="removeField(i)">Eliminar campo</button>
+              </div>
+            </div>
+
+            <button type="button" (click)="addField()">Agregar campo</button>
+
+            <button type="submit">Enviar</button>
+
+        <!-- </ng-container>
+
+      </ng-container>
+      <button type="button" (click)="additemOtForm()">Add</button> -->
+
+    </div>
+
+  </form>
+  </div>
