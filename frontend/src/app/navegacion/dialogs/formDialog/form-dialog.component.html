@@ -6,7 +6,7 @@
 <div  [ngSwitch]="data.url">
   <div *ngSwitchCase="'mantenedorOt'" >
 
-<mat-tab-group>
+<mat-tab-group [selectedIndex]="tabRouting">
   <mat-tab label="Información OT">
     <div  class="w-auto" mat-dialog-content [align]="'left'">
 
@@ -97,13 +97,20 @@
     </form>
     </div>
   </mat-tab>
-  <mat-tab label="Partidas OH">
+  <mat-tab  label="Partidas OH">
     <ot-item-dialog></ot-item-dialog>
   </mat-tab>
   <mat-tab label="Material OH">
-    <ot-material-dialog></ot-material-dialog>
+    <ot-material-dialog (tabChanged)="changeTabIndex($event)"></ot-material-dialog>
+  </mat-tab>
+  <mat-tab label="Partidas OC">
+    <ot-itemOC-dialog></ot-itemOC-dialog>
   </mat-tab>
 </mat-tab-group>
+
+<!-- <button (click)="changeTabIndex(-1)">Anterior</button>
+<button (click)="changeTabIndex(1)">Siguiente</button> -->
+
   </div>
 </div>
 

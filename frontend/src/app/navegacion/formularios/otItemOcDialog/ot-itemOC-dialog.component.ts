@@ -8,21 +8,21 @@ import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/mod
 import * as moment from 'moment';
 import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
 @Component({
-  selector: 'ot-item-dialog',
-  templateUrl: './ot-item-dialog.component.html',
-  styleUrls: ['./ot-item-dialog.component.scss']
+  selector: 'ot-itemOC-dialog',
+  templateUrl: './ot-itemOC-dialog.component.html',
+  styleUrls: ['./ot-itemOC-dialog.component.scss']
 })
 
 
 
-export class oTItemDialogComponent implements OnInit {
+export class oTItemOCDialogComponent implements OnInit {
   clicked: boolean = false
   message: string = ""
 cancelButtonText = "Cancel"
 categories: String[]
 title: string
 formGroup: FormGroup
-formItemOt: FormGroup
+formOCItemOt: FormGroup
 formInvPro: {}
 disablepInput = true
   tit_btn: string;
@@ -39,7 +39,7 @@ public movilId: string
 
 constructor(private apiService : ApiService,
   @Inject(MAT_DIALOG_DATA) public data: any,
-  private dialogRef: MatDialogRef<oTItemDialogComponent>,
+  private dialogRef: MatDialogRef<oTItemOCDialogComponent>,
   private formBuilder:FormBuilder,
   private dialog: MatDialog,
   private formDialog: MatDialogRef<FormDialogComponent>
@@ -60,7 +60,7 @@ fields: FormArray
     console.log(this.data.values)
     switch (this.data.url) {
          case "mantenedorOt":
-         this.formItemOt = this.formBuilder.group({
+         this.formOCItemOt = this.formBuilder.group({
           'selectedItemId':[null, Validators.required],
           'quantity':[null, Validators.required],
           'total':[null, Validators.required],
@@ -70,10 +70,9 @@ fields: FormArray
           fields: this.formBuilder.array([ this.createField() ])
          })
 
-         this.fields = this.formItemOt.get('fields') as FormArray;
+         this.fields = this.formOCItemOt.get('fields') as FormArray;
 
           this.getItemOC()
-          this.getItemOH()
           break;
 
 
@@ -102,13 +101,13 @@ fields: FormArray
     this.fields.removeAt(index);
   }
   onSubmit(): void {
-    console.log(this.formItemOt.value);
-    console.log(this.formItemOt.value.fields)
-    this.formItemOt.value.fields.map(()=>console.log("a"))
+    console.log(this.formOCItemOt.value);
+    console.log(this.formOCItemOt.value.fields)
+    this.formOCItemOt.value.fields.map(()=>console.log("a"))
   }
 
   get _itemOT(): FormArray {
-    return this.formItemOt.get('_itemOT') as FormArray;
+    return this.formOCItemOt.get('_itemOT') as FormArray;
   }
 
   additemOtForm(){
@@ -131,11 +130,11 @@ fillUp(){
       this.formGroup.controls['hydraulic_movil_id'].setValue(this.data.values.hydraulic_movil_id)
       this.formGroup.controls['n_hidraulico'].setValue(this.data.values.n_hidraulico)
       this.formGroup.controls['n_civil'].setValue(this.data.values.n_civil)
-      this.formItemOt.controls['selectedItemId'].setValue(this.data.values.item_id)
+      this.formOCItemOt.controls['selectedItemId'].setValue(this.data.values.item_id)
       this.formGroup.controls['observation'].setValue(this.data.values.observation)
-      this.formItemOt.controls['description'].setValue(this.data.values.description)
-      this.formItemOt.controls['quantity'].setValue(this.data.values.quantity)
-      this.formItemOt.controls['price'].setValue(this.data.values.price)
+      this.formOCItemOt.controls['description'].setValue(this.data.values.description)
+      this.formOCItemOt.controls['quantity'].setValue(this.data.values.quantity)
+      this.formOCItemOt.controls['price'].setValue(this.data.values.price)
 
 
       // luego consumir endpoint para traer los item id
@@ -152,13 +151,13 @@ formButtonEvent(){
   //console.log(this.data.values)
 
 
-        console.log(this.formItemOt)
+        console.log(this.formOCItemOt)
         const currentDate = new Date();
         const formattedDate = moment(currentDate).format('YYYY-MM-DD')
 
 
 
-      this.formItemOt.value.fields.map((values: any)=>{
+      this.formOCItemOt.value.fields.map((values: any)=>{
         let formOtItem: itm_otDBModel = {
           item_id:values.selectedItemId,
           ot_id: this.data.values.ot_id,
@@ -185,38 +184,8 @@ formButtonEvent(){
 }
 
 //Trae los móviles de civil y los nombres de los chóferes
-getMovilOc(){
-  const id = this.data.inventory
-  console.log("🚀 ~ file: mantenedor-inventario.component.ts:35 ~ MantenedorInventarioComponent ~ loadInventario ~ id:", id)
-
-  lastValueFrom(this.apiService.getMovilOc())
-  .then(payload =>{
-
-    this.civil_chofer = payload
-    this.civil_chofer = Object.values(this.civil_chofer.rows)
-    console.log(this.civil_chofer)
-  })
-  .catch(err => {
-    alert("Error al cargar los productos")
-    console.error(err)
-  });
-}
 
 
-getItemOH(){
-
-  lastValueFrom(this.apiService.getItemOH())
-  .then(payload =>{
-
-    this.item_OH = payload
-    this.item_OH = Object.values(this.item_OH)
-    console.log(this.item_OH)
-  })
-  .catch(err => {
-    alert("Error al cargar los PARTIDAS OH")
-    console.error(err)
-  });
-}
 getItemOC(){
 
   lastValueFrom(this.apiService.getItemOC())
@@ -232,24 +201,15 @@ getItemOC(){
   });
 }
 
-// Esto pone el nombre del conductor según el id del movil
-
-NameOfConductor(row: any){
-
-  const Name = this.civil_chofer.find((((name: { movil_id: string; }) => name.movil_id === row)));
-  this.conductorName = Name.name
-  console.log("🚀 ~ file: form-dialog.component.ts:196 ~ FormDialogComponent ~ NameOfConductor ~ this.conductorName:", this.conductorName)
-  this.movilId = row.movil_id
 
 
-}
 selectedItemId: string;
 selectedItemDescription: string[] = new Array(10).fill('');;
 selectedItemValue: number[] = new Array(10).fill(0);;
 totalValueItem: number[] = new Array(10).fill(0);;
 
 onItemIdChanged(event: any, index:number ) {
-  const selectedItem = this.item_OH.find((((item: { item_id: string; }) =>  item.item_id === event.target.value)));
+  const selectedItem = this.item_OC.find((((item: { item_id: string; }) =>  item.item_id === event.target.value)));
   console.log("🚀 ~ file: form-dialog.component.ts:289 ~ FormDialogComponent ~ onItemIdChanged ~  const selectedItem:",   selectedItem)
 
     if (selectedItem) {

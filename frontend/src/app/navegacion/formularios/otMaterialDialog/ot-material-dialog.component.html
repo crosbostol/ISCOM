@@ -4,9 +4,27 @@
 
     <div class="row">
       <h4 class="mb-1 w-0 refText" style="width: 11.5%;">Partida</h4>
-      <h4 class="mb-1 w-0 refText" style="width: 75%;" > Desc. partida</h4>
+      <h4 class="mb-1 w-0 refText" style="width: 75%;" > Nombre material</h4>
       <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Cantidad</h4>
     </div>
+
+    <div *ngIf="visualizer">
+    <div  *ngFor="let item of productsOT">
+      <mat-form-field style="width: 11.5%;" class="w-0 col-2" appearance="outline">
+        <input  [disabled]="visualizer" formControlName="selectedMaterialId" matInput type="text" [placeholder]="item.product_id">
+
+      </mat-form-field>
+
+      <mat-form-field style="width: 77%;" class="w-0 col-12" appearance="outline">
+        <input formControlName="description" matInput type="text" [placeholder]="item.product_name">
+      </mat-form-field>
+
+      <mat-form-field style="width: 11.5%;" class="w-0 col-2" appearance="outline">
+        <input formControlName="quantity" matInput type="text" [placeholder]="item.quantity">
+
+      </mat-form-field>
+    </div>
+  </div>
 
     <div class="row">
             <div formArrayName="fields">
@@ -22,15 +40,15 @@
                   && formMaterialOt.controls['selectedMaterialId'].touched">
                     {{titleAlert}}
                   </mat-error>
-                </mat-form-field>
+                </mat-form-field>.
 
-                <mat-form-field style="width: 77%; " class=" w-0 col-12" appearance="outline">
+                <mat-form-field style="width: 70%; " class=" w-0 col-12" appearance="outline">
                   <input formControlName="description"  [value]="selectedItemDescription[i]" matInput type="text" placeholder="1291" >
 
                 </mat-form-field>
 
                 <mat-form-field style="width: 11.5%; " class=" w-0 col-2" appearance="outline">
-                  <input (keyup)="totalValue($event,i)"  formControlName="quantity" matInput type="text" placeholder="1291" >
+                  <input  formControlName="quantity" matInput type="text" placeholder="1291" >
                   <mat-error *ngIf="!formMaterialOt.controls['quantity'].valid
                   && formMaterialOt.controls['quantity'].touched">
                     {{titleAlert}}

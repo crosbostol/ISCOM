@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { inventoryDBModel,inv_proDBModel,productDBModel,otDBModel, itm_otDBModel } from 'src/model/transfer-objects';
+import { inventoryDBModel,inv_proDBModel,productDBModel,otDBModel, itm_otDBModel,pro_otDBModel } from 'src/model/transfer-objects';
 
 @Injectable({
   providedIn: 'root'
@@ -63,5 +63,20 @@ export class ApiService {
   getProductsOh(){
     return this.http.get('/api/product')
   }
+  postMatOt(body:pro_otDBModel):Observable<any>{
+    console.log("api service", body)
+    return this.http.post('/api/pro-ot',body)
+
+  }
+  getDetailsOtProduct(ot_id: string){
+    return this.http.get(`/api/detailsOtProduct/${ot_id}`)
+
+  }
+  getDetailsOtItem(ot_id: string, item_type:string){
+    return this.http.get(`/api/detailsOtItem/${ot_id}/${item_type}`)
+
+  }
+
+
 
 }

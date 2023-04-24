@@ -4,13 +4,15 @@ import { interval, take, lastValueFrom } from 'rxjs';
 import { FormularioComponent } from '../../formulario/formulario.component';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray } from '@angular/forms';
-import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
+import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel,pro_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
-
+import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
 @Component({
   selector: 'ot-material-dialog',
   templateUrl: './ot-material-dialog.component.html',
-  styleUrls: ['./ot-material-dialog.component.scss']
+  styleUrls: ['./ot-material-dialog.component.scss'],
+
+
 })
 
 
@@ -27,21 +29,24 @@ formInvPro: {}
 disablepInput = true
   tit_btn: string;
   editing: boolean;
+  visualizer: boolean
 titleAlert : string = "Requerido"
-itemOTForm = [{selectedMaterialId: '', ot_id:'', quantity:''}]
 public civil_chofer: any =[]
 public products: any =[]
+public productsOT: any =[]
 public item_OC: any =[]
 public conductorName:  string
 public movilId: string
 @Output() close: EventEmitter<any> = new EventEmitter();
+@Output() tabChanged = new EventEmitter<number>();
 
 
 constructor(private apiService : ApiService,
   @Inject(MAT_DIALOG_DATA) public data: any,
   private dialogRef: MatDialogRef<oTMaterialDialogComponent>,
   private formBuilder:FormBuilder,
-  private dialog: MatDialog
+  private dialog: MatDialog,
+  private formDialog: MatDialogRef<FormDialogComponent>
    )
 
   {
@@ -54,6 +59,9 @@ constructor(private apiService : ApiService,
     this.dialogRef.updateSize('200vw','200vw')
   }
 fields: FormArray
+
+
+
   ngOnInit(){
 
          this.formMaterialOt = this.formBuilder.group({
@@ -68,17 +76,20 @@ fields: FormArray
 
           //this.getItemOC()
           this.getProductsOH()
+          this.getProductsOT()
 
 
 
 
     if(this.data.values){
-      this.editing = true;
+      this.visualizer = true;
       this.tit_btn = "Editar";
       //this.fillUp();
     }
   }
-
+  changeTabIndex(index: number) {
+    this.tabChanged.emit(index);
+  }
   createField(): FormGroup {
     return this.formBuilder.group({
       selectedMaterialId: ['', Validators.required],
@@ -98,97 +109,50 @@ fields: FormArray
     console.log(this.formMaterialOt.value.fields)
     this.formMaterialOt.value.fields.map(()=>console.log("a"))
   }
-
-  get _itemOT(): FormArray {
-    return this.formMaterialOt.get('_itemOT') as FormArray;
-  }
-
-  additemOtForm(){
-    this._itemOT.push(this.formBuilder.group({
-      item_id:null,
-      ot_id:this.data.values.ot_id,
-      quantity:null
-    }))
-  }
-
   public selectedOption: string
 fillUp(){
-  switch (this.data.url) {
-    case "mantenedorOt":
+
+
       // this.selectedOption = this.data.values.civil_movil_id
       // this.title = "Editando "+ this.data.values.ot_id
-      // this.formMaterialOt.controls['selectedMaterialId'].setValue(this.data.values.item_id)
+      this.formMaterialOt.controls['selectedMaterialId'].setValue(this.data.values.product_id)
       // this.formMaterialOt.controls['description'].setValue(this.data.values.description)
       // this.formMaterialOt.controls['quantity'].setValue(this.data.values.quantity)
 
 
       // luego consumir endpoint para traer los item id
-      break;
-
-
-
-  }
-
 
 }
 
 formButtonEvent(){
-  console.log(this.formGroup)
-  console.log(this.data.values)
-  switch (this.data.url) {
-      case "mantenedorOt":
-        console.log(this.formMaterialOt)
-        const currentDate = new Date();
-        const formattedDate = moment(currentDate).format('YYYY-MM-DD')
-        let formOT: otDBModel = {
-          ot_state: this.formGroup.value.ot_state,
-          civil_movil_id: this.formGroup.value.civil_movil_id,
-          hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
-          observation: this.formGroup.value.observation,
-          started_at: formattedDate,
-          ot_id: this.data.values.ot_id
-        }
-
-
       this.formMaterialOt.value.fields.map((values: any)=>{
-        let formOtItem: itm_otDBModel = {
-          item_id:values.selectedMaterialId,
+        console.warn(values)
+        let formOtItem: pro_otDBModel = {
           ot_id: this.data.values.ot_id,
+          product_id:values.selectedMaterialId,
           quantity:values.quantity,
+          inventory_id: "INV-"+this.data.values.hydraulic_movil_id.replace("-","")
 
 
         }
-        console.log(values);
-        const subOTitm = this.apiService.postItmOt(formOtItem)
+        console.warn(formOtItem);
+        const subOTitm = this.apiService.postMatOt(formOtItem)
       .subscribe({
         next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
         error: (error) => console.log(error),
-      });})
+      });
+    }
+      )
 
-      break;
-  }
-
+      this.formDialog.afterClosed().subscribe(()=>{
+        this.sendata.unsubscribe()
+      })
 
 
 
 }
 
 //Trae los móviles de civil y los nombres de los chóferes
-getMovilOc(){
-  const id = this.data.inventory
-  console.log("🚀 ~ file: mantenedor-inventario.component.ts:35 ~ MantenedorInventarioComponent ~ loadInventario ~ id:", id)
-
-  lastValueFrom(this.apiService.getMovilOc())
-  .then(payload =>{
-
-    this.civil_chofer = payload
-    this.civil_chofer = Object.values(this.civil_chofer.rows)
-  })
-  .catch(err => {
-    alert("Error al cargar los productos")
-    console.error(err)
-  });
-}
 
 
 getProductsOH(){
@@ -204,32 +168,23 @@ getProductsOH(){
     console.error(err)
   });
 }
-getItemOC(){
 
-  lastValueFrom(this.apiService.getItemOC())
+getProductsOT(){
+
+  lastValueFrom(this.apiService.getDetailsOtProduct(this.data.values.ot_id))
   .then(payload =>{
 
-    this.item_OC = payload
-    this.item_OC = Object.values(this.item_OC)
-    console.log(this.item_OC)
+    this.productsOT = payload
+    this.productsOT = Object.values(this.productsOT )
+    console.log("🚀 ~ file: ot-material-dialog.component.ts:177 ~ oTMaterialDialogComponent ~ getProductsOT ~  this.products:",  this.productsOT)
   })
   .catch(err => {
-    alert("Error al cargar los PARTIDAS OC")
+    alert("Error al cargar los PARTIDAS OH")
     console.error(err)
   });
 }
 
-// Esto pone el nombre del conductor según el id del movil
 
-NameOfConductor(row: any){
-
-  const Name = this.civil_chofer.find((((name: { movil_id: string; }) => name.movil_id === row)));
-  this.conductorName = Name.name
-  console.log("🚀 ~ file: form-dialog.component.ts:196 ~ FormDialogComponent ~ NameOfConductor ~ this.conductorName:", this.conductorName)
-  this.movilId = row.movil_id
-
-
-}
 selectedMaterialId: string;
 selectedItemDescription: string[] = new Array(10).fill('');;
 selectedItemValue: number[] = new Array(10).fill(0);;
@@ -249,13 +204,8 @@ onItemIdChanged(event: any, index: number) {
     this.selectedItemDescription[index] = '';
   }
 }
-
-
-totalValue(event: any, index:number){
-  this.totalValueItem[index] = this.selectedItemValue[index] * event.target.value
-
-}
-
+sendata = this.formDialog.componentInstance.Complete.subscribe(()=>
+{this.formButtonEvent()})
 
 }
 

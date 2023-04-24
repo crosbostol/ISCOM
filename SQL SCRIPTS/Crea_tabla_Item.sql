@@ -1,21 +1,18 @@
-CREATE TABLE IF NOT EXISTS public.itm_ot
+-- Table: public.item
+
+-- DROP TABLE IF EXISTS public.item;
+
+CREATE TABLE IF NOT EXISTS public.item
 (
-    item_id integer COLLATE pg_catalog."default" NOT NULL,
-    ot_id character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    quantity integer NOT NULL,
-    created_at date DEFAULT 'CURRENT_DATE',
-    CONSTRAINT itm_ot_pkey PRIMARY KEY (item_id, ot_id),
-    CONSTRAINT itm_ot_item_id_fkey FOREIGN KEY (item_id)
-        REFERENCES public.item (item_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT itm_ot_ot_id_fkey FOREIGN KEY (ot_id)
-        REFERENCES public.ot (ot_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE
+    item_id character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    description character varying(500) COLLATE pg_catalog."default" NOT NULL,
+    item_value money,
+    item_type character varying(50) COLLATE pg_catalog."default",
+    item_unit character varying(10) COLLATE pg_catalog."default",
+    CONSTRAINT item_pkey PRIMARY KEY (item_id)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.itm_ot
+ALTER TABLE IF EXISTS public.item
     OWNER to postgres;

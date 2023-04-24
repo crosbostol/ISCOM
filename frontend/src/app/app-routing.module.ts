@@ -5,7 +5,8 @@ import { MantenedorOtComponent } from './navegacion/mantenedor-ot/mantenedor-ot.
 import { MantenedorMovilComponent } from './navegacion/mantenedor-movil/mantenedor-movil.component';
 import { MantenedorInventarioComponent } from './navegacion/mantenedor-inventario/mantenedor-inventario.component';
 import { PageNotFoundComponent } from './navegacion/page-not-found/page-not-found.component';
-
+import { oTItemDialogComponent } from './navegacion/formularios/otItemDialog/ot-item-dialog.component';
+import { oTMaterialDialogComponent } from './navegacion/formularios/otMaterialDialog/ot-material-dialog.component';
 //rutas de navegación
 const routes: Routes = [
   {path: '', redirectTo:'/home', pathMatch:'full'},
@@ -14,7 +15,8 @@ const routes: Routes = [
   {path: 'mantenedorMovil', component: MantenedorMovilComponent},
   {path: 'mantenedorInventario', component: MantenedorInventarioComponent},
   {path: '**', component: PageNotFoundComponent},
-
+  { path: 'partidas-oh', component: oTItemDialogComponent },
+  { path: 'material-oh', component: oTMaterialDialogComponent }
 
 ];
 

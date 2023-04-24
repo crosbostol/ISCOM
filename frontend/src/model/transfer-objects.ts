@@ -29,6 +29,7 @@
     item_id:string,
     ot_id:string,
     quantity:number,
+
   }
   export interface movilDBModel {
     movil_id :string,
@@ -57,7 +58,8 @@
   export interface pro_otDBModel{
     ot_id:string,
     product_id:number,
-    quantity:number
+    quantity:number,
+    inventory_id: string
   }
 
   export interface productDBModel{

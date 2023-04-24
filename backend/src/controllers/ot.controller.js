@@ -168,7 +168,7 @@ const getOt = async (req, res) =>{
  }
  
  const getInfoOtForTable = async(req,res) => {
-sql=' SELECT itm.description, itm.item_value, io.quantity, io.item_id, o.observation,o.ot_id, o.street, o.number_street,o.commune, o.hydraulic_movil_id,  c.name as N_hidraulico, o.civil_movil_id, c2.name as N_civil, o.ot_state FROM OT o LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id  left join conductor c2 On m2.movil_id = c2.movil_id  left join itm_ot io on o.ot_id = io.ot_id left join item itm on io.item_id = itm.item_id'  
+sql='  SELECT  o.ot_id, o.street, o.number_street,o.commune, o.hydraulic_movil_id,  c.name as N_hidraulico, o.civil_movil_id, c2.name as N_civil, o.ot_state FROM OT o LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id left join conductor c2 On m2.movil_id = c2.movil_id '  
 const response = await pool.query(sql,
     (error, results) => {
       if(error){
@@ -180,7 +180,38 @@ const response = await pool.query(sql,
 } )
  }
 
-
+ const getDetailsOtProduct = async(req,res) => {
+  ot_id = req.params.ot_id
+    values = [ot_id]
+  sql='  SELECT distinct po.product_id,pro.product_name,po.quantity  FROM OT o  left join pro_ot po on o.ot_id = po.ot_id left join product pro on pro.product_id = po.product_id WHERE o.ot_id = $1'  
+  const response = await pool.query(sql,values,
+      (error, results) => {
+        if(error){
+          console.log('error', error)
+          return res.status(500).send(error)
+        }
+        return  res.status(201).send(results.rows)
+   
+  } )
+   }
+  
+   const getDetailsOtItem = async(req,res) => {
+    console.log("aa")
+    ot_id = req.params.ot_id
+    item_type = req.params.item_type
+      values = [ot_id, item_type]
+    sql='   SELECT distinct itm.description, itm.item_value, io.quantity, io.item_id  FROM OT o   left join itm_ot io on o.ot_id = io.ot_id  left join item itm on io.item_id = itm.item_id   WHERE o.ot_id = $1 AND itm.item_type = $2; '  
+    const response = await pool.query(sql,values,
+        (error, results) => {
+          if(error){
+            console.log('error', error)
+            return res.status(500).send(error)
+          }
+          return  res.status(201).send(results.rows)
+     
+    } )
+     }
+    
 
  module.exports = {
     getOt,
@@ -191,7 +222,9 @@ const response = await pool.query(sql,
     getFinishedOtsByRangeDate,
     getRejectedOts,
     getOtsByState,
-    getInfoOtForTable
+    getInfoOtForTable,
+    getDetailsOtProduct,
+    getDetailsOtItem
    
    
  }

@@ -29,6 +29,8 @@ import { AddDialogComponent } from './navegacion/dialogs/addDialog/add-dialog.co
 import { AsociateDialogComponent } from './navegacion/dialogs/asociateDialog/asociate-dialog.component';
 import { oTItemDialogComponent } from './navegacion/formularios/otItemDialog/ot-item-dialog.component';
 import { oTMaterialDialogComponent } from './navegacion/formularios/otMaterialDialog/ot-material-dialog.component';
+import { oTItemOCDialogComponent } from './navegacion/formularios/otItemOcDialog/ot-itemOC-dialog.component';
+
 
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
@@ -54,7 +56,8 @@ import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dial
     AddDialogComponent,
     AsociateDialogComponent,
     oTItemDialogComponent,
-    oTMaterialDialogComponent
+    oTMaterialDialogComponent,
+    oTItemOCDialogComponent
   ],
   imports: [
     BrowserModule,

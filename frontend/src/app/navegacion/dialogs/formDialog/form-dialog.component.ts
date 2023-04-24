@@ -7,6 +7,8 @@ import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, Fo
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 import { oTItemDialogComponent } from '../../formularios/otItemDialog/ot-item-dialog.component';
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-form-dialog',
   templateUrl: './form-dialog.component.html',
@@ -16,6 +18,7 @@ import { oTItemDialogComponent } from '../../formularios/otItemDialog/ot-item-di
 
 
 export class FormDialogComponent implements OnInit {
+  tabRouting = 0
   clicked: boolean = false
   message: string = ""
 cancelButtonText = "Cancel"
@@ -35,13 +38,15 @@ public item_OC: any =[]
 public conductorName:  string
 public movilId: string
 @Output() close: EventEmitter<any> = new EventEmitter();
+@Output() Complete: EventEmitter<any> = new EventEmitter();
 
 
 constructor(private apiService : ApiService,
   @Inject(MAT_DIALOG_DATA) public data: any,
   private dialogRef: MatDialogRef<FormDialogComponent>,
   private formBuilder:FormBuilder,
-  private dialog: MatDialog
+  private dialog: MatDialog,
+  private router:Router
    )
 
   {
@@ -55,7 +60,6 @@ constructor(private apiService : ApiService,
   }
 fields: FormArray
   ngOnInit(){
-    console.log(this.data.values)
     switch (this.data.url) {
       case "mantenedorInventario":
          this.formGroup = this.formBuilder.group({
@@ -175,10 +179,10 @@ fillUp(){
 }
 
 formButtonEvent(){
-  console.log(this.formGroup)
-  console.log(this.data.values)
-  console.log(this.formItemOt.value.fields)
-
+  // console.log(this.formGroup)
+  // console.log(this.data.values)
+  // console.log(this.formItemOt.value.fields)
+this.Complete.emit()
   // switch (this.data.url) {
   //   case "mantenedorInventario":
   //     let formInvPro: inv_proDBModel = {
@@ -234,7 +238,6 @@ formButtonEvent(){
 //Trae los móviles de civil y los nombres de los chóferes
 getMovilOc(){
   const id = this.data.inventory
-  console.log("🚀 ~ file: mantenedor-inventario.component.ts:35 ~ MantenedorInventarioComponent ~ loadInventario ~ id:", id)
 
   lastValueFrom(this.apiService.getMovilOc())
   .then(payload =>{
@@ -257,7 +260,6 @@ getItemOH(){
 
     this.item_OH = payload
     this.item_OH = Object.values(this.item_OH)
-    console.log(this.item_OH)
   })
   .catch(err => {
     alert("Error al cargar los PARTIDAS OH")
@@ -271,7 +273,6 @@ getItemOC(){
 
     this.item_OC = payload
     this.item_OC = Object.values(this.item_OC)
-    console.log(this.item_OC)
   })
   .catch(err => {
     alert("Error al cargar los PARTIDAS OC")
@@ -285,7 +286,6 @@ NameOfConductor(row: any){
 
   const Name = this.civil_chofer.find((((name: { movil_id: string; }) => name.movil_id === row)));
   this.conductorName = Name.name
-  console.log("🚀 ~ file: form-dialog.component.ts:196 ~ FormDialogComponent ~ NameOfConductor ~ this.conductorName:", this.conductorName)
   this.movilId = row.movil_id
 
 
@@ -317,6 +317,16 @@ totalValue(event: any, index:number){
 }
 
 
+redirectTo() {
+  this.router.navigate(['/partidas-oh']);
+}
+
+changeTabIndex(delta: number) {
+  const newTabIndex = this.tabRouting + delta;
+  if (newTabIndex >= 0 && newTabIndex < 4) {
+    this.tabRouting = newTabIndex;
+  }
+}
 }
 
 

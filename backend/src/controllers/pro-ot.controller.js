@@ -57,9 +57,9 @@ const getProOtbyOt = async (req, res) =>{
 
  const postProOt = async (req, res) =>{
      
-    const {ot_id,product_id, cantidad} = req.body
-    const sql = 'INSERT INTO pro_ot (ot_id,product_id,cantidad]) VALUES ($1,$2,$3)'
-    const values =[ ot_id,product_id,cantidad]
+    const {ot_id,product_id, quantity,inventory_id} = req.body
+    const sql = 'INSERT INTO pro_ot (ot_id,product_id,quantity,inventory_id) VALUES ($1,$2,$3,$4)'
+    const values =[ ot_id,product_id,quantity,inventory_id]
     const response =  await  pool.query(sql,values,
        (error, results) => {
            if(error){
