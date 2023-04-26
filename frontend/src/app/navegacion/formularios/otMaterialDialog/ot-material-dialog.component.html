@@ -9,17 +9,18 @@
     </div>
 
     <div *ngIf="visualizer">
-    <div  *ngFor="let item of productsOT">
-      <mat-form-field style="width: 11.5%;" class="w-0 col-2" appearance="outline">
-        <input  [disabled]="visualizer" formControlName="selectedMaterialId" matInput type="text" [placeholder]="item.product_id">
+      <p>aaaa</p>
+    <div  *ngFor="let item of productsOT let i = index">
+      <mat-form-field style="width: 11.5%;  " class="w-0 col-2 placeholderText" appearance="outline">
+        <input [disabled]="visualizer" [value]="item.product_id" [disabled]="false" formControlName="selectedMaterialId" matInput type="text" [placeholder]="item.product_id">
 
       </mat-form-field>
 
-      <mat-form-field style="width: 77%;" class="w-0 col-12" appearance="outline">
+      <mat-form-field style="width: 77%;" class="w-0 col-12 placeholderText" appearance="outline">
         <input formControlName="description" matInput type="text" [placeholder]="item.product_name">
       </mat-form-field>
 
-      <mat-form-field style="width: 11.5%;" class="w-0 col-2" appearance="outline">
+      <mat-form-field style="width: 11.5%;" class="w-0 col-2 placeholderText" appearance="outline">
         <input formControlName="quantity" matInput type="text" [placeholder]="item.quantity">
 
       </mat-form-field>

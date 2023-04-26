@@ -64,10 +64,11 @@ fields: FormArray
 
   ngOnInit(){
 
+
          this.formMaterialOt = this.formBuilder.group({
-          'selectedMaterialId':[null, Validators.required],
-          'quantity':[null, Validators.required],
-          'description':[null, Validators.required],
+          'selectedMaterialId':[{value: '', disabled: true}, Validators.required],
+          'quantity':[{value: '', disabled: true}, Validators.required],
+          'description':[{value: '', disabled: true}, Validators.required],
 
           fields: this.formBuilder.array([ this.createField() ])
          })
@@ -81,15 +82,9 @@ fields: FormArray
 
 
 
-    if(this.data.values){
-      this.visualizer = true;
-      this.tit_btn = "Editar";
-      //this.fillUp();
-    }
+
   }
-  changeTabIndex(index: number) {
-    this.tabChanged.emit(index);
-  }
+
   createField(): FormGroup {
     return this.formBuilder.group({
       selectedMaterialId: ['', Validators.required],
@@ -98,7 +93,6 @@ fields: FormArray
   });
   }
   addField(): void {
-    console.log("a")
     this.fields.push(this.createField());
   }
   removeField(index: number): void {
@@ -112,10 +106,16 @@ fields: FormArray
   public selectedOption: string
 fillUp(){
 
-
-      // this.selectedOption = this.data.values.civil_movil_id
+//   this.productsOT.map((element:any, i:number)=>{
+//   // const material = this.formMaterialOt.get('selectedMaterialId.' + i)!.setValue(this.productsOT[i].product_id);
+//       this.formMaterialOt.controls['selectedMaterialId'].setValue(element.product_id)
+// console.log(element)
+//   })
+        // this.selectedOption = this.data.values.civil_movil_id
       // this.title = "Editando "+ this.data.values.ot_id
-      this.formMaterialOt.controls['selectedMaterialId'].setValue(this.data.values.product_id)
+      //this.formMaterialOt.controls['selectedMaterialId'].setValue(this.productsOT[0].product_id)
+      //this.formMaterialOt.controls['selectedMaterialId'].setValue(this.productsOT.product_id)
+
       // this.formMaterialOt.controls['description'].setValue(this.data.values.description)
       // this.formMaterialOt.controls['quantity'].setValue(this.data.values.quantity)
 
@@ -170,18 +170,27 @@ getProductsOH(){
 }
 
 getProductsOT(){
-
+console.log("1")
   lastValueFrom(this.apiService.getDetailsOtProduct(this.data.values.ot_id))
   .then(payload =>{
 
     this.productsOT = payload
     this.productsOT = Object.values(this.productsOT )
-    console.log("🚀 ~ file: ot-material-dialog.component.ts:177 ~ oTMaterialDialogComponent ~ getProductsOT ~  this.products:",  this.productsOT)
+
+    if(this.productsOT[0].product_id != null){
+      this.visualizer = true;
+      this.tit_btn = "Editar";
+    }else{
+      this.visualizer = false;
+    }
   })
   .catch(err => {
-    alert("Error al cargar los PARTIDAS OH")
+    alert("Error al cargar los PRODUCTOS OH")
     console.error(err)
   });
+
+
+
 }
 
 

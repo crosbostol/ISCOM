@@ -57,7 +57,6 @@ constructor(private apiService : ApiService,
   }
 fields: FormArray
   ngOnInit(){
-    console.log(this.data.values)
     switch (this.data.url) {
          case "mantenedorOt":
          this.formItemOt = this.formBuilder.group({
@@ -187,7 +186,6 @@ formButtonEvent(){
 //Trae los móviles de civil y los nombres de los chóferes
 getMovilOc(){
   const id = this.data.inventory
-  console.log("🚀 ~ file: mantenedor-inventario.component.ts:35 ~ MantenedorInventarioComponent ~ loadInventario ~ id:", id)
 
   lastValueFrom(this.apiService.getMovilOc())
   .then(payload =>{
@@ -238,7 +236,6 @@ NameOfConductor(row: any){
 
   const Name = this.civil_chofer.find((((name: { movil_id: string; }) => name.movil_id === row)));
   this.conductorName = Name.name
-  console.log("🚀 ~ file: form-dialog.component.ts:196 ~ FormDialogComponent ~ NameOfConductor ~ this.conductorName:", this.conductorName)
   this.movilId = row.movil_id
 
 
@@ -250,7 +247,6 @@ totalValueItem: number[] = new Array(10).fill(0);;
 
 onItemIdChanged(event: any, index:number ) {
   const selectedItem = this.item_OH.find((((item: { item_id: string; }) =>  item.item_id === event.target.value)));
-  console.log("🚀 ~ file: form-dialog.component.ts:289 ~ FormDialogComponent ~ onItemIdChanged ~  const selectedItem:",   selectedItem)
 
     if (selectedItem) {
       console.log("äa")

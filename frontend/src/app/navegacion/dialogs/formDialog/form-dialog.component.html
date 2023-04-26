@@ -87,6 +87,7 @@
 
       <mat-form-field style="width: 100%;" class=" w-0 col-2" appearance="outline">
         <textarea [value]="" formControlName="observation" matInput type="text" placeholder="Observaciones" >
+          {{data.values.observation}}
         </textarea>
           <mat-error *ngIf="!formGroup.controls['observation'].valid">
           {{titleAlert}}
