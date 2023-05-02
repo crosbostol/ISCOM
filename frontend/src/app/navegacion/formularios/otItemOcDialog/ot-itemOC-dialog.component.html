@@ -11,45 +11,26 @@
     </div>
 
     <div class="row">
-      <!-- <ng-container formArrayName="_itemOT" *ngFor="let itemOT of _itemOT.controls; index as i">
-        <ng-container [formGroupName]="i"> -->
+      <form [formGroup]="formulario">
+        <div *ngFor="let item of itemOCOT; let i = index">
+          <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.item_id}}" matInput type="text" [placeholder]="item.item_id">
+          </mat-form-field>
+          <mat-form-field  style="width: 52.5%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.description}}" matInput type="text" [placeholder]="item.description">
+          </mat-form-field>
+          <mat-form-field style="width: 8%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.quantity}}" matInput type="text" [placeholder]="item.description">
+          </mat-form-field>
+          <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.item_value}}" matInput type="text" [placeholder]="item.item_value">
+          </mat-form-field>
+          <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.total_item_value}}" matInput type="text" [placeholder]="item.total_item_value">
+          </mat-form-field>
+        </div>
+      </form>
 
-            <!-- <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
-              <input  (keyup)="onItemIdChanged($event)" formControlName="selectedItemId" matInput type="text" placeholder="1291" >
-              <mat-error *ngIf="!formItemOt.controls['selectedItemId'].valid
-              && formItemOt.controls['selectedItemId'].touched">
-                {{titleAlert}}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field class=" w-50 col-12" appearance="outline">
-              <input formControlName="description"  [value]="selectedItemDescription" matInput type="text" placeholder="1291" >
-
-            </mat-form-field>
-
-            <mat-form-field style="width: 8%; " class=" w-0 col-2" appearance="outline">
-              <input (keyup)="totalValue($event)"  formControlName="quantity" matInput type="text" placeholder="1291" >
-              <mat-error *ngIf="!formItemOt.controls['quantity'].valid
-              && formItemOt.controls['quantity'].touched">
-                {{titleAlert}}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field style="width: 16%;" class=" w-0 col-2" appearance="outline">
-              <input [value]="selectedItemValue" formControlName="price" matInput type="text" placeholder="12914" >
-              <mat-error *ngIf="!formItemOt.controls['price'].valid
-              ">
-                {{titleAlert}}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
-              <input [value]="totalValueItem" formControlName="total" matInput type="number" placeholder="1291" >
-              <mat-error *ngIf="!formItemOt.controls['total'].valid
-              ">
-                {{titleAlert}}
-              </mat-error>
-            </mat-form-field> -->
 
             <div formArrayName="fields">
               <div *ngFor="let field of fields.controls; let i=index" [formGroupName]="i">

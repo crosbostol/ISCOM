@@ -18,6 +18,8 @@ import { Router } from '@angular/router';
 
 
 export class FormDialogComponent implements OnInit {
+  public filterOptions: any = ['CREADA', 'OBRA CIVIL', 'RETIRO', 'FINALIZADA']
+selectedState: any
   tabRouting = 0
   clicked: boolean = false
   message: string = ""
@@ -153,9 +155,9 @@ fillUp(){
         this.formGroup.controls['quantity'].setValue(this.data.values.quantity)
       break;
     case "mantenedorOt":
-      this.selectedOption = this.data.values.civil_movil_id
+      //this.selectedOption = this.data.values.civil_movil_id
       this.title = "Editando "+ this.data.values.ot_id
-      this.formGroup.controls['ot_state'].setValue(this.data.values.ot_state)
+      this.selectedState = this.data.values.ot_state
       this.formGroup.controls['direction'].setValue(this.data.values.street + " "+this.data.values.number_street + ", " + this.data.values.commune )
      this.formGroup.controls['civil_movil_id'].setValue(this.data.values.civil_movil_id)
       this.formGroup.controls['hydraulic_movil_id'].setValue(this.data.values.hydraulic_movil_id)
@@ -244,7 +246,6 @@ getMovilOc(){
 
     this.civil_chofer = payload
     this.civil_chofer = Object.values(this.civil_chofer.rows)
-    console.log(this.civil_chofer)
   })
   .catch(err => {
     alert("Error al cargar los productos")

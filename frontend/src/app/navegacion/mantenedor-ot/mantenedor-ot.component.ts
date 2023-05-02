@@ -17,12 +17,14 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./mantenedor-ot.component.scss']
 })
 export class MantenedorOtComponent implements OnInit {
+  public filterOptions: any = ['CREADA', 'OBRA CIVIL', 'RETIRO', 'FINALIZADA']
   private isData: boolean = false;
   public inventories: any = []
   public inventory_id : string = "INV-JJKX21"
   public row: any = {}
   corruntRoute: String
   @ViewChild('paginator') paginator: MatPaginator;
+selectedOption: any;
 
   constructor(private apiService : ApiService, private dialog:MatDialog, private route: ActivatedRoute){
 
@@ -84,19 +86,7 @@ export class MantenedorOtComponent implements OnInit {
 
 
     }
-    loadUniqueInventories(){
-      lastValueFrom(this.apiService.getUniqueInventory())
-      .then(payload =>{
-        this.isData = true;
-        this.inventories = payload
-        this.inventories = Object.values(this.inventories.rows)
-        console.warn(this.inventories)
-      })
-      .catch(err => {this.isData = false;
-        alert("Error al cargar los inventarios")
-        console.error(err)
-      });
-    }
+
 
     onRowClicked(row: any) {
       console.log('Row clicked: ', row);
@@ -167,4 +157,28 @@ export class MantenedorOtComponent implements OnInit {
 
 
     }
+
+    loadOtByState(id: string){
+      console.log("🚀 ~ file: mantenedor-inventario.component.ts:35 ~ MantenedorInventarioComponent ~ loadInventario ~ id:", id)
+      lastValueFrom(this.apiService.getInfoOtForTableByState(id))
+      .then(payload =>{
+        this.isData = true;
+        this.dataSource = payload
+        console.log(this.dataSource)
+
+        this.dataSource = new MatTableDataSource(this.dataSource)
+        this.dataSource.paginator = this.paginator
+
+
+      })
+      .catch(err => {this.isData = false;
+        alert("Error al cargar los ot")
+        console.error(err)
+      });
+
+
+
+    }
+
+
 }

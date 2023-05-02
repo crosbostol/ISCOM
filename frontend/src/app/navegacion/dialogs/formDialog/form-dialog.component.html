@@ -15,12 +15,17 @@
 
         <h4 class="mb-1 refText"> Estado OT</h4>
         <mat-form-field class=" w-100  col-8" appearance="outline">
-          <input formControlName="ot_state" matInput type="text" [placeholder]="data.values.ot_state" >
+          <mat-select   formControlName="ot_state" [(ngModel)]="selectedState" class="col-4" appearance="outline"  placeholder="Estado" class="w-100">
+            <mat-option *ngFor="let option of filterOptions" [value]="option">
+              {{ option}}
+            </mat-option>
+          </mat-select>
           <mat-error *ngIf="!formGroup.controls['ot_state'].valid
           && formGroup.controls['ot_state'].touched">
             {{titleAlert}}
           </mat-error>
         </mat-form-field>
+
 
         <h4 class="mb-1 refText"> Dirección</h4>
         <mat-form-field class=" w-100 col-8" appearance="outline">
@@ -89,9 +94,7 @@
         <textarea [value]="" formControlName="observation" matInput type="text" placeholder="Observaciones" >
           {{data.values.observation}}
         </textarea>
-          <mat-error *ngIf="!formGroup.controls['observation'].valid">
-          {{titleAlert}}
-        </mat-error>
+
       </mat-form-field>
 
         </div>

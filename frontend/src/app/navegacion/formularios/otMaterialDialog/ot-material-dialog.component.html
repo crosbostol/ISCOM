@@ -8,26 +8,26 @@
       <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Cantidad</h4>
     </div>
 
-    <div *ngIf="visualizer">
-      <p>aaaa</p>
-    <div  *ngFor="let item of productsOT let i = index">
-      <mat-form-field style="width: 11.5%;  " class="w-0 col-2 placeholderText" appearance="outline">
-        <input [disabled]="visualizer" [value]="item.product_id" [disabled]="false" formControlName="selectedMaterialId" matInput type="text" [placeholder]="item.product_id">
+    <div  class="row">
+<div *ngIf="visualizer">
+      <form [formGroup]="formulario">
+        <div *ngFor="let item of productsOT; let i = index">
+          <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.product_id}}" matInput type="text" [placeholder]="item.item_id">
+          </mat-form-field>
+          <mat-form-field  style="width: 52.5%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.product_name}}" matInput type="text" [placeholder]="item.product_name">
+          </mat-form-field>
+          <mat-form-field style="width: 8%;" class=" w-0 col-2" appearance="outline">
+            <input formControlName="{{item.quantity}}" matInput type="text" [placeholder]="item.quantity">
+          </mat-form-field>
 
-      </mat-form-field>
-
-      <mat-form-field style="width: 77%;" class="w-0 col-12 placeholderText" appearance="outline">
-        <input formControlName="description" matInput type="text" [placeholder]="item.product_name">
-      </mat-form-field>
-
-      <mat-form-field style="width: 11.5%;" class="w-0 col-2 placeholderText" appearance="outline">
-        <input formControlName="quantity" matInput type="text" [placeholder]="item.quantity">
-
-      </mat-form-field>
+        </div>
+      </form>
     </div>
-  </div>
 
-    <div class="row">
+
+
             <div formArrayName="fields">
               <div *ngFor="let field of fields.controls; let i=index" [formGroupName]="i">
 

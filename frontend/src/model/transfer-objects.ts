@@ -68,3 +68,11 @@
     product_category:string,
     product_unit:string,
   }
+
+  export interface interfaceItemOHOT {
+    selectedItemId: number;
+    description: string;
+    quantity: number;
+    price: number;
+    total_value: number;
+  }

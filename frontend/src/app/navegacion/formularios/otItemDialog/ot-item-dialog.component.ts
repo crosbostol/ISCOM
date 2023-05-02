@@ -3,7 +3,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { interval, take, lastValueFrom } from 'rxjs';
 import { FormularioComponent } from '../../formulario/formulario.component';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray, FormControl } from '@angular/forms';
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
@@ -16,6 +16,10 @@ import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.compon
 
 
 export class oTItemDialogComponent implements OnInit {
+
+
+
+
   clicked: boolean = false
   message: string = ""
 cancelButtonText = "Cancel"
@@ -28,13 +32,15 @@ disablepInput = true
   tit_btn: string;
   editing: boolean;
 titleAlert : string = "Requerido"
-itemOTForm = [{selectedItemId: '', ot_id:'', quantity:''}]
+itemOTForm = [{item_id: '', ot_id:'', quantity:''}]
 public civil_chofer: any =[]
 public item_OH: any =[]
 public item_OC: any =[]
 public conductorName:  string
 public movilId: string
 @Output() close: EventEmitter<any> = new EventEmitter();
+public ItemOHOT: any =[]
+  visualizer: boolean;
 
 
 constructor(private apiService : ApiService,
@@ -57,13 +63,14 @@ constructor(private apiService : ApiService,
   }
 fields: FormArray
   ngOnInit(){
+
     switch (this.data.url) {
          case "mantenedorOt":
          this.formItemOt = this.formBuilder.group({
-          'selectedItemId':[null, Validators.required],
+          'item_id':[null, Validators.required],
           'quantity':[null, Validators.required],
           'total':[null, Validators.required],
-          'price':[null, Validators.required],
+          'item_value':[null, Validators.required],
           'description':[null, Validators.required],
 
           fields: this.formBuilder.array([ this.createField() ])
@@ -71,8 +78,8 @@ fields: FormArray
 
          this.fields = this.formItemOt.get('fields') as FormArray;
 
-          this.getItemOC()
           this.getItemOH()
+          this.getItemOHOT()
           break;
 
 
@@ -86,10 +93,10 @@ fields: FormArray
 
   createField(): FormGroup {
     return this.formBuilder.group({
-      selectedItemId: ['', Validators.required],
+      item_id: ['', Validators.required],
       description: ['', Validators.required],
       quantity: ['', Validators.required],
-      price: ['', Validators.required],
+      item_value: ['', Validators.required],
       total: ['', Validators.required],
     });
   }
@@ -119,30 +126,35 @@ fields: FormArray
   }
 
   public selectedOption: string
+  formulario = new FormGroup({});
 fillUp(){
-  switch (this.data.url) {
-    case "mantenedorOt":
-      this.selectedOption = this.data.values.civil_movil_id
-      this.title = "Editando "+ this.data.values.ot_id
-      this.formGroup.controls['ot_state'].setValue(this.data.values.ot_state)
-      this.formGroup.controls['direction'].setValue(this.data.values.street + " "+this.data.values.number_street + ", " + this.data.values.commune )
-     this.formGroup.controls['civil_movil_id'].setValue(this.data.values.civil_movil_id)
-      this.formGroup.controls['hydraulic_movil_id'].setValue(this.data.values.hydraulic_movil_id)
-      this.formGroup.controls['n_hidraulico'].setValue(this.data.values.n_hidraulico)
-      this.formGroup.controls['n_civil'].setValue(this.data.values.n_civil)
-      this.formItemOt.controls['selectedItemId'].setValue(this.data.values.item_id)
-      this.formGroup.controls['observation'].setValue(this.data.values.observation)
-      this.formItemOt.controls['description'].setValue(this.data.values.description)
-      this.formItemOt.controls['quantity'].setValue(this.data.values.quantity)
-      this.formItemOt.controls['price'].setValue(this.data.values.price)
 
+  // itera sobre los elementos de ItemOHOT y agrega un FormControl para cada uno
+  this.ItemOHOT.forEach((item: {index:number;
+    quantity: string;
+    item_value: string; item_id: string; description:string;total_item_value:string
+}) => {
+    this.formulario.addControl(item.item_id, new FormControl(''));
+    this.formulario.addControl(item.description, new FormControl(''));
+    this.formulario.addControl(item.quantity, new FormControl(''));
+   this.formulario.addControl(item.item_value, new FormControl(item.item_value));// agregamos el valor aqui porque con setValue no lo encuentra
+   this.formulario.addControl(item.total_item_value.toString(), new FormControl("$"+item.total_item_value.toString()));
+// agregamos el valor de total_item_value aqui porque con setValue no lo encuentra
 
-      // luego consumir endpoint para traer los item id
-      break;
+   // Agregar total_item_value como nuevo control al formulario
 
+  });
+  // establece el valor predeterminado para cada FormControl
+  this.ItemOHOT.forEach((item: {
+    total_item_value: any;
+    item_value: string; item_id: any; description:string;quantity:string
+}) => {
 
+    this.formulario.get(item.item_id)?.setValue(item.item_id);
+    this.formulario.get(item.description)?.setValue(item.description);
+  this.formulario.get(item.quantity.toString())?.setValue(item.quantity);
 
-  }
+  });
 
 
 }
@@ -155,28 +167,31 @@ formButtonEvent(){
         const currentDate = new Date();
         const formattedDate = moment(currentDate).format('YYYY-MM-DD')
 
-
-
+console.warn(this.formItemOt.value.fields[0].item_id =="")
+if(this.formItemOt.value.fields[0].item_id){
       this.formItemOt.value.fields.map((values: any)=>{
         let formOtItem: itm_otDBModel = {
-          item_id:values.selectedItemId,
+          item_id:values.item_id,
           ot_id: this.data.values.ot_id,
           quantity:values.quantity,
 
 
         }
-
         const subOTitm = this.apiService.postItmOt(formOtItem)
       .subscribe({
         next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
         error: (error) => console.log(error),
       });
     })
-
     this.formDialog.afterClosed().subscribe(()=>{
       this.sendata.unsubscribe()
     })
 
+  }else{
+    this.formDialog.afterClosed().subscribe(()=>{
+      this.sendata.unsubscribe()
+    })
+  }
 
 
 
@@ -184,21 +199,44 @@ formButtonEvent(){
 }
 
 //Trae los móviles de civil y los nombres de los chóferes
-getMovilOc(){
-  const id = this.data.inventory
 
-  lastValueFrom(this.apiService.getMovilOc())
-  .then(payload =>{
+getItemOHOT(){
+  const type: string = 'AGUA POTABLE'
+    lastValueFrom(this.apiService.getDetailsOtItem(this.data.values.ot_id,type ))
+    .then(payload =>{
 
-    this.civil_chofer = payload
-    this.civil_chofer = Object.values(this.civil_chofer.rows)
-    console.log(this.civil_chofer)
-  })
-  .catch(err => {
-    alert("Error al cargar los productos")
-    console.error(err)
-  });
-}
+      this.ItemOHOT = payload
+      this.ItemOHOT = Object.values(this.ItemOHOT )
+
+      // this.ItemOHOT.map((element: any)=> {
+//    const   totalItem = element.item_value * element.quantity
+//             this.ItemOHOT.push(totalItem)
+// })
+
+
+
+
+
+      if(this.ItemOHOT){
+        this.visualizer = true;
+        this.tit_btn = "Editar";
+        this.ItemOHOT = this.ItemOHOT.map((item: any) => ({
+          ...item,
+          total_item_value: item.quantity * parseFloat(item.item_value.replace("$", ""))
+        }));
+       this.fillUp()
+      }else{
+        this.visualizer = false;
+      }
+    })
+    .catch(err => {
+      alert("Error al cargar los PRODUCTOS OH")
+      console.error(err)
+    });
+
+
+
+  }
 
 
 getItemOH(){
@@ -208,27 +246,13 @@ getItemOH(){
 
     this.item_OH = payload
     this.item_OH = Object.values(this.item_OH)
-    console.log(this.item_OH)
   })
   .catch(err => {
     alert("Error al cargar los PARTIDAS OH")
     console.error(err)
   });
 }
-getItemOC(){
 
-  lastValueFrom(this.apiService.getItemOC())
-  .then(payload =>{
-
-    this.item_OC = payload
-    this.item_OC = Object.values(this.item_OC)
-    console.log(this.item_OC)
-  })
-  .catch(err => {
-    alert("Error al cargar los PARTIDAS OC")
-    console.error(err)
-  });
-}
 
 // Esto pone el nombre del conductor según el id del movil
 
@@ -240,7 +264,7 @@ NameOfConductor(row: any){
 
 
 }
-selectedItemId: string;
+item_id: string;
 selectedItemDescription: string[] = new Array(10).fill('');;
 selectedItemValue: number[] = new Array(10).fill(0);;
 totalValueItem: number[] = new Array(10).fill(0);;

@@ -3,7 +3,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { interval, take, lastValueFrom } from 'rxjs';
 import { FormularioComponent } from '../../formulario/formulario.component';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray, FormControl } from '@angular/forms';
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel,pro_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
@@ -104,50 +104,70 @@ fields: FormArray
     this.formMaterialOt.value.fields.map(()=>console.log("a"))
   }
   public selectedOption: string
-fillUp(){
+  formulario = new FormGroup({});
 
-//   this.productsOT.map((element:any, i:number)=>{
-//   // const material = this.formMaterialOt.get('selectedMaterialId.' + i)!.setValue(this.productsOT[i].product_id);
-//       this.formMaterialOt.controls['selectedMaterialId'].setValue(element.product_id)
-// console.log(element)
-//   })
-        // this.selectedOption = this.data.values.civil_movil_id
-      // this.title = "Editando "+ this.data.values.ot_id
-      //this.formMaterialOt.controls['selectedMaterialId'].setValue(this.productsOT[0].product_id)
-      //this.formMaterialOt.controls['selectedMaterialId'].setValue(this.productsOT.product_id)
+  fillUp(){
+    console.log("aaaa"+this.formulario.value)
 
-      // this.formMaterialOt.controls['description'].setValue(this.data.values.description)
-      // this.formMaterialOt.controls['quantity'].setValue(this.data.values.quantity)
+    // itera sobre los elementos de ItemOHOT y agrega un FormControl para cada uno
+    this.productsOT.forEach((item: {product_id:string;
+      quantity: string;
+     product_name:string;
+  }) => {
+      this.formulario.addControl(item.product_id.toString(), new FormControl(''));
+      this.formulario.addControl(item.product_name, new FormControl(item.product_name));
+      this.formulario.addControl(item.quantity.toString(), new FormControl(''));
+  // agregamos el valor de total_item_value aqui porque con setValue no lo encuentra
+
+     // Agregar total_item_value como nuevo control al formulario
+    });
+    console.log(this.formulario.value)
+
+    // establece el valor predeterminado para cada FormControl
+    this.productsOT.forEach((item: {
+       product_id: any; product_name:string;quantity:string
+  }) => {
+
+      this.formulario.get(item.product_id.toString())?.setValue(item.product_id);
+      //this.formulario.get(item.product_name)?.setValue(item.product_name);
+    this.formulario.get(item.quantity.toString())?.setValue(item.quantity);
+
+    });
 
 
-      // luego consumir endpoint para traer los item id
-
-}
+  }
 
 formButtonEvent(){
+
+  if(this.formMaterialOt.value.fields[0].selectedMaterialId){
+
       this.formMaterialOt.value.fields.map((values: any)=>{
         console.warn(values)
         let formOtItem: pro_otDBModel = {
           ot_id: this.data.values.ot_id,
           product_id:values.selectedMaterialId,
           quantity:values.quantity,
-          inventory_id: "INV-"+this.data.values.hydraulic_movil_id.replace("-","")
+          inventory_id: this.data.values.hydraulic_movil_id
 
 
         }
-        console.warn(formOtItem);
-        const subOTitm = this.apiService.postMatOt(formOtItem)
-      .subscribe({
-        next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-        error: (error) => console.log(error),
-      });
+        console.table(formOtItem);
+         const subOTitm = this.apiService.postMatOt(formOtItem)
+       .subscribe({
+         next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+         error: (error) => console.log(error),
+       });
     }
       )
 
       this.formDialog.afterClosed().subscribe(()=>{
         this.sendata.unsubscribe()
       })
-
+    }else{
+      this.formDialog.afterClosed().subscribe(()=>{
+        this.sendata.unsubscribe()
+      })
+    }
 
 
 }
@@ -170,7 +190,6 @@ getProductsOH(){
 }
 
 getProductsOT(){
-console.log("1")
   lastValueFrom(this.apiService.getDetailsOtProduct(this.data.values.ot_id))
   .then(payload =>{
 
@@ -178,10 +197,13 @@ console.log("1")
     this.productsOT = Object.values(this.productsOT )
 
     if(this.productsOT[0].product_id != null){
+      console.log("entre")
       this.visualizer = true;
       this.tit_btn = "Editar";
+      this.fillUp()
     }else{
       this.visualizer = false;
+      console.log("🚀 ~ file: ot-material-dialog.component.ts:206 ~ oTMaterialDialogComponent ~ getProductsOT ~ this.visualizer:", this.visualizer)
     }
   })
   .catch(err => {
