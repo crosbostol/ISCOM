@@ -76,7 +76,9 @@ export class ApiService {
     return this.http.get(`/api/detailsOtItem/${ot_id}/${item_type}`)
 
   }
-
+  getInfoOtForTableByState(state:string){
+    return this.http.get(`/api/ottable/${state}`)
+  }
 
 
 }

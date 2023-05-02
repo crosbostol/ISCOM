@@ -7,7 +7,7 @@ const {  getProducts,postProduct,getProductById,deleteProductById,updateProduct}
 const {  getInvPro,postInvPro,getInvProById,deleteInvProById,updateInvPro,getInvProByInventoryId,getTotalOfProduct,getProductsNotInInventory} = require('../controllers/inv-pro.controller')
 const { getItem,postItem,getItemById,deleteItemById,updateItem,getItemOC,getItemOH} = require('../controllers/item.controller')
 const {  getItmOt,getItmByOt,postItmOt,deleteItmOtById,updateItmOt} = require('../controllers/ot-item.controller')
-const {getOt,postOt,getOtById,RejectOtById,updateOt,getFinishedOtsByRangeDate,getRejectedOts,getOtsByState,getInfoOtForTable,getDetailsOtProduct,getDetailsOtItem} = require('../controllers/ot.controller')
+const {getOt,postOt,getOtById,RejectOtById,updateOt,getFinishedOtsByRangeDate,getRejectedOts,getOtsByState,getInfoOtForTable,getDetailsOtProduct,getDetailsOtItem,getInfoOtForTableByState} = require('../controllers/ot.controller')
 const { getImagebyOt,postImage,getImageById,deleteImageById,updateImage} = require('../controllers/image.controller')
 const {getProOtbyOt,
     getProOtbyProduct,
@@ -41,7 +41,7 @@ router.get('/ot/state/:state',getOtsByState)
 router.get('/ottable',getInfoOtForTable)
 router.get('/detailsOtProduct/:ot_id',getDetailsOtProduct)
 router.get('/detailsOtItem/:ot_id/:item_type',getDetailsOtItem)
-
+router.get('/ottable/:state',getInfoOtForTableByState)
 
 //Relacion item ot
 router.get('/itmot',getItmOt)
