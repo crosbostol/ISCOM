@@ -3,11 +3,11 @@
   <form [formGroup]="formItemOt" (ngSubmit)="onSubmit()">
 
     <div class="row">
-      <h4 class="mb-1 w-0 refText" style="width: 11.5%;">Partida</h4>
-      <h4 class="mb-1 w-50 refText" style="width: 20%;" > Descripción partida</h4>
-      <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Cantidad</h4>
-      <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Precio</h4>
-      <h4 class="mb-1 w-0 refText" style="width: 11.5%;" > Total</h4>
+      <h4 class="mb-1 w-0 refText P-0" style="width: 11.5%; ">Partida</h4>
+      <h4 class="mb-1 w-50 refText P-0" style="width: 20%;" > Descripción partida</h4>
+      <h4 class="mb-1 w-0 refText P-0" style="width: 8.5%;" > Cantidad</h4>
+      <h4 class="mb-1 w-0 refText P-0" style="width: 11.5%;" > Precio</h4>
+      <h4 class="mb-1 w-0 refText P-0" style="width: 11.5%;" > Total</h4>
     </div>
 
 
@@ -17,27 +17,29 @@
 
       <form [formGroup]="formulario">
         <div *ngFor="let item of ItemOHOT; let i = index">
-          <mat-form-field style="width: 11.5%;" class=" w-0 col-2" appearance="outline">
-            <input formControlName="{{item.item_id}}" matInput type="text" [placeholder]="item.item_id">
+          <mat-form-field style="width: 11.5%;" class=" w-0 col-2 field-style" appearance="outline">
+            <input  formControlName="{{item.item_id}}" matInput type="text" [placeholder]="item.item_id">
           </mat-form-field>
-          <mat-form-field  style="width: 52.5%;" class=" w-0 col-2" appearance="outline">
+          <mat-form-field  style="width: 52.5%;" class=" w-0 col-2 field-style" appearance="outline">
             <input formControlName="{{item.description}}" matInput type="text" [placeholder]="item.description">
           </mat-form-field>
-          <mat-form-field style="width: 8%;" class=" w-0 col-2" appearance="outline">
+          <mat-form-field style="width: 8%;" class=" w-0 col-2 field-style" appearance="outline">
             <input formControlName="{{item.quantity}}" matInput type="text" [placeholder]="item.description">
           </mat-form-field>
-          <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
+
+          <mat-form-field style="width: 14%;" class=" w-0 col-2 field-style" appearance="outline">
             <input formControlName="{{item.item_value}}" matInput type="text" [placeholder]="item.item_value">
           </mat-form-field>
-          <mat-form-field style="width: 14%;" class=" w-0 col-2" appearance="outline">
+          <mat-form-field style="width: 14%;" class=" w-0 col-2 " appearance="outline">
             <input formControlName="{{item.total_item_value}}" matInput type="text" [placeholder]="item.total_item_value">
           </mat-form-field>
         </div>
       </form>
+    </div>
 
 
 
-
+    <div class="row">
             <div formArrayName="fields">
               <div *ngFor="let field of fields.controls; let i=index" [formGroupName]="i">
 
@@ -81,20 +83,25 @@
                   </mat-error>
                 </mat-form-field>
 
-                <button type="button" (click)="removeField(i)">Eliminar campo</button>
-              </div>
+                <div  class="btn-custom-add" style="padding-bottom: 22px;">
+                  <button class=" circle-button" style="float: left; " title="Borrar campo"  mat-icon-button color="primary" type="button" (click)="removeField(i)"><mat-icon class="white-icon" >horizontal_rule</mat-icon></button>
+                </div>
+
+            </div>
             </div>
 
-            <button type="button" (click)="addField()">Agregar campo</button>
+            <div class="btn-custom-add">
+              <button  class=" circle-button" mat-icon-button color="primary" type="button" (click)="addField()" title="Agregar campo"><mat-icon class="white-icon">add</mat-icon></button>
+            </div>
 
-            <button type="submit">Enviar</button>
+          </div>
+
 
         <!-- </ng-container>
 
       </ng-container>
       <button type="button" (click)="additemOtForm()">Add</button> -->
 
-    </div>
 
   </form>
   </div>

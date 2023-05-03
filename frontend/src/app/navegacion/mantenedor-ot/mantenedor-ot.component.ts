@@ -94,8 +94,8 @@ selectedOption: any;
 
   openEditDialog(row:any){
   const dialogRef = this.dialog.open(FormDialogComponent,{
-    maxWidth: '53rem',
-        maxHeight: '43rem',
+    maxWidth: '57rem',
+        maxHeight: '44rem',
         height: '100%',
         width: '100%',
 

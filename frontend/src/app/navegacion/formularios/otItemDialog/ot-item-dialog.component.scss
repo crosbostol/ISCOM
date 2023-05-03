@@ -26,3 +26,31 @@ input[type="number"] {
     margin: 0;
   }
 }
+
+.field-style{
+  padding-right: 8px;
+}
+.btn-custom{
+  width: 0px;
+  height: 0px;
+}
+
+.btn-custom-add{
+  display: flex;
+  justify-content:center;
+align-items: center;
+}
+
+.circle-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #00bcd4; /* Cambiar el color celeste a tu preferencia */
+}
+
+.white-icon {
+  color: white; /* Hacer que el icono sea blanco */
+}
