@@ -16,9 +16,24 @@
   z-index: 1;
 }
 .active-link{
-  background-color: purple;
+  background-color: #71a0c3;
 }
-
+mat-nav-list a {
+  border: 1px solid black;
+  margin-bottom: 5px;
+}
 .active-link a {
   color: green;
+}
+
+#Nav span{
+  background-color: #a8e4ec;
+  float: right;
+}
+
+.Nav {
+  background-color: #4ec7fe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

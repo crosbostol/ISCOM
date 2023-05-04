@@ -3,25 +3,28 @@
       [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
       [mode]="(isHandset$ | async) ? 'over' : 'side'"
       [opened]="(isHandset$ | async) === false">
-    <mat-toolbar>Menu</mat-toolbar>
-    <mat-nav-list>
-      <a mat-list-item routerLink="/mantenedorOt" routerLinkActive="active-link">Link 1</a>
+    <mat-toolbar>Menú</mat-toolbar>
+    <mat-nav-list class="border-black">
+      <a  mat-list-item routerLink="/mantenedorOt" routerLinkActive="active-link">Órdenes de trabajo</a>
       <a mat-list-item routerLink="/mantenedorInventario" routerLinkActive="active-link">Inventarios</a>
-      <a mat-list-item routerLink="/mantenedorMovil" routerLinkActive="active-link">Link 3</a>
-      <a mat-list-item routerLink="/home" routerLinkActive="active-link">Link 4</a>
+      <!-- <a mat-list-item routerLink="/mantenedorMovil" routerLinkActive="active-link">Móviles</a> -->
+      <a mat-list-item routerLink="/home" routerLinkActive="active-link">Resumen</a>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
-    <mat-toolbar color="primary">
-      <button
+    <mat-toolbar class="Nav" id="Nav">
+      <div class="row">
+      <img height="48" src="assets/images/logoiscom.png" alt="logo iscom">
+
+      <!-- <button
         type="button"
         aria-label="Toggle sidenav"
         mat-icon-button
         (click)="drawer.toggle()"
         *ngIf="isHandset$ | async">
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
-      </button>
-      <span>frontend</span>
+      </button> -->
+    </div>
     </mat-toolbar>
    <router-outlet></router-outlet>
   </mat-sidenav-content>

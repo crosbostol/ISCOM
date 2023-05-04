@@ -185,52 +185,92 @@ formButtonEvent(){
   // console.log(this.data.values)
   // console.log(this.formItemOt.value.fields)
 this.Complete.emit()
-  // switch (this.data.url) {
-  //   case "mantenedorInventario":
-  //     let formInvPro: inv_proDBModel = {
-  //       inventory_id: this.data.values.inventory_id,
-  //       product_id: this.data.values.product_id,
-  //       quantity: this.formGroup.value.quantity
-  //     }
+   switch (this.data.url) {
+     case "mantenedorInventario":
+       let formInvPro: inv_proDBModel = {
+         inventory_id: this.data.values.inventory_id,
+         product_id: this.data.values.product_id,
+         quantity: this.formGroup.value.quantity
+       }
 
-  //      // var formData: any = new FormData();
-  //      const sub = this.apiService.putInvPro(formInvPro)
-  //        .subscribe({
-  //          next: (response) => {sub.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //          error: (error) => console.log(error),
-  //        });
-  //     break;
-  //     case "mantenedorOt":
-  //       console.log(this.formItemOt)
-  //       const currentDate = new Date();
-  //       const formattedDate = moment(currentDate).format('YYYY-MM-DD')
-  //       let formOT: otDBModel = {
-  //         ot_state: this.formGroup.value.ot_state,
-  //         civil_movil_id: this.formGroup.value.civil_movil_id,
-  //         hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
-  //         observation: this.formGroup.value.observation,
-  //         started_at: formattedDate,
-  //         ot_id: this.data.values.ot_id
-  //       }
+        // var formData: any = new FormData();
+        const sub = this.apiService.putInvPro(formInvPro)
+          .subscribe({
+            next: (response) => {sub.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+            error: (error) => console.log(error),
+          });
+       break;
+       case "mantenedorOt":
+         console.log(this.formItemOt)
+         const currentDate = new Date();
+         if(this.formGroup.value.ot_state == 'OBRA CIVIL'){
+          const formattedDate = moment(currentDate).format('YYYY-MM-DD')
+          let formOT: otDBModel = {
+            ot_state: this.formGroup.value.ot_state,
+            civil_movil_id: this.formGroup.value.civil_movil_id,
+            hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
+            observation: this.formGroup.value.observation,
+            started_at: formattedDate,
+            ot_id: this.data.values.ot_id
+          }
+          const subOTitm = this.apiService.putOT(formOT)
+          .subscribe({
+            next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+            error: (error) => console.log(error),
+          })
+         }else if(this.formGroup.value.ot_state == 'FINALIZADA'){
+          const formattedDate = moment(currentDate).format('YYYY-MM-DD')
+
+          let formOT: otDBModel = {
+
+            ot_state: this.formGroup.value.ot_state,
+            civil_movil_id: this.formGroup.value.civil_movil_id,
+            hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
+            observation: this.formGroup.value.observation,
+            started_at:  this.data.values.started_at,
+            finished_at: formattedDate,
+            ot_id: this.data.values.ot_id
+          }
+          const subOTitm = this.apiService.putOT(formOT)
+          .subscribe({
+            next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+            error: (error) => console.log(error),
+          })
+         }else{
+
+          let formOT: otDBModel = {
+
+            ot_state: this.formGroup.value.ot_state,
+            civil_movil_id: this.formGroup.value.civil_movil_id,
+            hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
+            observation: this.formGroup.value.observation,
+            started_at:  this.data.values.started_at,
+            ot_id: this.data.values.ot_id
+          }
+          const subOTitm = this.apiService.putOT(formOT)
+          .subscribe({
+            next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+            error: (error) => console.log(error),
+          })
 
 
-  //     this.formItemOt.value.fields.map((values: any)=>{
-  //       let formOtItem: itm_otDBModel = {
-  //         item_id:values.selectedItemId,
-  //         ot_id: this.data.values.ot_id,
-  //         quantity:values.quantity,
+         }
 
 
-  //       }
-  //       console.log(values);
-  //       const subOTitm = this.apiService.postItmOt(formOtItem)
-  //     .subscribe({
-  //       next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //       error: (error) => console.log(error),
-  //     });})
 
-  //     break;
-  // }
+
+
+      //  this.formItemOt.value.fields.map((values: any)=>{
+      //    let formOtItem: itm_otDBModel = {
+      //      item_id:values.selectedItemId,
+      //      ot_id: this.data.values.ot_id,
+      //      quantity:values.quantity,
+
+
+      //    }
+
+       break;
+   }
 
 
 

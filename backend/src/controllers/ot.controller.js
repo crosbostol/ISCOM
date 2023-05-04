@@ -83,6 +83,7 @@ const getOt = async (req, res) =>{
  
 //SIEMPRE ENVIAR OT_ID DE LOS ULTIMOS
   const updateOt = async (req,res) => {
+    console.log(req.body)
     ot_id = req.params.ot_id
     const fields = Object.keys(req.body);
     const values = [];
@@ -98,6 +99,8 @@ const getOt = async (req, res) =>{
      totalLenght = fields.length + 1
     const fullQuery = `UPDATE ot SET ${columnas(fields)} where ot_id=$${totalLenght}`;
      values2 = values.push(ot_id)
+    console.log("🚀 ~ file: ot.controller.js:102 ~ updateOt ~ const fullQuery:",  fullQuery)
+    console.log("🚀 ~ file: ot.controller.js:102 ~ updateOt ~ const fullQuery:",  values)
     pool.query(
       fullQuery,
       values,
@@ -168,7 +171,7 @@ const getOt = async (req, res) =>{
  }
  
  const getInfoOtForTable = async(req,res) => {
-sql='  SELECT  o.ot_id, o.street, o.number_street,o.commune, o.hydraulic_movil_id,  c.name as N_hidraulico, o.civil_movil_id, c2.name as N_civil, o.ot_state FROM OT o LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id left join conductor c2 On m2.movil_id = c2.movil_id '  
+sql='  SELECT o.started_at, o.finished_at, o.ot_id, o.street, o.number_street,o.commune, o.hydraulic_movil_id,  c.name as N_hidraulico, o.civil_movil_id, c2.name as N_civil, o.ot_state FROM OT o LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id left join conductor c2 On m2.movil_id = c2.movil_id '  
 const response = await pool.query(sql,
     (error, results) => {
       if(error){
