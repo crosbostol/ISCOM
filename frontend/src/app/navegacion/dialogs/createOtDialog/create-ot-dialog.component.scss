@@ -1,0 +1,28 @@
+.flowTable{overflow-x: hidden;}
+.mdc-data-table__table {
+  min-width: 99% !important;
+}
+
+.btn-custom{
+  width: 104px;
+  float: right;
+  margin-right: 24px;
+  text-align: center;
+}
+
+.refText{
+
+  color: black;
+}
+
+input[type="number"] {
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button,
+  &::-o-outer-spin-button,
+  &::-o-inner-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+}

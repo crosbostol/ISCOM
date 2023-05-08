@@ -22,24 +22,63 @@ const getOt = async (req, res) =>{
    
  };
  
- const postOt = async (req, res) =>{
+
+const postOt = async (req,res)=> {
+   const { data } = req.body;
+   console.log('Adding', data);
+
+   const fields = Object.keys(req.body);
+   const columns = fields.join(", ");
+   const values = [];
+   for(const field of fields) {
+     const value = req.body[field];
+     if(value) {
+       values.push(value);
+     }
+   }
+
+   const fullQuery = `INSERT INTO ot (${columns}) VALUES (${values.map((v, i) => `$${i+1}`).join(", ")})`;
+   console.log('fullQuery', fullQuery);
+   console.log('values', values);
+
+   pool.query(
+     fullQuery,
+     values,
+     (error, results) => {
+       if (error) {
+         console.log('err', error);
+         return res.status(500).send(error);
+       }
+       res.status(201).send(results);
+     }
+   );
+ }
+
+
+
+
+
+
+
+
+//  const postOt = async (req, res) =>{
      
-     const {ot_id, street,number_street, commune, fuga_location} = req.body
+//      const {ot_id, street,number_street, commune, fuga_location} = req.body
      
-     const sql = 'INSERT INTO ot (ot_id, street,number_street, commune, fuga_location) VALUES ($1,$2,$3,$4,$5)'
-     const values =[ot_id, street,number_street, commune, fuga_location]
-     const response =  await  pool.query(sql,values,
-        (error, results) => {
-            if(error){
-                console.log('error', error)
-                return res.status(500).send(error)
-            }
-            res.status(201).send(results)
-        });
+//      const sql = 'INSERT INTO ot (ot_id, street,number_street, commune, fuga_location) VALUES ($1,$2,$3,$4,$5)'
+//      const values =[ot_id, street,number_street, commune, fuga_location]
+//      const response =  await  pool.query(sql,values,
+//         (error, results) => {
+//             if(error){
+//                 console.log('error', error)
+//                 return res.status(500).send(error)
+//             }
+//             res.status(201).send(results)
+//         });
 
 
      
-  };
+//   };
  
   const getOtById = async (req,res) => {
      const response =  await  pool.query('SELECT * FROM ot where ot_id = $1',[req.params.ot_id],
@@ -99,8 +138,7 @@ const getOt = async (req, res) =>{
      totalLenght = fields.length + 1
     const fullQuery = `UPDATE ot SET ${columnas(fields)} where ot_id=$${totalLenght}`;
      values2 = values.push(ot_id)
-    console.log("🚀 ~ file: ot.controller.js:102 ~ updateOt ~ const fullQuery:",  fullQuery)
-    console.log("🚀 ~ file: ot.controller.js:102 ~ updateOt ~ const fullQuery:",  values)
+   
     pool.query(
       fullQuery,
       values,

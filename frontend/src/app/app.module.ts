@@ -2,6 +2,9 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table'
+import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
+
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -30,7 +33,7 @@ import { AsociateDialogComponent } from './navegacion/dialogs/asociateDialog/aso
 import { oTItemDialogComponent } from './navegacion/formularios/otItemDialog/ot-item-dialog.component';
 import { oTMaterialDialogComponent } from './navegacion/formularios/otMaterialDialog/ot-material-dialog.component';
 import { oTItemOCDialogComponent } from './navegacion/formularios/otItemOcDialog/ot-itemOC-dialog.component';
-
+import { CreateOtDialogComponent } from './navegacion/dialogs/createOtDialog/create-ot-dialog.component';
 
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
@@ -57,7 +60,8 @@ import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dial
     AsociateDialogComponent,
     oTItemDialogComponent,
     oTMaterialDialogComponent,
-    oTItemOCDialogComponent
+    oTItemOCDialogComponent,
+    CreateOtDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -82,11 +86,12 @@ import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dial
     MatProgressSpinnerModule,
     MatDialogModule,
     FormsModule,
-    MatTabsModule
+    MatTabsModule,
+    CommonModule
 
 
   ],
-  providers: [],
+  providers: [DatePipe],
   entryComponents:[MatDialogModule],
   bootstrap: [AppComponent]
 })

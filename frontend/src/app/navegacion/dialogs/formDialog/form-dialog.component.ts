@@ -34,6 +34,7 @@ disablepInput = true
   editing: boolean;
 titleAlert : string = "Requerido"
 itemOTForm = [{selectedItemId: '', ot_id:'', quantity:''}]
+isCreating: boolean = false
 public civil_chofer: any =[]
 public item_OH: any =[]
 public item_OC: any =[]
@@ -96,6 +97,7 @@ fields: FormArray
           // 'quantity':[null, Validators.required],
 
           })
+
           this.getMovilOc()
           this.getItemOC()
           this.getItemOH()

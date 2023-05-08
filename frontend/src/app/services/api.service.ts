@@ -79,6 +79,9 @@ export class ApiService {
   getInfoOtForTableByState(state:string){
     return this.http.get(`/api/ottable/${state}`)
   }
-
+  postOt(body:otDBModel):Observable<any>{
+    console.log(body)
+    return this.http.post('/api/ot',body)
+  }
 
 }

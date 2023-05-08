@@ -9,6 +9,8 @@ import { AddDialogComponent } from '../dialogs/addDialog/add-dialog.component';
 import { AsociateDialogComponent } from '../dialogs/asociateDialog/asociate-dialog.component';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { DatePipe } from '@angular/common';
+import { CreateOtDialogComponent } from '../dialogs/createOtDialog/create-ot-dialog.component';
 
 
 @Component({
@@ -22,11 +24,12 @@ export class MantenedorOtComponent implements OnInit {
   public inventories: any = []
   public inventory_id : string = "INV-JJKX21"
   public row: any = {}
+  differenceInDays: number
   corruntRoute: String
   @ViewChild('paginator') paginator: MatPaginator;
 selectedOption: any;
 
-  constructor(private apiService : ApiService, private dialog:MatDialog, private route: ActivatedRoute){
+  constructor(private apiService : ApiService, private dialog:MatDialog, private route: ActivatedRoute,private datePipe: DatePipe){
 
 
 
@@ -51,13 +54,27 @@ selectedOption: any;
   'n_hidraulico',
   'civil_movil_id',
   'n_civil',
+  'started_at',
   'ot_state',
-  'options'
+  'options',
+
   ]
   dataSource : any = []
+  expiredDate: any
+  formattedStartDate(row: { started_at: string | number | Date; ot_id:  any }) {
+    if(row.started_at != null){
 
+      const dateToday = new Date()
+      const dateRow = new Date(row.started_at)
+      const differenceInMilliseconds = dateToday.getTime() -dateRow.getTime();
+       this.differenceInDays = Math.floor(differenceInMilliseconds / 86400000);
+    }
+    return this.datePipe.transform(row.started_at, 'dd/MM/yyyy');
+  }
 
-
+  formattedFinishDate(row: { finished_at: string | number | Date; }) {
+    return this.datePipe.transform(row.finished_at, 'dd/MM/yyyy');
+  }
 
   applyFilter(event: Event) {
     //  debugger;
@@ -76,7 +93,7 @@ selectedOption: any;
         this.dataSource = payload
         this.dataSource = new MatTableDataSource(this.dataSource)
         this.dataSource.paginator = this.paginator
-        console.log(this.dataSource)
+        //console.log(this.dataSource)
       })
       .catch(err => {this.isData = false;
         alert("Error al cargar los inventarios")
@@ -118,6 +135,36 @@ selectedOption: any;
 
 
   }
+
+  openCreateDialog(){
+    const dialogRef = this.dialog.open(CreateOtDialogComponent,{
+      maxWidth: '57rem',
+          maxHeight: '44rem',
+          height: '100%',
+          width: '100%',
+
+      data: {
+        values: {},
+        url: this.route.snapshot.url[0].path
+
+
+      }
+    })
+    const sub = dialogRef.componentInstance.close.subscribe(()=>{
+
+      this.loadOTs()
+
+    })
+    dialogRef.afterClosed().subscribe(()=>{
+      sub.unsubscribe()
+    })
+
+
+
+    }
+
+
+
 
   addMaterial(){
     const dialogRef = this.dialog.open(AddDialogComponent,{

@@ -13,8 +13,24 @@
     <form [formGroup]="formGroup">
       <div style="overflow-y: hidden; overflow-x: hidden;">
 
-        <h4 class="mb-1 refText"> Estado OT</h4>
-        <mat-form-field class=" w-100  col-8" appearance="outline">
+        <div class="row">
+          <h4 class="mb-1 w-0 refText" style="width: 50%;">OT</h4>
+          <h4 class="mb-1 w-0 refText" style="width: 50%;" > Estado OT</h4>
+
+        </div>
+
+        <div class="row">
+        <mat-form-field class=" pr-0 w-0 col-6" appearance="outline">
+          <input formControlName="ot_id" matInput type="text" [placeholder]="data.values.ot_id" >
+          <mat-error *ngIf="!formGroup.controls['ot_id'].valid
+          && formGroup.controls['ot_id'].touched">
+            {{titleAlert}}
+          </mat-error>
+        </mat-form-field>
+
+
+
+        <mat-form-field class=" w-0  col-6" appearance="outline">
           <mat-select   formControlName="ot_state" [(ngModel)]="selectedState" class="col-4" appearance="outline"  placeholder="Estado" class="w-100">
             <mat-option *ngFor="let option of filterOptions" [value]="option">
               {{ option}}
@@ -25,7 +41,7 @@
             {{titleAlert}}
           </mat-error>
         </mat-form-field>
-
+      </div>
 
         <h4 class="mb-1 refText"> Dirección</h4>
         <mat-form-field class=" w-100 col-8" appearance="outline">
@@ -102,7 +118,7 @@
     </div>
   </mat-tab>
   <mat-tab  label="Partidas OH">
-    <ot-item-dialog ></ot-item-dialog>
+    <ot-item-dialog></ot-item-dialog>
   </mat-tab>
   <mat-tab label="Material OH">
     <ot-material-dialog (tabChanged)="changeTabIndex($event)"></ot-material-dialog>

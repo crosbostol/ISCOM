@@ -23,7 +23,7 @@
     </div> -->
 
     <div class= "w-2 col-12  ">
-      <button (click)="asociarMaterial();" class="btn-custom" mat-raised-button mat-dialog-close="">Añadir material</button>
+      <button (click)="openCreateDialog()" class="btn-custom" mat-raised-button mat-dialog-close="">Añadir material</button>
     </div>
   </div>
 </div>
@@ -73,11 +73,15 @@
     <td mat-cell *matCellDef="let element"> {{element.ot_state}} </td>
   </ng-container>
 
+  <ng-container matColumnDef="started_at">
+    <th mat-header-cell *matHeaderCellDef> Fecha de inicio </th>
+    <td  [ngClass]=" formattedStartDate(row) && differenceInDays > 3 ? 'text-danger': ''"   mat-cell *matCellDef="let row"> {{ formattedStartDate(row) }} </td>
+  </ng-container>
 
   <ng-container matColumnDef="options">
     <tr><th mat-header-cell *matHeaderCellDef> Acciones </th></tr>
     <tr>
-      <td mat-cell *matCellDef="let row" style="width:20%">
+      <td mat-cell *matCellDef="let row" style="width:0%">
         <button (click)="openEditDialog(row)" mat-icon-button color="primary"  title="Editar"><mat-icon>edit</mat-icon></button>
       </td>
     <tr>

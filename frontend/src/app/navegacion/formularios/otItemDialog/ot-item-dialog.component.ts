@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnInit, Output } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
-import { interval, take, lastValueFrom } from 'rxjs';
+import { interval, take, lastValueFrom, Observable } from 'rxjs';
 import { FormularioComponent } from '../../formulario/formulario.component';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, FormArray, FormControl } from '@angular/forms';
@@ -41,6 +41,7 @@ public movilId: string
 @Output() close: EventEmitter<any> = new EventEmitter();
 public ItemOHOT: any =[]
   visualizer: boolean;
+  @Input() createdOT$: Observable<string>;
 
 
 constructor(private apiService : ApiService,
@@ -48,7 +49,8 @@ constructor(private apiService : ApiService,
   private dialogRef: MatDialogRef<oTItemDialogComponent>,
   private formBuilder:FormBuilder,
   private dialog: MatDialog,
-  private formDialog: MatDialogRef<FormDialogComponent>
+  private formDialog: MatDialogRef<FormDialogComponent>,
+  private createdOtDialog: MatDialogRef<FormDialogComponent>
 
    )
 
@@ -63,6 +65,7 @@ constructor(private apiService : ApiService,
   }
 fields: FormArray
   ngOnInit(){
+   // console.log('Valor recibido desde el padre:', this.createdOT);
 
     switch (this.data.url) {
          case "mantenedorOt":
@@ -160,7 +163,7 @@ fillUp(){
 }
 
 formButtonEvent(){
-  //console.log(this.data.values)
+  console.log("-------------------------------")
 
 
         console.log(this.formItemOt)
@@ -288,8 +291,23 @@ totalValue(event: any, index:number){
   this.totalValueItem[index] = this.selectedItemValue[index] * event.target.value
 
 }
+
+
+
 sendata = this.formDialog.componentInstance.Complete.subscribe(()=>
-{this.formButtonEvent()})
+
+{ console.warn(this.sendata)
+  this.createdOT$ = this.createdOtDialog.componentInstance.Complete.asObservable();
+  this.createdOT$.subscribe(datos=>{
+    console.warn('OT ID', datos)
+  })
+
+  // console.log('Valor recibido desde el padre:', this.createdOT);
+
+  this.formButtonEvent()})
+
+
+
 
 }
 
