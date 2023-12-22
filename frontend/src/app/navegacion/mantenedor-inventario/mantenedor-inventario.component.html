@@ -3,17 +3,20 @@
 
 <div class="container-fluid">
   <div class="row">
-     <mat-form-field  class="col-4" style="width: 40%">
-        <mat-label>Filtro</mat-label>
-        <input  matInput (keyup)="applyFilter($event)" placeholder="Ej. LLave" #input>
-      </mat-form-field>
+    <mat-form-field appearance="outline" class="col-4" style="width: 40%">
+      <mat-label>Filtro</mat-label>
+      <input  matInput (keyup)="applyFilter($event)" placeholder="Ej. Llave" #input>
+    </mat-form-field>
 
+    <mat-form-field class="col-2 w-0" appearance="outline">
 
-    <mat-select class="col-4" appearance="outline" (selectionChange)="loadInventario($event.value.inventory_id)" placeholder="Inventario" class="w-25">
+    <mat-select class="col-4" appearance="outline" (selectionChange)="loadInventario($event.value.inventory_id)" placeholder="Inventario" class="w-0">
       <mat-option *ngFor="let inventory of inventories" [value]="inventory">
         {{ inventory.inventory_id }}
       </mat-option>
     </mat-select>
+    <mat-label>Inventario</mat-label>
+  </mat-form-field>
 
     <div class= "w-2 col-4" *ngIf="inventory_id == 'INV-JJKX21' ">
       <button (click)="addMaterial();" class="btn-custom" mat-raised-button mat-dialog-close="">Crear producto</button>
@@ -84,3 +87,5 @@
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"
   (click)="onRowClicked(row)"></tr>
 </table>
+<mat-paginator class="mat-elevation-z8 m-2 rounded  w-auto h-auto overflow-hidden" #paginator [pageSizeOptions]="[5, 10,25,dataSource.length>8? dataSource.length:''  ]" showFirstLastButtons>
+</mat-paginator>

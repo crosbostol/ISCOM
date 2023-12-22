@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, Fo
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel,pro_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
+import { DataSharingService } from 'src/app/services/datasharingservice';
 @Component({
   selector: 'ot-material-dialog',
   templateUrl: './ot-material-dialog.component.html',
@@ -39,6 +40,9 @@ public conductorName:  string
 public movilId: string
 @Output() close: EventEmitter<any> = new EventEmitter();
 @Output() tabChanged = new EventEmitter<number>();
+  otId: any;
+  inventoryId: any;
+  isCreating: boolean;
 
 
 constructor(private apiService : ApiService,
@@ -46,10 +50,21 @@ constructor(private apiService : ApiService,
   private dialogRef: MatDialogRef<oTMaterialDialogComponent>,
   private formBuilder:FormBuilder,
   private dialog: MatDialog,
-  private formDialog: MatDialogRef<FormDialogComponent>
+  private formDialog: MatDialogRef<FormDialogComponent>,
+  private dataSharingService: DataSharingService
+
    )
 
   {
+
+    this.dataSharingService.dataEmitter.subscribe(data => {
+      this.otId = data[0];
+      this.inventoryId = data[1];
+      this.isCreating = true;
+      this.CreatingOt()
+
+    });
+
     if(data){
       this.message = data.message || this.message;
       if (data.buttonText){
@@ -171,6 +186,44 @@ formButtonEvent(){
 
 
 }
+
+CreatingOt(){
+
+  if(this.formMaterialOt.value.fields[0].selectedMaterialId && this.isCreating){
+
+      this.formMaterialOt.value.fields.map((values: any)=>{
+        console.warn(values)
+        let formOtItem: pro_otDBModel = {
+          ot_id: this.otId,
+          product_id:values.selectedMaterialId,
+          quantity:values.quantity,
+          inventory_id: this.inventoryId
+
+
+        }
+        console.table(formOtItem);
+         const subOTitm = this.apiService.postMatOt(formOtItem)
+       .subscribe({
+         next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+         error: (error) => console.log(error),
+       });
+    }
+      )
+
+      this.formDialog.afterClosed().subscribe(()=>{
+        this.sendata.unsubscribe()
+      })
+    }else{
+      this.formDialog.afterClosed().subscribe(()=>{
+        this.sendata.unsubscribe()
+      })
+    }
+
+
+}
+
+
+
 
 //Trae los móviles de civil y los nombres de los chóferes
 

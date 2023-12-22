@@ -68,7 +68,7 @@
         </mat-form-field>
 
         <mat-form-field class=" w-10 col-6" appearance="outline">
-          <input formControlName="n_hidraulico" matInput type="text" [placeholder]="data.values.n_hidraulico" >
+          <input formControlName="n_hidraulico" matInput type="text" pattern="[a-zA-Z][a-zA-Z ]+" [placeholder]="data.values.n_hidraulico" >
           <mat-error *ngIf="!formGroup.controls['n_hidraulico'].valid
           && formGroup.controls['n_hidraulico'].touched">
             {{titleAlert}}

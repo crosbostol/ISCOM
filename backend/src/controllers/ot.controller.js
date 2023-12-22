@@ -209,6 +209,7 @@ const postOt = async (req,res)=> {
  }
  
  const getInfoOtForTable = async(req,res) => {
+  
 sql='  SELECT o.started_at, o.finished_at, o.ot_id, o.street, o.number_street,o.commune, o.hydraulic_movil_id,  c.name as N_hidraulico, o.civil_movil_id, c2.name as N_civil, o.ot_state FROM OT o LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id left join conductor c2 On m2.movil_id = c2.movil_id '  
 const response = await pool.query(sql,
     (error, results) => {
@@ -216,6 +217,7 @@ const response = await pool.query(sql,
         console.log('error', error)
         return res.status(500).send(error)
       }
+      
       return  res.status(201).send(results.rows)
  
 } )

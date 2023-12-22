@@ -75,13 +75,16 @@
                   </mat-error>
                 </mat-form-field>
 
-                <button type="button" (click)="removeField(i)">Eliminar campo</button>
+                <div  class="btn-custom-add" style="padding-bottom: 22px;">
+                  <button class=" circle-button" style="float: left; " title="Borrar campo"  mat-icon-button color="primary" type="button" (click)="removeField(i)"><mat-icon class="white-icon" >horizontal_rule</mat-icon></button>
+                </div>
               </div>
             </div>
 
-            <button type="button" (click)="addField()">Agregar campo</button>
+            <div class="btn-custom-add">
+              <button  class=" circle-button" mat-icon-button color="primary" type="button" (click)="addField()" title="Agregar campo"><mat-icon class="white-icon">add</mat-icon></button>
+            </div>
 
-            <button type="submit">Enviar</button>
 
         <!-- </ng-container>
 

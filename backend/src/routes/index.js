@@ -1,4 +1,8 @@
 const { Router } = require('express')
+// Importar csurf
+const csurf = require('csurf');
+const csrfProtection = csurf({ cookie: true });
+
 const router = Router();
 const {getConductors, postConductors,getConductorById,deleteConductorById,updateConductor} = require('../controllers/index.controller')
 const {getMovils,postMovil,getMovilById,deleteMovilById,updateMovil,getMovilOc} = require('../controllers/movil.controller')
@@ -14,6 +18,12 @@ const {getProOtbyOt,
     deleteProOt,
         postProOt,
         updateProOt} = require('../controllers/pro-ot.controller')
+const {getMonthValue, getTotalOfItem,monthlyYield} = require('../controllers/dashboard.controller')
+//dashboard
+router.get('/dashboard/monthValue/:date1/:date2',getMonthValue)
+router.get('/dashboard/totalItems',getTotalOfItem)
+router.get('/dashboard/monthlyYield',monthlyYield)
+
 //ot-pro
 router.get('/pro-ot/ot/:ot_id',getProOtbyOt)
 router.get('/pro-ot/product/:product_id',getProOtbyProduct)

@@ -10,7 +10,7 @@ const pool = new Pool({
 })
 
 const getInvPro = async (req, res) =>{
-    const response =  await  pool.query('SELECT * FROM inv_pro',
+    const response =  await  pool.query('SELECT inv_pro.*, product.product_name FROM inv_pro JOIN product ON inv_pro.product_id = product.product_id',
     (error, results) => {
         if(error){
             console.log('error', error)

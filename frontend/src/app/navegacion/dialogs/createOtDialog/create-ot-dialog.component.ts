@@ -8,6 +8,7 @@ import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/mod
 import * as moment from 'moment';
 import { oTItemDialogComponent } from '../../formularios/otItemDialog/ot-item-dialog.component';
 import { Router } from '@angular/router';
+import { DataSharingService } from 'src/app/services/datasharingservice';
 
 @Component({
   selector: 'create-ot-dialog',
@@ -17,7 +18,7 @@ import { Router } from '@angular/router';
 
 
 
-export class CreateOtDialogComponent implements OnInit {
+export class CreateOtDialogComponent implements OnInit  {
   public filterOptions: any = ['CREADA', 'OBRA CIVIL', 'RETIRO', 'FINALIZADA']
 selectedState: any
   tabRouting = 0
@@ -54,10 +55,12 @@ constructor(private apiService : ApiService,
   private dialogRef: MatDialogRef<CreateOtDialogComponent>,
   private formBuilder:FormBuilder,
   private dialog: MatDialog,
-  private router:Router
+  private router:Router,
+  private dataSharingService: DataSharingService,
    )
 
   {
+
     if(data){
       this.message = data.message || this.message;
       if (data.buttonText){
@@ -68,7 +71,7 @@ constructor(private apiService : ApiService,
   }
 fields: FormArray
   ngOnInit(){
-    console.warn(this.data.url)
+    console.warn("CREATE"+this.data.url)
     switch (this.data.url) {
          case "mantenedorOt":
 
@@ -159,88 +162,15 @@ const formattedDate = moment(today).format('YYYY-MM-DD')
             commune: this.commune,
             ot_id: this.formGroup.value.ot_id
           }
-          this.Complete.emit(formOT.ot_id);
-          // const subOTitm = this.apiService.postOt(formOT)
-          //         .subscribe({W
-          //           next: (response) => {subOTitm.unsubscribe;this.Complete.emit(formOT.ot_id); this.dialog.closeAll();console.log(response)},
-          //           error: (error) => console.log(error),
-          //         })
-  // console.log(this.formGroup)
-  // console.log(this.data.values)
-  // console.log(this.formItemOt.value.fields)
-//this.Complete.emit()
-  //  switch (this.data.url) {
-  //      case "mantenedorOt":
-  //        console.log(this.formItemOt)
-  //        const currentDate = new Date();
-  //        if(this.formGroup.value.ot_state == 'OBRA CIVIL'){
-  //         const formattedDate = moment(currentDate).format('YYYY-MM-DD')
-  //         let formOT: otDBModel = {
-  //           ot_state: this.formGroup.value.ot_state,
-  //           civil_movil_id: this.formGroup.value.civil_movil_id,
-  //           hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
-  //           observation: this.formGroup.value.observation,
-  //           started_at: formattedDate,
-  //           ot_id: this.data.values.ot_id
-  //         }
-  //         const subOTitm = this.apiService.putOT(formOT)
-  //         .subscribe({
-  //           next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //           error: (error) => console.log(error),
-  //         })
-  //        }else if(this.formGroup.value.ot_state == 'FINALIZADA'){
-  //         const formattedDate = moment(currentDate).format('YYYY-MM-DD')
 
-  //         let formOT: otDBModel = {
+          const data = [formOT.ot_id, formOT.hydraulic_movil_id]
+         const subOTitm = this.apiService.postOt(formOT)
+                 .subscribe({
 
-  //           ot_state: this.formGroup.value.ot_state,
-  //           civil_movil_id: this.formGroup.value.civil_movil_id,
-  //           hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
-  //           observation: this.formGroup.value.observation,
-  //           started_at:  this.data.values.started_at,
-  //           finished_at: formattedDate,
-  //           ot_id: this.data.values.ot_id
-  //         }
-  //         const subOTitm = this.apiService.putOT(formOT)
-  //         .subscribe({
-  //           next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //           error: (error) => console.log(error),
-  //         })
-  //        }else{
+                   next: (response) => {subOTitm.unsubscribe;this.Complete.emit(formOT.ot_id); this.dialog.closeAll();this.dataSharingService.emitData(data);},
+                   error: (error) => console.log(error),
+                 })
 
-  //         let formOT: otDBModel = {
-
-  //           ot_state: this.formGroup.value.ot_state,
-  //           civil_movil_id: this.formGroup.value.civil_movil_id,
-  //           hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
-  //           observation: this.formGroup.value.observation,
-  //           started_at:  this.data.values.started_at,
-  //           ot_id: this.data.values.ot_id
-  //         }
-  //         const subOTitm = this.apiService.putOT(formOT)
-  //         .subscribe({
-  //           next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
-  //           error: (error) => console.log(error),
-  //         })
-
-
-  //        }
-
-
-
-
-
-  //     //  this.formItemOt.value.fields.map((values: any)=>{
-  //     //    let formOtItem: itm_otDBModel = {
-  //     //      item_id:values.selectedItemId,
-  //     //      ot_id: this.data.values.ot_id,
-  //     //      quantity:values.quantity,
-
-
-  //     //    }
-
-  //      break;
-  //  }
 
 
 
@@ -338,6 +268,13 @@ changeTabIndex(delta: number) {
     this.tabRouting = newTabIndex;
   }
 }
+
+emitData() {
+  const data = 'Datos para compartir';
+  this.dataSharingService.emitData(data);
+}
+
+
 }
 
 

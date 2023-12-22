@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from 'src/enviroments/enviroment';
 import { inventoryDBModel,inv_proDBModel,productDBModel,otDBModel, itm_otDBModel,pro_otDBModel } from 'src/model/transfer-objects';
 
 @Injectable({
@@ -8,80 +9,140 @@ import { inventoryDBModel,inv_proDBModel,productDBModel,otDBModel, itm_otDBModel
 })
 
 export class ApiService {
-
-
+  private apiUrl: string = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
   getInventories(){
-    return this.http.get('/api/inventory')
+    const url = `${this.apiUrl}/inventory`;
+
+
+    return this.http.get(url)
   }
   getInventoryById(inventory_id : string){
-    return this.http.get(`/api/inventory/${inventory_id}`)
+    const url = `${this.apiUrl}/inventory/${inventory_id}`;
+
+    return this.http.get(url)
   }
   postInventory(inventory: inventoryDBModel ): Observable<any>{
-    console.log(inventory)
-    return this.http.post<any>('/api/inventory', inventory)
+    const url = `${this.apiUrl}/inventory`;
+
+    return this.http.post<any>(url, inventory)
   }
   getUniqueInventory(){
-    return this.http.get('/api/inventory/unique')
+    const url = `${this.apiUrl}/inventory/unique`;
+    return this.http.get(url)
   }
   putInvPro(body: inv_proDBModel): Observable<any>{
-    return this.http.put(`/api/invpro/${body.product_id}/${body.inventory_id}`, body)
+    const url = `${this.apiUrl}/invpro/${body.product_id}/${body.inventory_id}`;
+
+    return this.http.put(url, body)
   }
   postProduct(body: productDBModel):Observable<any>{
-    return this.http.post('/api/product',body)
+    const url = `${this.apiUrl}/product`;
+
+    return this.http.post(url,body)
   }
   postRelationInvPro(body: inv_proDBModel):Observable<any>{
-    return this.http.post('/api/invpro', body)
+    const url = `${this.apiUrl}/invpro`;
+
+    return this.http.post(url, body)
   }
   getProductNotInInventory(inventory_id : string){
-    return this.http.get(`/api/invpro/products/not-in/${inventory_id}`)
+    const url = `${this.apiUrl}/invpro/products/not-in/${inventory_id}`;
+
+    return this.http.get(url)
   }
   getInfoOtForTable(){
-    return this.http.get('/api/ottable')
+    const url = `${this.apiUrl}/ottable`;
+    return this.http.get(url)
   }
   getMovilOc(){
-    return this.http.get('/api/movil/get/oc')
+    const url = `${this.apiUrl}/movil/get/oc`;
+
+    return this.http.get(url)
   }
 
   getItemOH(){
-    return this.http.get('/api/item-oh')
+    const url = `${this.apiUrl}/item-oh`;
+
+    return this.http.get(url)
   }
   getItemOC(){
-    return this.http.get('/api/item-oc')
+    const url = `${this.apiUrl}/item-oc`;
+
+    return this.http.get(url)
   }
 
   putOT(body: otDBModel): Observable<any>{
-    return this.http.put(`/api/ot/${body.ot_id}`, body)
+    const url = `${this.apiUrl}/ot/${body.ot_id}`;
+
+    return this.http.put(url, body)
   }
   postItmOt(body:itm_otDBModel):Observable<any>{
+    const url = `${this.apiUrl}/itmot`;
+
     console.log("🚀 ~ file: api.service.ts:59 ~ ApiService ~ postItmOt ~ body:", body)
-    return this.http.post('/api/itmot', body)
+    return this.http.post(url, body)
   }
 
   getProductsOh(){
-    return this.http.get('/api/product')
+    const url = `${this.apiUrl}/product`;
+
+    return this.http.get(url)
   }
   postMatOt(body:pro_otDBModel):Observable<any>{
-    console.log("api service", body)
-    return this.http.post('/api/pro-ot',body)
+
+    const url = `${this.apiUrl}/pro-ot`;
+
+    return this.http.post(url,body)
 
   }
   getDetailsOtProduct(ot_id: string){
-    return this.http.get(`/api/detailsOtProduct/${ot_id}`)
+    const url = `${this.apiUrl}/detailsOtProduct/${ot_id}`;
+
+    return this.http.get(url)
 
   }
   getDetailsOtItem(ot_id: string, item_type:string){
-    return this.http.get(`/api/detailsOtItem/${ot_id}/${item_type}`)
+    const url = `${this.apiUrl}/detailsOtItem/${ot_id}/${item_type}`;
+
+    return this.http.get(url)
 
   }
   getInfoOtForTableByState(state:string){
-    return this.http.get(`/api/ottable/${state}`)
+    const url = `${this.apiUrl}/ottable/${state}`;
+
+    return this.http.get(url)
   }
   postOt(body:otDBModel):Observable<any>{
-    console.log(body)
-    return this.http.post('/api/ot',body)
+    const url = `${this.apiUrl}/ot`;
+
+    return this.http.post(url,body)
   }
 
+  getMonthValue(date1:string, date2:string){
+    const url = `${this.apiUrl}/dashboard/monthValue/${date1}/${date2}}`;
+
+    return this.http.get(url)
+  }
+
+  getTotalOfItems(){
+    const url = `${this.apiUrl}/dashboard/totalItems`;
+
+    return this.http.get(url)
+  }
+
+  getMonthlyYield(){
+    const url = `${this.apiUrl}/dashboard/monthlyYield`;
+
+    return this.http.get(url)
+  }
+  getInvPro(){
+    console.log("estoy en service")
+    const url = `${this.apiUrl}/invpro/get`;
+
+    return this.http.get(url)
+  }
 }
+

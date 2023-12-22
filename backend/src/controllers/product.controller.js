@@ -23,6 +23,8 @@ const getProducts = async (req, res) =>{
    
  };
  
+
+
  const postProduct = async (req, res) =>{
      
      const { product_name,product_category, product_unit} = req.body

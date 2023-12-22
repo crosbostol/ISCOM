@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, Fo
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
+import { DataSharingService } from 'src/app/services/datasharingservice';
 @Component({
   selector: 'ot-item-dialog',
   templateUrl: './ot-item-dialog.component.html',
@@ -19,6 +20,7 @@ export class oTItemDialogComponent implements OnInit {
 
 
 
+  receivedData: any;
 
   clicked: boolean = false
   message: string = ""
@@ -42,7 +44,7 @@ public movilId: string
 public ItemOHOT: any =[]
   visualizer: boolean;
   @Input() createdOT$: Observable<string>;
-
+isCreating: boolean = false;
 
 constructor(private apiService : ApiService,
   @Inject(MAT_DIALOG_DATA) public data: any,
@@ -50,11 +52,19 @@ constructor(private apiService : ApiService,
   private formBuilder:FormBuilder,
   private dialog: MatDialog,
   private formDialog: MatDialogRef<FormDialogComponent>,
-  private createdOtDialog: MatDialogRef<FormDialogComponent>
+  private createdOtDialog: MatDialogRef<FormDialogComponent>,
+  private dataSharingService: DataSharingService
 
    )
 
   {
+    this.dataSharingService.dataEmitter.subscribe(data => {
+      this.receivedData = data[0];
+      this.isCreating = true
+      this.CreatingOt()
+      console.log("🚀 ~ file: ot-item-dialog.component.ts:63 ~ oTItemDialogComponent ~ this.receivedData:", this.receivedData)
+    });
+
     if(data){
       this.message = data.message || this.message;
       if (data.buttonText){
@@ -164,7 +174,7 @@ fillUp(){
 
 formButtonEvent(){
   console.log("-------------------------------")
-
+console.log(this.receivedData)
 
         console.log(this.formItemOt)
         const currentDate = new Date();
@@ -200,6 +210,48 @@ if(this.formItemOt.value.fields[0].item_id){
 
 
 }
+
+CreatingOt(){
+  console.log("-------------------------------")
+console.log(this.receivedData)
+
+        console.log(this.formItemOt)
+        const currentDate = new Date();
+        const formattedDate = moment(currentDate).format('YYYY-MM-DD')
+
+console.warn(this.formItemOt.value.fields[0].item_id =="")
+if(this.formItemOt.value.fields[0].item_id && this.isCreating){
+      this.formItemOt.value.fields.map((values: any)=>{
+        let formOtItem: itm_otDBModel = {
+          item_id:values.item_id,
+          ot_id: this.receivedData,
+          quantity:values.quantity,
+
+
+        }
+        const subOTitm = this.apiService.postItmOt(formOtItem)
+      .subscribe({
+        next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+        error: (error) => console.log(error),
+      });
+    })
+    this.formDialog.afterClosed().subscribe(()=>{
+      this.sendata.unsubscribe()
+    })
+
+  }else{
+    this.formDialog.afterClosed().subscribe(()=>{
+      this.sendata.unsubscribe()
+    })
+  }
+
+
+
+
+}
+
+
+
 
 //Trae los móviles de civil y los nombres de los chóferes
 
@@ -302,9 +354,12 @@ sendata = this.formDialog.componentInstance.Complete.subscribe(()=>
     console.warn('OT ID', datos)
   })
 
+  console.warn(this.receivedData)
   // console.log('Valor recibido desde el padre:', this.createdOT);
 
-  this.formButtonEvent()})
+  //this.formButtonEvent()
+}
+  )
 
 
 

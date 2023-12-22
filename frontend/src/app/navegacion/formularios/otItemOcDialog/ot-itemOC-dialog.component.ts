@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, Validators,ReactiveFormsModule, FormsModule, Fo
 import { inventoryDBModel,inv_proDBModel,otDBModel,itm_otDBModel } from 'src/model/transfer-objects';
 import * as moment from 'moment';
 import { FormDialogComponent } from '../../dialogs/formDialog/form-dialog.component';
+import { DataSharingService } from 'src/app/services/datasharingservice';
 @Component({
   selector: 'ot-itemOC-dialog',
   templateUrl: './ot-itemOC-dialog.component.html',
@@ -29,6 +30,7 @@ disablepInput = true
   editing: boolean;
 titleAlert : string = "Requerido"
 itemOTForm = [{selectedItemId: '', ot_id:'', quantity:''}]
+receivedData: any
 public civil_chofer: any =[]
 public item_OH: any =[]
 public item_OC: any =[]
@@ -38,6 +40,7 @@ public conductorName:  string
 public movilId: string
 @Output() close: EventEmitter<any> = new EventEmitter();
   visualizer: boolean;
+  isCreating: boolean;
 
 
 constructor(private apiService : ApiService,
@@ -45,11 +48,20 @@ constructor(private apiService : ApiService,
   private dialogRef: MatDialogRef<oTItemOCDialogComponent>,
   private formBuilder:FormBuilder,
   private dialog: MatDialog,
-  private formDialog: MatDialogRef<FormDialogComponent>
+  private formDialog: MatDialogRef<FormDialogComponent>,
+  private dataSharingService: DataSharingService
 
    )
 
   {
+    this.dataSharingService.dataEmitter.subscribe(data => {
+      this.receivedData = data[0];
+      this.isCreating = true
+      this.CreatingOt()
+      console.log("🚀 ~ file: ot-item-dialog.component.ts:63 ~ oTItemDialogComponent ~ this.receivedData:", this.receivedData)
+    });
+
+
     if(data){
       this.message = data.message || this.message;
       if (data.buttonText){
@@ -198,6 +210,48 @@ if(this.formOCItemOt.value.fields[0].selectedItemId){
 
 }
 
+
+
+CreatingOt(){
+  //console.log(this.data.values)
+
+
+        const currentDate = new Date();
+        const formattedDate = moment(currentDate).format('YYYY-MM-DD')
+
+        console.log("🚀 ~ file: ot-itemOC-dialog.component.ts:170 ~ oTItemOCDialogComponent ~ formButtonEvent ~ this.formOCItemOt.value.fields[0]:", this.formOCItemOt.value.fields[0])
+
+
+if(this.formOCItemOt.value.fields[0].selectedItemId && this.isCreating){
+      this.formOCItemOt.value.fields.map((values: any)=>{
+        let formOtItem: itm_otDBModel = {
+          item_id:values.selectedItemId,
+          ot_id: this.receivedData,
+          quantity:values.quantity,
+
+
+        }
+        console.log(formOtItem)
+         const subOTitm = this.apiService.postItmOt(formOtItem)
+       .subscribe({
+         next: (response) => {subOTitm.unsubscribe; this.dialog.closeAll();this.close.emit();console.log(response)},
+         error: (error) => console.log(error),
+       });
+    })
+
+    this.formDialog.afterClosed().subscribe(()=>{
+      this.sendata.unsubscribe()
+    })
+  }else{
+    this.formDialog.afterClosed().subscribe(()=>{
+      this.sendata.unsubscribe()
+    })
+  }
+
+
+
+
+}
 //Trae los móviles de civil y los nombres de los chóferes
 
 

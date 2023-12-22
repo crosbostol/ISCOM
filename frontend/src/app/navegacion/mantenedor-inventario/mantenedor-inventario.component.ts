@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ApiService } from 'src/app/services/api.service';
 import { interval, take, lastValueFrom } from 'rxjs';
 import { FormularioComponent } from '../formulario/formulario.component';
@@ -8,6 +8,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AddDialogComponent } from '../dialogs/addDialog/add-dialog.component';
 import { AsociateDialogComponent } from '../dialogs/asociateDialog/asociate-dialog.component';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-mantenedor-inventario',
@@ -23,7 +24,7 @@ public inventories: any = []
 public inventory_id : string = "INV-JJKX21"
 public row: any = {}
 corruntRoute: String
-
+@ViewChild('paginator') paginator: MatPaginator;
 constructor(private apiService : ApiService, private dialog:MatDialog, private route: ActivatedRoute){
 
 
@@ -64,8 +65,9 @@ applyFilter(event: Event) {
     lastValueFrom(this.apiService.getInventoryById(id))
     .then(payload =>{
       this.isData = true;
-      this.dataSource = payload
-      this.dataSource = new MatTableDataSource(this.dataSource)
+        this.dataSource = payload
+        this.dataSource = new MatTableDataSource(this.dataSource)
+        this.dataSource.paginator = this.paginator
 
       console.log(this.dataSource)
     })

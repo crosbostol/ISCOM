@@ -1,0 +1,283 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template for training lab.
+Resources:
+
+  LambdaCOyarzunTrainingLab:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: lambda-coyarzun
+      Description: Test lambda function cloud formation
+      Runtime: python3.9
+      Timeout: 25
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/lambda-serverless-lab-role
+      Handler: index.lambda_handler
+      Code:
+        ZipFile: |
+          import json
+          import uuid
+          import boto3
+          from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
+
+
+
+          table_name = 'training-lab-coyarzun'
+
+          def lambda_handler(event, context):
+              # TODO implement
+              print("event")
+              print(event)
+              resource = event.get('resource')
+              method = event.get('httpMethod')
+              
+              res = {}
+              if resource == '/test' and method == 'GET':
+                res = get_all_items()
+                      
+              elif resource == '/test' and method == 'POST':
+                  res = insert_item(event)
+              
+              elif resource == '/test' and method == 'PUT': 
+                  res = update_item(event)
+                  
+                  
+              elif resource == '/test/{id}' and method == 'GET':
+                  res = get_by_id(event)
+                  
+              elif resource == '/test/{id}' and method == 'DELETE':
+                  res = delete_item_by_id(event)
+                  
+
+              return {
+                  'statusCode': 200,
+                  'headers': {
+                      'Access-Control-Allow-Headers': '*',
+                      'Access-Control-Allow-Origin': '*',
+                      'Access-Control-Allow-Methods': 'POST, GET, POST, PUT, DELETE',
+                      'Content-Type': 'application/json'
+                    },
+                  'body': json.dumps(res)
+              }
+          
+          def from_dynamodb_to_json(item):
+              d = TypeDeserializer()
+              return {k: d.deserialize(value=v) for k, v in item.items()}
+              
+
+          def get_all_items():
+              res = [] 
+              dynamodb = boto3.client('dynamodb')
+              records = dynamodb.scan(TableName=table_name)
+              for x in  records.get('Items'):
+                  print(x)
+                  d = from_dynamodb_to_json(x)
+                  res.append(d)
+              
+              return res 
+
+          def insert_item(event):
+              dynamodb = boto3.client('dynamodb')
+              
+              id = str(uuid.uuid1())
+              
+              body = json.loads(event.get('body'))
+              
+
+              title = body.get("title", "")
+              description = body.get("description", "")
+
+              dynamodb.put_item(
+                  TableName=table_name, 
+                      Item={ 'id' : {'S': id}, 
+                      'title':{'S': title},
+                      'description':{'S':description}
+                      }
+                  )
+              
+              res = {
+                'id':id,
+                'description': description,
+                'title': title
+              }
+              
+              return res
+              
+          def update_item(event):
+              body = json.loads(event.get('body'))
+                  
+              id = title = body.get("id")
+              title = body.get("title", "")
+              description = body.get("description", "")
+              
+              dynamodb = boto3.resource('dynamodb')
+              
+              table = dynamodb.Table(table_name)
+              
+              UpdateExpression = 'SET title = :val1, description = :val2'
+              ExpressionAttributeValues = {
+                      ':val1': title,
+                      ':val2': description
+                  }
+              
+              update = table.update_item(
+                  Key={
+                      'id': id
+                  },
+                  ConditionExpression= 'attribute_exists(id)',
+                  UpdateExpression=UpdateExpression,
+                  ExpressionAttributeValues=ExpressionAttributeValues
+              )
+              
+              res = {
+                'id':id,
+                'description': description,
+                'title': title
+              }
+              
+              return res
+              
+          def get_by_id(event):
+              dynamodb = boto3.resource('dynamodb')
+                  
+              table = dynamodb.Table(table_name)
+              
+              path_parameters = event.get('pathParameters')
+              id = path_parameters.get('id')
+              response =table.get_item(Key={
+                    "id": id 
+                  })
+              
+              res = response.get("Item")
+              
+              return res
+              
+          def delete_item_by_id(event):
+              dynamodb = boto3.resource('dynamodb')
+                  
+              table = dynamodb.Table(table_name)
+              
+              path_parameters = event.get('pathParameters')
+              id = path_parameters.get('id')
+              table.delete_item(Key={"id": id })
+              
+              res = {'message':'registro eliminado'}
+              return res
+
+  DynamoCOyarzunTrainigLabTable: #identificador del recurso
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:  training-lab-coyarzun #nombre de la tabla a ser creada
+      AttributeDefinitions: #Definición de las culumnas
+        - AttributeName: id #nombre del campo
+          AttributeType: S # tipo de dato, en esta caso string
+      BillingMode: PROVISIONED
+      KeySchema: #Definición de la llave primaria
+        - AttributeName: id #nombre del campo
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  
+
+  ApiGatewayRestApiCOyarzunTrainingLab: #Identificador del recurso
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      ApiKeySourceType: HEADER
+      Name: training-lab-coyarzun #nombre de la api
+      Description: An API Gateway with a Lambda Integration #descripción
+      EndpointConfiguration:
+        Types:
+          - EDGE
+
+  ApiGatewayCOyarzunResource: #Identificador del recurso
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGatewayRestApiCOyarzunTrainingLab.RootResourceId
+      PathPart: 'test' #ruta para realizar el test
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab
+  
+
+  ApiGatewayCOyarzunMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: ANY #metodo a ser utilizado
+      Integration:
+        ConnectionType: INTERNET
+        Credentials: !Sub arn:aws:iam::${AWS::AccountId}:role/apigateway-serverless-lab-role
+        IntegrationHttpMethod: POST #metodo de integración para lambda proxy
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              application/json:  "$input.json('$.body')"
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        Type: AWS_PROXY
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaCOyarzunTrainingLab.Arn}/invocations' #Lambda creada
+      OperationName: 'lambda'
+      ResourceId: !Ref ApiGatewayCOyarzunResource #Recurso de api gateway
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab #Api gateway creado
+      MethodResponses:
+        - ResponseModels:
+            application/json:
+              Ref: ApiGatewayCOyarzunModel
+          StatusCode: 200
+
+  ApiGatewayCOyarzunModel:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      ContentType: 'application/json' #tipo de contenido del model 
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab #identificador de la api
+      Schema: {}
+
+  ApiGatewayCOyarzunDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: 
+      - ApiGatewayCOyarzunMethod
+      - ApiGatewayAnyByIdMethod
+    Properties:
+      Description: Lambda API Deployment
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab
+  
+  ApiGatewayCOyarzunStage: #identificador del recurso
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId: !Ref ApiGatewayCOyarzunDeployment #identificador del deploy
+      Description: Lambda API Stage v1 #descripción
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab
+      StageName: 'v1' #nomre de la etapa
+
+  ApiGatewayByIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Ref: ApiGatewayCOyarzunResource #referencia al primer recurso creado
+      PathPart: '{id}'
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab
+
+  ApiGatewayAnyByIdMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: ANY #método de la petición
+      Integration:
+        ConnectionType: INTERNET
+        Credentials: !Sub arn:aws:iam::${AWS::AccountId}:role/apigateway-serverless-lab-role
+        IntegrationHttpMethod: POST #método de integración con lambda proxy
+        IntegrationResponses:
+           -  StatusCode: 200
+              ResponseTemplates:
+                application/json:  "$input.json('$.body')"
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        Type: AWS_PROXY
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaCOyarzunTrainingLab.Arn}/invocations' #referencia a lambda creada
+      OperationName: 'lambda'
+      ResourceId: !Ref ApiGatewayByIdResource #Referencia al nuevo recurso
+      RestApiId: !Ref ApiGatewayRestApiCOyarzunTrainingLab
+      MethodResponses:
+      - ResponseModels:
+          application/json:
+            Ref: ApiGatewayCOyarzunModel
+        StatusCode: 200

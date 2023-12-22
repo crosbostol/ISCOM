@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table'
 import { CommonModule } from '@angular/common';
 import { DatePipe } from '@angular/common';
@@ -34,6 +34,9 @@ import { oTItemDialogComponent } from './navegacion/formularios/otItemDialog/ot-
 import { oTMaterialDialogComponent } from './navegacion/formularios/otMaterialDialog/ot-material-dialog.component';
 import { oTItemOCDialogComponent } from './navegacion/formularios/otItemOcDialog/ot-itemOC-dialog.component';
 import { CreateOtDialogComponent } from './navegacion/dialogs/createOtDialog/create-ot-dialog.component';
+
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core'; // Importa MatNativeDateModule
 
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
@@ -87,9 +90,9 @@ import { MatDialogModule, MatDialogRef, MatDialog } from '@angular/material/dial
     MatDialogModule,
     FormsModule,
     MatTabsModule,
-    CommonModule
-
-
+    CommonModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   providers: [DatePipe],
   entryComponents:[MatDialogModule],

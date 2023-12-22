@@ -25,12 +25,14 @@ const postInventory = async (req, res) =>{
  };
 
 const getUniqueInventories = async (req, res) =>{
+    console.log("holaa")
     const sql = 'SELECT inventory_id from inventory'
     await pool.query(sql,(error, results) => {
         if(error){
             console.log('error', error)
             return res.status(500).send(error)
         }
+        console.log(results)
        return res.status(201).send(results)
     });
 }

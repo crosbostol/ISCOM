@@ -19,3 +19,34 @@
 .dashboard-card-content {
   text-align: center;
 }
+
+.rowDate{
+  padding-right: 8px ;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.inputDate2{
+padding-left: 0px;
+}
+
+.date-card {
+  position: relative;
+}
+
+.bottom-right-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin-bottom: 16px;
+  margin-right: 16px;
+}
+#card-0{
+}
+
+.mat-card-content {
+  padding: 3rem;
+  font-size: 60px;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+}
