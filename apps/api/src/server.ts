@@ -20,8 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Swagger Documentation
-app.use('/api-docs', swaggerUi.serve as any);
-app.get('/api-docs', swaggerUi.setup(swaggerSpec) as any);
+app.use('/swagger', swaggerUi.serve as any);
+app.get('/swagger', swaggerUi.setup(swaggerSpec) as any);
 
 // Routes
 app.use('/api', routes); // Prefixing with /api for better structure, or keep root if legacy requires it.
