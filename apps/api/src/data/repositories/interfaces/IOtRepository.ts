@@ -8,4 +8,7 @@ export interface IOtRepository {
     softDelete(id: string): Promise<any>;
     getOtTable(): Promise<any[]>;
     getOtTableByState(state: string): Promise<any[]>;
+    findByRangeDate(start: string, end: string): Promise<OrdenTrabajoDTO[]>;
+    findByState(state: string): Promise<OrdenTrabajoDTO[]>;
+    findRejected(): Promise<OrdenTrabajoDTO[]>;
 }

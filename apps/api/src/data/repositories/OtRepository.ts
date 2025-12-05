@@ -99,4 +99,22 @@ export class OtRepository implements IOtRepository {
         const result = await this.db.query(query, [state]);
         return result.rows;
     }
+
+    async findByRangeDate(start: string, end: string): Promise<OrdenTrabajoDTO[]> {
+        const query = 'SELECT * FROM ot WHERE finished_at BETWEEN $1 AND $2 AND dismissed = false';
+        const result = await this.db.query(query, [start, end]);
+        return result.rows;
+    }
+
+    async findByState(state: string): Promise<OrdenTrabajoDTO[]> {
+        const query = 'SELECT * FROM ot WHERE ot_state = $1 AND dismissed = false';
+        const result = await this.db.query(query, [state]);
+        return result.rows;
+    }
+
+    async findRejected(): Promise<OrdenTrabajoDTO[]> {
+        const query = "SELECT * FROM ot WHERE ot_state = 'RECHAZADA' AND dismissed = false";
+        const result = await this.db.query(query);
+        return result.rows;
+    }
 }

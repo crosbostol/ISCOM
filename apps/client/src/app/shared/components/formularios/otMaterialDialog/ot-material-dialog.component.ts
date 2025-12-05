@@ -246,9 +246,9 @@ export class oTMaterialDialogComponent implements OnInit {
       .then(payload => {
 
         this.productsOT = payload
-        this.productsOT = Object.values(this.productsOT)
+        //this.productsOT = Object.values(this.productsOT)
 
-        if (this.productsOT[0].product_id != null) {
+        if (this.productsOT.length > 0 && this.productsOT[0].product_id != null) {
           console.log("entre")
           this.visualizer = true;
           this.tit_btn = "Editar";

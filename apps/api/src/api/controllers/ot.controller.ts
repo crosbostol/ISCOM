@@ -129,3 +129,32 @@ export const getOtTableByState = async (req: Request, res: Response) => {
         res.status(500).send(error);
     }
 };
+
+export const getFinishedOtsByRangeDate = async (req: Request, res: Response) => {
+    try {
+        const { date_start, date_finished } = req.params;
+        const result = await otService.getFinishedOtsByRangeDate(date_start, date_finished);
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};
+
+export const getRejectedOts = async (req: Request, res: Response) => {
+    try {
+        const result = await otService.getRejectedOts();
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};
+
+export const getOtsByState = async (req: Request, res: Response) => {
+    try {
+        const { state } = req.params;
+        const result = await otService.getOtsByState(state);
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};

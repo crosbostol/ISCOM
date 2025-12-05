@@ -183,11 +183,11 @@ export class CreateOtDialogComponent implements OnInit {
       .then(payload => {
 
         this.civil_chofer = payload
-        this.civil_chofer = Object.values(this.civil_chofer.rows)
+        //this.civil_chofer = Object.values(this.civil_chofer.rows)
       })
       .catch(err => {
-        alert("Error al cargar los productos")
-        console.error(err)
+        alert("Error al cargar Movil OC")
+        console.error(this.civil_chofer)
       });
   }
 
@@ -198,11 +198,12 @@ export class CreateOtDialogComponent implements OnInit {
       .then(payload => {
 
         this.item_OH = payload
-        this.item_OH = Object.values(this.item_OH)
+        console.log(this.item_OH)
+        // this.item_OH = Object.values(this.item_OH)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OH")
-        console.error(err)
+        console.error(this.item_OH)
       });
   }
   getItemOC() {

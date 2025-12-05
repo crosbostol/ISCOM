@@ -12,6 +12,10 @@ export class ItmOtService {
         return this.itmOtRepository.findByOtId(otId);
     }
 
+    async getItmByOtAndType(otId: string, type: string): Promise<ItmOtDTO[]> {
+        return this.itmOtRepository.findByOtIdAndType(otId, type);
+    }
+
     async createItmOt(itmOt: ItmOtDTO): Promise<any> {
         return this.itmOtRepository.create(itmOt);
     }

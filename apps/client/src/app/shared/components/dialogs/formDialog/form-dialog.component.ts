@@ -285,7 +285,7 @@ export class FormDialogComponent implements OnInit {
       .then(payload => {
 
         this.civil_chofer = payload
-        this.civil_chofer = Object.values(this.civil_chofer.rows)
+        //this.civil_chofer = Object.values(this.civil_chofer.rows)
       })
       .catch(err => {
         alert("Error al cargar los productos")
@@ -300,7 +300,7 @@ export class FormDialogComponent implements OnInit {
       .then(payload => {
 
         this.item_OH = payload
-        this.item_OH = Object.values(this.item_OH)
+        //this.item_OH = Object.values(this.item_OH)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OH")
@@ -313,7 +313,7 @@ export class FormDialogComponent implements OnInit {
       .then(payload => {
 
         this.item_OC = payload
-        this.item_OC = Object.values(this.item_OC)
+        //this.item_OC = Object.values(this.item_OC)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OC")

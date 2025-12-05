@@ -32,4 +32,16 @@ export class OtService {
     async getOtTableByState(state: string): Promise<any[]> {
         return this.otRepository.getOtTableByState(state);
     }
+
+    async getFinishedOtsByRangeDate(start: string, end: string): Promise<OrdenTrabajoDTO[]> {
+        return this.otRepository.findByRangeDate(start, end);
+    }
+
+    async getOtsByState(state: string): Promise<OrdenTrabajoDTO[]> {
+        return this.otRepository.findByState(state);
+    }
+
+    async getRejectedOts(): Promise<OrdenTrabajoDTO[]> {
+        return this.otRepository.findRejected();
+    }
 }

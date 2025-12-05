@@ -57,3 +57,13 @@ export const updateItmOt = async (req: Request, res: Response) => {
         res.status(500).send(error);
     }
 };
+
+export const getDetailsOtItem = async (req: Request, res: Response) => {
+    try {
+        const { ot_id, item_type } = req.params;
+        const result = await itmOtService.getItmByOtAndType(ot_id, item_type);
+        res.status(201).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};

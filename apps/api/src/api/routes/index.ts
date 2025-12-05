@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getHealth } from '../controllers/health.controller';
-import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTableByState } from '../controllers/ot.controller';
+import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTableByState, getFinishedOtsByRangeDate, getRejectedOts, getOtsByState } from '../controllers/ot.controller';
 import { getMonthValue, getTotalOfItem, monthlyYield } from '../controllers/dashboard.controller';
 import { getImagebyOt, postImage, getImageById, deleteImageById, updateImage } from '../controllers/image.controller';
 
@@ -13,13 +13,29 @@ const router = Router();
 router.get('/health', getHealth);
 
 // OT Routes
+// ot rejection and updates
+router.put('/ot/reject/:ot_id', RejectOtById);
+router.put('/ot/:ot_id', updateOt);
+
+// ot queries
+router.get('/ot/finished/:date_start/:date_finished', getFinishedOtsByRangeDate);
+router.get('/ot/rejected', getRejectedOts);
 router.get('/ot', getOt);
 router.post('/ot', validateRequest(OtSchema), postOt);
 router.get('/ot/:ot_id', getOtById);
-router.put('/ot/:ot_id', updateOt);
-router.put('/ot/reject/:ot_id', RejectOtById); // Fixed path to match legacy: /ot/reject/:ot_id
+router.get('/ot/state/:state', getOtsByState);
+
+// ot table view
 router.get('/ottable', getOtTable);
 router.get('/ottable/:state', getOtTableByState);
+
+// legacy details routes (aliased)
+import { getProOtbyOt } from '../controllers/pro-ot.controller';
+import { getDetailsOtItem } from '../controllers/ot-item.controller';
+
+router.get('/detailsOtProduct/:ot_id', getProOtbyOt); // Alias to ProOtController
+router.get('/detailsOtItem/:ot_id/:item_type', getDetailsOtItem); // New method in OtItemController
+
 
 // Dashboard Routes
 router.get('/dashboard/monthValue/:date1/:date2', getMonthValue);
@@ -80,7 +96,7 @@ router.delete('/itmot/:item_id/:ot_id', deleteItmOtById);
 router.put('/itmot/:item_Id/:ot_Id', updateItmOt);
 
 // ProOt Routes
-import { getProOtbyOt, getProOtbyProduct, deleteProOt, postProOt, updateProOt } from '../controllers/pro-ot.controller';
+import { getProOtbyProduct, deleteProOt, postProOt, updateProOt } from '../controllers/pro-ot.controller'; // getProOtbyOt already imported
 router.get('/pro-ot/ot/:ot_id', getProOtbyOt);
 router.get('/pro-ot/product/:product_id', getProOtbyProduct);
 router.delete('/pro-ot/:ot_id/:product_id', deleteProOt);
