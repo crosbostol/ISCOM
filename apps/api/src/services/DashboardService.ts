@@ -4,7 +4,7 @@ import { MonthValueDTO, ItemTotalDTO, MonthlyYieldDTO } from '../data/dto/Dashbo
 export class DashboardService {
     constructor(private dashboardRepository: IDashboardRepository) { }
 
-    async getMonthValue(date1: string, date2: string): Promise<MonthValueDTO> {
+    async getMonthValue(date1: string, date2: string): Promise<MonthValueDTO[]> {
         return this.dashboardRepository.getMonthValue(date1, date2);
     }
 

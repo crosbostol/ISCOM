@@ -6,4 +6,6 @@ export interface IOtRepository {
     findById(id: string): Promise<OrdenTrabajoDTO | null>;
     update(id: string, ot: Partial<OrdenTrabajoDTO>): Promise<any>;
     softDelete(id: string): Promise<any>;
+    getOtTable(): Promise<any[]>;
+    getOtTableByState(state: string): Promise<any[]>;
 }

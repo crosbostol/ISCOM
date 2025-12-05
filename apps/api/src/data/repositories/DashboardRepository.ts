@@ -10,10 +10,10 @@ export class DashboardRepository implements IDashboardRepository {
         this.db = pool;
     }
 
-    async getMonthValue(date1: string, date2: string): Promise<MonthValueDTO> {
+    async getMonthValue(date1: string, date2: string): Promise<MonthValueDTO[]> {
         const sql = 'SELECT SUM(itm_ot.quantity * item.item_value) AS total_value FROM itm_ot JOIN item ON itm_ot.item_id = item.item_id WHERE itm_ot.created_at >= $1 AND itm_ot.created_at <= $2;';
         const result = await this.db.query(sql, [date1, date2]);
-        return result.rows[0];
+        return result.rows;
     }
 
     async getTotalOfItem(): Promise<ItemTotalDTO[]> {

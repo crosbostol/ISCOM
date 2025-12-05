@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getHealth } from '../controllers/health.controller';
-import { getOt, postOt, getOtById, updateOt, RejectOtById } from '../controllers/ot.controller';
+import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTableByState } from '../controllers/ot.controller';
 import { getMonthValue, getTotalOfItem, monthlyYield } from '../controllers/dashboard.controller';
 import { getImagebyOt, postImage, getImageById, deleteImageById, updateImage } from '../controllers/image.controller';
 
@@ -15,6 +15,8 @@ router.post('/ot', postOt);
 router.get('/ot/:ot_id', getOtById);
 router.put('/ot/:ot_id', updateOt);
 router.put('/ot/reject/:ot_id', RejectOtById); // Fixed path to match legacy: /ot/reject/:ot_id
+router.get('/ottable', getOtTable);
+router.get('/ottable/:state', getOtTableByState);
 
 // Dashboard Routes
 router.get('/dashboard/monthValue/:date1/:date2', getMonthValue);

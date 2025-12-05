@@ -52,4 +52,51 @@ export class OtRepository implements IOtRepository {
         const result = await this.db.query(query, [id]);
         return result.rows[0];
     }
+
+    async getOtTable(): Promise<any[]> {
+        const query = `
+            SELECT 
+                o.started_at, 
+                o.finished_at, 
+                o.ot_id, 
+                o.street, 
+                o.number_street,
+                o.commune, 
+                o.hydraulic_movil_id, 
+                c.name as N_hidraulico, 
+                o.civil_movil_id, 
+                c2.name as N_civil, 
+                o.ot_state 
+            FROM OT o 
+            LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id 
+            LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id 
+            LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id 
+            LEFT JOIN CONDUCTOR c2 On m2.movil_id = c2.movil_id
+        `;
+        const result = await this.db.query(query);
+        return result.rows;
+    }
+
+    async getOtTableByState(state: string): Promise<any[]> {
+        const query = `
+            SELECT 
+                o.ot_id, 
+                o.street, 
+                o.number_street,
+                o.commune, 
+                o.hydraulic_movil_id, 
+                c.name as N_hidraulico, 
+                o.civil_movil_id, 
+                c2.name as N_civil, 
+                o.ot_state 
+            FROM OT o 
+            LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id 
+            LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id 
+            LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id 
+            LEFT JOIN CONDUCTOR c2 On m2.movil_id = c2.movil_id 
+            WHERE o.ot_state = $1
+        `;
+        const result = await this.db.query(query, [state]);
+        return result.rows;
+    }
 }

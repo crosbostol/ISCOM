@@ -24,4 +24,12 @@ export class OtService {
     async rejectOt(id: string): Promise<any> {
         return this.otRepository.softDelete(id);
     }
+
+    async getOtTable(): Promise<any[]> {
+        return this.otRepository.getOtTable();
+    }
+
+    async getOtTableByState(state: string): Promise<any[]> {
+        return this.otRepository.getOtTableByState(state);
+    }
 }
