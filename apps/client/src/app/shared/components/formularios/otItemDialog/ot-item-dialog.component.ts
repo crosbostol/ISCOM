@@ -260,7 +260,7 @@ export class oTItemDialogComponent implements OnInit {
       .then(payload => {
 
         this.ItemOHOT = payload
-        this.ItemOHOT = Object.values(this.ItemOHOT)
+        //this.ItemOHOT = Object.values(this.ItemOHOT)
 
         // this.ItemOHOT.map((element: any)=> {
         //    const   totalItem = element.item_value * element.quantity
@@ -299,7 +299,7 @@ export class oTItemDialogComponent implements OnInit {
       .then(payload => {
 
         this.item_OH = payload
-        this.item_OH = Object.values(this.item_OH)
+        //this.item_OH = Object.values(this.item_OH)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OH")

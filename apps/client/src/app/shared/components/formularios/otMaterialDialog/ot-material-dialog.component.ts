@@ -233,7 +233,7 @@ export class oTMaterialDialogComponent implements OnInit {
       .then(payload => {
 
         this.products = payload
-        this.products = Object.values(this.products)
+        //this.products = Object.values(this.products)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OH")

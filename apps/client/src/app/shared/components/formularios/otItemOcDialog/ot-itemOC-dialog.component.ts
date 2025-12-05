@@ -260,7 +260,7 @@ export class oTItemOCDialogComponent implements OnInit {
       .then(payload => {
 
         this.item_OC = payload
-        this.item_OC = Object.values(this.item_OC)
+        //this.item_OC = Object.values(this.item_OC)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OC")
@@ -275,7 +275,7 @@ export class oTItemOCDialogComponent implements OnInit {
       .then(payload => {
 
         this.itemOCOT = payload
-        this.itemOCOT = Object.values(this.itemOCOT)
+        //this.itemOCOT = Object.values(this.itemOCOT)
 
         if (this.itemOCOT) {
           this.visualizer = true;

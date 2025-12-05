@@ -212,7 +212,7 @@ export class CreateOtDialogComponent implements OnInit {
       .then(payload => {
 
         this.item_OC = payload
-        this.item_OC = Object.values(this.item_OC)
+        //this.item_OC = Object.values(this.item_OC)
       })
       .catch(err => {
         alert("Error al cargar los PARTIDAS OC")

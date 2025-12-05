@@ -85,7 +85,7 @@ export class MantenedorInventarioComponent implements OnInit {
       .then(payload => {
         this.isData = true;
         this.inventories = payload
-        this.inventories = Object.values(this.inventories.rows)
+        //this.inventories = Object.values(this.inventories.rows)
         console.warn(this.inventories)
       })
       .catch(err => {

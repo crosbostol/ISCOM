@@ -104,7 +104,7 @@ export class AsociateDialogComponent implements OnInit {
       .then(payload => {
         this.isData = true;
         this.products = payload
-        this.products = Object.values(this.products.rows)
+        //this.products = Object.values(this.products.rows)
         console.log(this.products)
       })
       .catch(err => {
