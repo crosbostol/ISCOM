@@ -4,6 +4,9 @@ import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTabl
 import { getMonthValue, getTotalOfItem, monthlyYield } from '../controllers/dashboard.controller';
 import { getImagebyOt, postImage, getImageById, deleteImageById, updateImage } from '../controllers/image.controller';
 
+import { validateRequest } from '../middlewares/validator';
+import { OtSchema } from '../../data/schemas/OtSchema';
+
 const router = Router();
 
 // Health Check
@@ -11,7 +14,7 @@ router.get('/health', getHealth);
 
 // OT Routes
 router.get('/ot', getOt);
-router.post('/ot', postOt);
+router.post('/ot', validateRequest(OtSchema), postOt);
 router.get('/ot/:ot_id', getOtById);
 router.put('/ot/:ot_id', updateOt);
 router.put('/ot/reject/:ot_id', RejectOtById); // Fixed path to match legacy: /ot/reject/:ot_id
