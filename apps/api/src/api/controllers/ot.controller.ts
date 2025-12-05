@@ -1,0 +1,67 @@
+import { Request, Response } from 'express';
+import { OtService } from '../../services/OtService';
+import { OtRepository } from '../../data/repositories/OtRepository';
+import { OrdenTrabajoDTO } from '../../data/dto/OrdenTrabajoDTO';
+
+// Manual Dependency Injection
+const otRepository = new OtRepository();
+const otService = new OtService(otRepository);
+
+export const getOt = async (req: Request, res: Response) => {
+    try {
+        const result = await otService.getAllOts();
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};
+
+export const postOt = async (req: Request, res: Response) => {
+    try {
+        const data: OrdenTrabajoDTO = req.body;
+        const result = await otService.createOt(data);
+        res.status(201).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};
+
+export const getOtById = async (req: Request, res: Response) => {
+    try {
+        const { ot_id } = req.params;
+        const result = await otService.getOtById(ot_id);
+        if (!result) {
+            return res.status(404).send({ message: 'OT not found' });
+        }
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};
+
+export const updateOt = async (req: Request, res: Response) => {
+    try {
+        const { ot_id } = req.params;
+        const data: Partial<OrdenTrabajoDTO> = req.body;
+        const result = await otService.updateOt(ot_id, data);
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};
+
+export const RejectOtById = async (req: Request, res: Response) => {
+    try {
+        const { ot_id } = req.params;
+        const result = await otService.rejectOt(ot_id);
+        if (!result) {
+            return res.json({
+                message: `Ot ${ot_id} ya está desetimada`,
+                body: { user: { ot_id } }
+            });
+        }
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+};

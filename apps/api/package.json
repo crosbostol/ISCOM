@@ -4,7 +4,11 @@
     "description": "RESTful API with Node.js, Express, and PostgreSQL",
     "main": "index.js",
     "scripts": {
-        "back": " nodemon src/index.js"
+        "back": " nodemon src/index.js",
+        "test": "jest",
+        "build": "tsc",
+        "start": "node dist/server.js",
+        "dev": "nodemon src/server.ts"
     },
     "keywords": [],
     "author": "",
@@ -19,6 +23,16 @@
         "startbootstrap-sb-admin-2": "^4.1.4"
     },
     "devDependencies": {
-        "nodemon": "^2.0.21"
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/jest": "^30.0.0",
+        "@types/node": "^24.10.1",
+        "@types/pg": "^8.15.6",
+        "dotenv": "^17.2.3",
+        "jest": "^30.2.0",
+        "nodemon": "^2.0.21",
+        "ts-jest": "^29.4.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
     }
 }
