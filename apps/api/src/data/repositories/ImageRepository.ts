@@ -10,7 +10,7 @@ export class ImageRepository implements IImageRepository {
         this.db = pool;
     }
 
-    async findByOtId(ot_id: string): Promise<ImageDTO[]> {
+    async findByOtId(ot_id: number): Promise<ImageDTO[]> {
         const result = await this.db.query('SELECT * FROM image WHERE ot_id = $1', [ot_id]);
         return result.rows;
     }

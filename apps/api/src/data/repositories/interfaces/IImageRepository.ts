@@ -1,7 +1,7 @@
 import { ImageDTO } from '../../dto/ImageDTO';
 
 export interface IImageRepository {
-    findByOtId(ot_id: string): Promise<ImageDTO[]>;
+    findByOtId(ot_id: number): Promise<ImageDTO[]>;
     create(image: ImageDTO): Promise<any>;
     findById(image_id: number): Promise<ImageDTO | null>;
     delete(image_id: number): Promise<any>;

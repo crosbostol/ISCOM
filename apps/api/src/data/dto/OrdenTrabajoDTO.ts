@@ -3,15 +3,28 @@
  * components:
  *   schemas:
  *     OrdenTrabajoDTO:
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     OrdenTrabajoDTO:
  *       type: object
  *       required:
  *         - street
  *         - number_street
  *         - commune
  *       properties:
- *         ot_id:
+ *         id:
+ *           type: integer
+ *           description: The auto-generated id of the OT (Internal PK)
+ *         external_ot_id:
  *           type: string
- *           description: The auto-generated id of the OT
+ *           nullable: true
+ *           description: The client verification ID (Old PK). Null for additional OTs.
+ *         is_additional:
+ *           type: boolean
+ *           default: false
+ *           description: Flag for additional OTs
  *         street:
  *           type: string
  *           description: Street name
@@ -46,7 +59,9 @@
  *           description: Soft delete flag
  */
 export interface OrdenTrabajoDTO {
-    ot_id?: string;
+    id?: number;
+    external_ot_id?: string | null;
+    is_additional?: boolean;
     street?: string;
     number_street?: string;
     commune?: string;

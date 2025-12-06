@@ -16,13 +16,13 @@ export class ItmOtRepository implements IItmOtRepository {
         return result.rows;
     }
 
-    async findByOtId(otId: string): Promise<ItmOtDTO[]> {
+    async findByOtId(otId: number): Promise<ItmOtDTO[]> {
         const sql = 'SELECT *, itm_ot.quantity * item.item_value AS item_Total FROM itm_ot INNER JOIN item ON item.item_id = itm_ot.item_id WHERE itm_ot.ot_id = $1';
         const result = await this.db.query(sql, [otId]);
         return result.rows;
     }
 
-    async findByOtIdAndType(otId: string, type: string): Promise<ItmOtDTO[]> {
+    async findByOtIdAndType(otId: number, type: string): Promise<ItmOtDTO[]> {
         const sql = 'SELECT *, itm_ot.quantity * item.item_value AS item_Total FROM itm_ot INNER JOIN item ON item.item_id = itm_ot.item_id WHERE itm_ot.ot_id = $1 AND item.item_type = $2';
         const result = await this.db.query(sql, [otId, type]);
         return result.rows;
@@ -35,13 +35,13 @@ export class ItmOtRepository implements IItmOtRepository {
         return result.rows[0];
     }
 
-    async delete(itemId: number, otId: string): Promise<any> {
+    async delete(itemId: number, otId: number): Promise<any> {
         const sql = 'DELETE FROM itm_ot WHERE item_id = $1 AND ot_id = $2 RETURNING *';
         const result = await this.db.query(sql, [itemId, otId]);
         return result.rows[0];
     }
 
-    async update(itemId: number, otId: string, quantity: number): Promise<any> {
+    async update(itemId: number, otId: number, quantity: number): Promise<any> {
         const sql = 'UPDATE itm_ot SET quantity = $1 WHERE item_id = $2 AND ot_id = $3 RETURNING *';
         const result = await this.db.query(sql, [quantity, itemId, otId]);
         return result.rows[0];

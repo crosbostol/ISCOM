@@ -1,0 +1,30 @@
+BEGIN
+DELETE 0
+DELETE 0
+DELETE 0
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:25: ERROR:  la columna -½external_ot_id-+ est+í en la llave primaria
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:29: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:32: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:33: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:41: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:47: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:50: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:51: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:52: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:53: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:60: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:65: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:67: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:68: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:69: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:70: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:77: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:82: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:84: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:85: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:86: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+psql:f:/WorkSpace/ISCOM/apps/api/SQL SCRIPTS/migration_v2_refactor_ot.sql:87: ERROR:  transacci+¦n abortada, las +¦rdenes ser+ín ignoradas hasta el fin de bloque de transacci+¦n
+ROLLBACK

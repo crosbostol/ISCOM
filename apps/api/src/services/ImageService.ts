@@ -4,7 +4,7 @@ import { ImageDTO } from '../data/dto/ImageDTO';
 export class ImageService {
     constructor(private imageRepository: IImageRepository) { }
 
-    async getImagesByOtId(ot_id: string): Promise<ImageDTO[]> {
+    async getImagesByOtId(ot_id: number): Promise<ImageDTO[]> {
         return this.imageRepository.findByOtId(ot_id);
     }
 

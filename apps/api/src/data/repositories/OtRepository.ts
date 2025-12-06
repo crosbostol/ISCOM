@@ -11,44 +11,60 @@ export class OtRepository implements IOtRepository {
     }
 
     async create(ot: OrdenTrabajoDTO): Promise<any> {
-        const fields = Object.keys(ot);
-        const values = Object.values(ot);
+        // Map legacy ot_id to external_ot_id if needed
+        let { external_ot_id } = ot;
+        if (!external_ot_id && ot['ot_id']) {
+            external_ot_id = ot['ot_id'];
+        }
 
-        // Construct parameterized query dynamically
-        const columns = fields.join(", ");
+        const { is_additional, ...rest } = ot;
+        // Exclude properties that are not columns or handled above
+        const { ot_id, id, ...otherFields } = rest;
+        // Make sure we don't duplicate external_ot_id in otherFields if it was there
+        if ('external_ot_id' in otherFields) delete otherFields['external_ot_id'];
+
+        const columns = ["external_ot_id", "is_additional", ...Object.keys(otherFields)];
+        const values = [external_ot_id || null, is_additional || false, ...Object.values(otherFields)];
+
         const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
+        const columnNames = columns.join(", ");
 
-        const query = `INSERT INTO ot (${columns}) VALUES (${placeholders}) RETURNING *`;
+        const query = `INSERT INTO ot (${columnNames}) VALUES (${placeholders}) RETURNING *`;
 
         const result = await this.db.query(query, values);
         return result.rows[0];
     }
 
     async findAll(): Promise<OrdenTrabajoDTO[]> {
-        const result = await this.db.query('SELECT * FROM ot');
+        const result = await this.db.query('SELECT * FROM ot ORDER BY id DESC');
         return result.rows;
     }
 
-    async findById(id: string): Promise<OrdenTrabajoDTO | null> {
-        const result = await this.db.query('SELECT * FROM ot WHERE ot_id = $1', [id]);
+    async findById(id: number): Promise<OrdenTrabajoDTO | null> {
+        const result = await this.db.query('SELECT * FROM ot WHERE id = $1', [id]);
         return result.rows[0] || null;
     }
 
-    async update(id: string, ot: Partial<OrdenTrabajoDTO>): Promise<any> {
-        const fields = Object.keys(ot);
-        const values = Object.values(ot);
+    async findByExternalId(external_id: string): Promise<OrdenTrabajoDTO | null> {
+        const result = await this.db.query('SELECT * FROM ot WHERE external_ot_id = $1', [external_id]);
+        return result.rows[0] || null;
+    }
+
+    async update(id: number, ot: Partial<OrdenTrabajoDTO>): Promise<any> {
+        const fields = Object.keys(ot).filter(k => k !== 'id' && k !== 'ot_id'); // Don't update PK
+        const values = fields.map(k => ot[k]);
 
         if (fields.length === 0) return null;
 
         const setClause = fields.map((field, i) => `${field} = $${i + 1}`).join(", ");
-        const query = `UPDATE ot SET ${setClause} WHERE ot_id = $${fields.length + 1} RETURNING *`;
+        const query = `UPDATE ot SET ${setClause} WHERE id = $${fields.length + 1} RETURNING *`;
 
         const result = await this.db.query(query, [...values, id]);
         return result.rows[0];
     }
 
-    async softDelete(id: string): Promise<any> {
-        const query = 'UPDATE ot SET dismissed = TRUE WHERE ot_id = $1 AND dismissed = false RETURNING *';
+    async softDelete(id: number): Promise<any> {
+        const query = 'UPDATE ot SET dismissed = TRUE WHERE id = $1 AND dismissed = false RETURNING *';
         const result = await this.db.query(query, [id]);
         return result.rows[0];
     }
@@ -56,9 +72,11 @@ export class OtRepository implements IOtRepository {
     async getOtTable(): Promise<any[]> {
         const query = `
             SELECT 
+                o.id,
+                o.external_ot_id,
+                o.is_additional,
                 o.started_at, 
                 o.finished_at, 
-                o.ot_id, 
                 o.street, 
                 o.number_street,
                 o.commune, 
@@ -80,7 +98,8 @@ export class OtRepository implements IOtRepository {
     async getOtTableByState(state: string): Promise<any[]> {
         const query = `
             SELECT 
-                o.ot_id, 
+                o.id,
+                o.external_ot_id,
                 o.street, 
                 o.number_street,
                 o.commune, 

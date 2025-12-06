@@ -5,7 +5,8 @@ export class OtService {
     constructor(private otRepository: IOtRepository) { }
 
     async createOt(data: OrdenTrabajoDTO): Promise<any> {
-        // Future business logic/validation goes here
+        // Here we could add logic to check if external_ot_id is null, then set is_additional = true, etc.
+        // Repository handles basic mapping.
         return this.otRepository.create(data);
     }
 
@@ -13,15 +14,15 @@ export class OtService {
         return this.otRepository.findAll();
     }
 
-    async getOtById(id: string): Promise<OrdenTrabajoDTO | null> {
+    async getOtById(id: number): Promise<OrdenTrabajoDTO | null> {
         return this.otRepository.findById(id);
     }
 
-    async updateOt(id: string, data: Partial<OrdenTrabajoDTO>): Promise<any> {
+    async updateOt(id: number, data: Partial<OrdenTrabajoDTO>): Promise<any> {
         return this.otRepository.update(id, data);
     }
 
-    async rejectOt(id: string): Promise<any> {
+    async rejectOt(id: number): Promise<any> {
         return this.otRepository.softDelete(id);
     }
 

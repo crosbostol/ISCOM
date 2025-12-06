@@ -18,7 +18,8 @@ export const getItmOt = async (req: Request, res: Response) => {
 export const getItmByOt = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
-        const result = await itmOtService.getItmByOt(ot_id);
+        const id = parseInt(ot_id);
+        const result = await itmOtService.getItmByOt(id);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);
@@ -39,7 +40,8 @@ export const deleteItmOtById = async (req: Request, res: Response) => {
     try {
         const item_id = parseInt(req.params.item_id);
         const { ot_id } = req.params;
-        const result = await itmOtService.deleteItmOt(item_id, ot_id);
+        const id = parseInt(ot_id);
+        const result = await itmOtService.deleteItmOt(item_id, id);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);
@@ -50,8 +52,9 @@ export const updateItmOt = async (req: Request, res: Response) => {
     try {
         const item_Id = parseInt(req.params.item_Id);
         const { ot_Id } = req.params;
+        const id = parseInt(ot_Id);
         const { quantity } = req.body;
-        const result = await itmOtService.updateItmOt(item_Id, ot_Id, quantity);
+        const result = await itmOtService.updateItmOt(item_Id, id, quantity);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);
@@ -61,7 +64,8 @@ export const updateItmOt = async (req: Request, res: Response) => {
 export const getDetailsOtItem = async (req: Request, res: Response) => {
     try {
         const { ot_id, item_type } = req.params;
-        const result = await itmOtService.getItmByOtAndType(ot_id, item_type);
+        const id = parseInt(ot_id);
+        const result = await itmOtService.getItmByOtAndType(id, item_type);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);

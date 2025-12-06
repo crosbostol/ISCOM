@@ -4,7 +4,7 @@ import { ProOtDTO } from '../data/dto/ProOtDTO';
 export class ProOtService {
     constructor(private proOtRepository: IProOtRepository) { }
 
-    async getProOtByOt(otId: string): Promise<ProOtDTO[]> {
+    async getProOtByOt(otId: number): Promise<ProOtDTO[]> {
         return this.proOtRepository.findByOtId(otId);
     }
 
@@ -16,11 +16,11 @@ export class ProOtService {
         return this.proOtRepository.create(proOt);
     }
 
-    async deleteProOt(otId: string, productId: number): Promise<any> {
+    async deleteProOt(otId: number, productId: number): Promise<any> {
         return this.proOtRepository.delete(otId, productId);
     }
 
-    async updateProOt(otId: string, productId: number, quantity: number): Promise<any> {
+    async updateProOt(otId: number, productId: number, quantity: number): Promise<any> {
         return this.proOtRepository.update(otId, productId, quantity);
     }
 }

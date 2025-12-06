@@ -61,7 +61,7 @@ export class MantenedorOtComponent implements OnInit {
   ]
   dataSource: any = []
   expiredDate: any
-  formattedStartDate(row: { started_at: string | number | Date; ot_id: any }) {
+  formattedStartDate(row: any) {
     if (row.started_at != null) {
 
       const dateToday = new Date()
@@ -72,7 +72,7 @@ export class MantenedorOtComponent implements OnInit {
     return this.datePipe.transform(row.started_at, 'dd/MM/yyyy');
   }
 
-  formattedFinishDate(row: { finished_at: string | number | Date; }) {
+  formattedFinishDate(row: any) {
     return this.datePipe.transform(row.finished_at, 'dd/MM/yyyy');
   }
 

@@ -131,7 +131,7 @@ export class oTItemDialogComponent implements OnInit {
   additemOtForm() {
     this._itemOT.push(this.formBuilder.group({
       item_id: null,
-      ot_id: this.data.values.ot_id,
+      ot_id: this.data.values.id,
       quantity: null
     }))
   }
@@ -184,7 +184,7 @@ export class oTItemDialogComponent implements OnInit {
       this.formItemOt.value.fields.map((values: any) => {
         let formOtItem: itm_otDBModel = {
           item_id: values.item_id,
-          ot_id: this.data.values.ot_id,
+          ot_id: this.data.values.id,
           quantity: values.quantity,
 
 
@@ -256,7 +256,7 @@ export class oTItemDialogComponent implements OnInit {
 
   getItemOHOT() {
     const type: string = 'AGUA POTABLE'
-    lastValueFrom(this.apiService.getDetailsOtItem(this.data.values.ot_id, type))
+    lastValueFrom(this.apiService.getDetailsOtItem(this.data.values.id, type))
       .then(payload => {
 
         this.ItemOHOT = payload

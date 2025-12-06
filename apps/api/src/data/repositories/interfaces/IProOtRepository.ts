@@ -1,9 +1,9 @@
 import { ProOtDTO } from '../../dto/ProOtDTO';
 
 export interface IProOtRepository {
-    findByOtId(otId: string): Promise<ProOtDTO[]>;
+    findByOtId(otId: number): Promise<ProOtDTO[]>;
     findByProductId(productId: number): Promise<ProOtDTO[]>;
     create(proOt: ProOtDTO): Promise<any>;
-    delete(otId: string, productId: number): Promise<any>;
-    update(otId: string, productId: number, quantity: number): Promise<any>;
+    delete(otId: number, productId: number): Promise<any>;
+    update(otId: number, productId: number, quantity: number): Promise<any>;
 }

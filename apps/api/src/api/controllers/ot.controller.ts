@@ -64,6 +64,7 @@ export const getOt = async (req: Request, res: Response) => {
 export const postOt = async (req: Request, res: Response) => {
     try {
         const data: OrdenTrabajoDTO = req.body;
+        // Basic validation: if external_ot_id is provided, check uniqueness (DB handles constraint, but we could check here)
         const result = await otService.createOt(data);
         res.status(201).send(result);
     } catch (error) {
@@ -74,7 +75,11 @@ export const postOt = async (req: Request, res: Response) => {
 export const getOtById = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
-        const result = await otService.getOtById(ot_id);
+        const id = parseInt(ot_id);
+        if (isNaN(id)) {
+            return res.status(400).send({ message: 'Invalid ID format. Must be a number.' });
+        }
+        const result = await otService.getOtById(id);
         if (!result) {
             return res.status(404).send({ message: 'OT not found' });
         }
@@ -87,8 +92,9 @@ export const getOtById = async (req: Request, res: Response) => {
 export const updateOt = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
+        const id = parseInt(ot_id);
         const data: Partial<OrdenTrabajoDTO> = req.body;
-        const result = await otService.updateOt(ot_id, data);
+        const result = await otService.updateOt(id, data);
         res.status(200).send(result);
     } catch (error) {
         res.status(500).send(error);
@@ -98,7 +104,8 @@ export const updateOt = async (req: Request, res: Response) => {
 export const RejectOtById = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
-        const result = await otService.rejectOt(ot_id);
+        const id = parseInt(ot_id);
+        const result = await otService.rejectOt(id);
         if (!result) {
             return res.json({
                 message: `Ot ${ot_id} ya está desetimada`,

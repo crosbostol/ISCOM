@@ -10,7 +10,7 @@ export class ProOtRepository implements IProOtRepository {
         this.db = pool;
     }
 
-    async findByOtId(otId: string): Promise<ProOtDTO[]> {
+    async findByOtId(otId: number): Promise<ProOtDTO[]> {
         const result = await this.db.query('SELECT * FROM pro_ot WHERE ot_id = $1', [otId]);
         return result.rows;
     }
@@ -27,13 +27,13 @@ export class ProOtRepository implements IProOtRepository {
         return result.rows[0];
     }
 
-    async delete(otId: string, productId: number): Promise<any> {
+    async delete(otId: number, productId: number): Promise<any> {
         const sql = 'DELETE FROM pro_ot WHERE ot_id = $1 AND product_id = $2 RETURNING *';
         const result = await this.db.query(sql, [otId, productId]);
         return result.rows[0];
     }
 
-    async update(otId: string, productId: number, quantity: number): Promise<any> {
+    async update(otId: number, productId: number, quantity: number): Promise<any> {
         const sql = 'UPDATE pro_ot SET quantity = $1 WHERE ot_id = $2 AND product_id = $3 RETURNING *';
         const result = await this.db.query(sql, [quantity, otId, productId]);
         return result.rows[0];

@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 app.use(morgan('dev')); // Logging
 app.use(helmet()); // Security Headers
 app.use(cors({
-    origin: 'http://localhost:4200'
+    origin: ['http://localhost:4200', 'http://localhost:5173']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

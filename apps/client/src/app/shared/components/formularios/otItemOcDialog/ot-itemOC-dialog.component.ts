@@ -127,7 +127,7 @@ export class oTItemOCDialogComponent implements OnInit {
   additemOtForm() {
     this._itemOT.push(this.formBuilder.group({
       item_id: null,
-      ot_id: this.data.values.ot_id,
+      ot_id: this.data.values.id,
       quantity: null
     }))
   }
@@ -182,7 +182,7 @@ export class oTItemOCDialogComponent implements OnInit {
       this.formOCItemOt.value.fields.map((values: any) => {
         let formOtItem: itm_otDBModel = {
           item_id: values.selectedItemId,
-          ot_id: this.data.values.ot_id,
+          ot_id: this.data.values.id,
           quantity: values.quantity,
 
 
@@ -271,7 +271,7 @@ export class oTItemOCDialogComponent implements OnInit {
 
   getItemOHOT() {
     const type: string = 'OBRAS'
-    lastValueFrom(this.apiService.getDetailsOtItem(this.data.values.ot_id, type))
+    lastValueFrom(this.apiService.getDetailsOtItem(this.data.values.id, type))
       .then(payload => {
 
         this.itemOCOT = payload

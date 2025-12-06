@@ -139,7 +139,7 @@ export class FormDialogComponent implements OnInit {
   additemOtForm() {
     this._itemOT.push(this.formBuilder.group({
       item_id: null,
-      ot_id: this.data.values.ot_id,
+      ot_id: this.data.values.id,
       quantity: null
     }))
   }
@@ -156,7 +156,7 @@ export class FormDialogComponent implements OnInit {
         break;
       case "mantenedorOt":
         //this.selectedOption = this.data.values.civil_movil_id
-        this.title = "Editando " + this.data.values.ot_id
+        this.title = "Editando " + this.data.values.external_ot_id
         this.selectedState = this.data.values.ot_state
         this.formGroup.controls['direction'].setValue(this.data.values.street + " " + this.data.values.number_street + ", " + this.data.values.commune)
         this.formGroup.controls['civil_movil_id'].setValue(this.data.values.civil_movil_id)
@@ -211,7 +211,7 @@ export class FormDialogComponent implements OnInit {
             hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
             observation: this.formGroup.value.observation,
             started_at: formattedDate,
-            ot_id: this.data.values.ot_id
+            id: this.data.values.id
           }
           const subOTitm = this.apiService.putOT(formOT)
             .subscribe({
@@ -229,7 +229,7 @@ export class FormDialogComponent implements OnInit {
             observation: this.formGroup.value.observation,
             started_at: this.data.values.started_at,
             finished_at: formattedDate,
-            ot_id: this.data.values.ot_id
+            id: this.data.values.id
           }
           const subOTitm = this.apiService.putOT(formOT)
             .subscribe({
@@ -245,7 +245,7 @@ export class FormDialogComponent implements OnInit {
             hydraulic_movil_id: this.formGroup.value.hydraulic_movil_id,
             observation: this.formGroup.value.observation,
             started_at: this.data.values.started_at,
-            ot_id: this.data.values.ot_id
+            id: this.data.values.id
           }
           const subOTitm = this.apiService.putOT(formOT)
             .subscribe({

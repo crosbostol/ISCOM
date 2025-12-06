@@ -9,7 +9,8 @@ const proOtService = new ProOtService(proOtRepository);
 export const getProOtbyOt = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
-        const result = await proOtService.getProOtByOt(ot_id);
+        const id = parseInt(ot_id);
+        const result = await proOtService.getProOtByOt(id);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);
@@ -29,8 +30,9 @@ export const getProOtbyProduct = async (req: Request, res: Response) => {
 export const deleteProOt = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
+        const id = parseInt(ot_id);
         const product_id = parseInt(req.params.product_id);
-        const result = await proOtService.deleteProOt(ot_id, product_id);
+        const result = await proOtService.deleteProOt(id, product_id);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);
@@ -50,9 +52,10 @@ export const postProOt = async (req: Request, res: Response) => {
 export const updateProOt = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
+        const id = parseInt(ot_id);
         const product_id = parseInt(req.params.product_id);
         const { quantity } = req.body;
-        const result = await proOtService.updateProOt(ot_id, product_id, quantity);
+        const result = await proOtService.updateProOt(id, product_id, quantity);
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send(error);

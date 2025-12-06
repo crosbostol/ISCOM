@@ -10,7 +10,8 @@ const imageService = new ImageService(imageRepository);
 export const getImagebyOt = async (req: Request, res: Response) => {
     try {
         const { ot_id } = req.params;
-        const result = await imageService.getImagesByOtId(ot_id);
+        const id = parseInt(ot_id);
+        const result = await imageService.getImagesByOtId(id);
         res.status(200).send(result);
     } catch (error) {
         res.status(500).send(error);

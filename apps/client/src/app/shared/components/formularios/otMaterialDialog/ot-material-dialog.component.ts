@@ -158,7 +158,7 @@ export class oTMaterialDialogComponent implements OnInit {
       this.formMaterialOt.value.fields.map((values: any) => {
         console.warn(values)
         let formOtItem: pro_otDBModel = {
-          ot_id: this.data.values.ot_id,
+          ot_id: this.data.values.id,
           product_id: values.selectedMaterialId,
           quantity: values.quantity,
           inventory_id: this.data.values.hydraulic_movil_id
@@ -242,7 +242,7 @@ export class oTMaterialDialogComponent implements OnInit {
   }
 
   getProductsOT() {
-    lastValueFrom(this.apiService.getDetailsOtProduct(this.data.values.ot_id))
+    lastValueFrom(this.apiService.getDetailsOtProduct(this.data.values.id))
       .then(payload => {
 
         this.productsOT = payload

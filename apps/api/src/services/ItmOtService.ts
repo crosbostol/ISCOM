@@ -8,11 +8,11 @@ export class ItmOtService {
         return this.itmOtRepository.findAll();
     }
 
-    async getItmByOt(otId: string): Promise<ItmOtDTO[]> {
+    async getItmByOt(otId: number): Promise<ItmOtDTO[]> {
         return this.itmOtRepository.findByOtId(otId);
     }
 
-    async getItmByOtAndType(otId: string, type: string): Promise<ItmOtDTO[]> {
+    async getItmByOtAndType(otId: number, type: string): Promise<ItmOtDTO[]> {
         return this.itmOtRepository.findByOtIdAndType(otId, type);
     }
 
@@ -20,11 +20,11 @@ export class ItmOtService {
         return this.itmOtRepository.create(itmOt);
     }
 
-    async deleteItmOt(itemId: number, otId: string): Promise<any> {
+    async deleteItmOt(itemId: number, otId: number): Promise<any> {
         return this.itmOtRepository.delete(itemId, otId);
     }
 
-    async updateItmOt(itemId: number, otId: string, quantity: number): Promise<any> {
+    async updateItmOt(itemId: number, otId: number, quantity: number): Promise<any> {
         return this.itmOtRepository.update(itemId, otId, quantity);
     }
 }

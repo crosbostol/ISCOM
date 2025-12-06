@@ -1,5 +1,5 @@
 export interface ProOtDTO {
-    ot_id: string;
+    ot_id: number;
     product_id: number;
     quantity: number;
     inventory_id?: number;

@@ -158,14 +158,19 @@ export class CreateOtDialogComponent implements OnInit {
       street: this.street,
       number_street: this.number_street,
       commune: this.commune,
-      ot_id: this.formGroup.value.ot_id
+      external_ot_id: this.formGroup.value.ot_id
     }
 
-    const data = [formOT.ot_id, formOT.hydraulic_movil_id]
     const subOTitm = this.apiService.postOt(formOT)
       .subscribe({
 
-        next: (response) => { subOTitm.unsubscribe; this.Complete.emit(formOT.ot_id); this.dialog.closeAll(); this.dataSharingService.emitData(data); },
+        next: (response) => {
+          subOTitm.unsubscribe;
+          this.Complete.emit(response.id);
+          const data = [response.id, formOT.hydraulic_movil_id];
+          this.dialog.closeAll();
+          this.dataSharingService.emitData(data);
+        },
         error: (error) => console.log(error),
       })
 
