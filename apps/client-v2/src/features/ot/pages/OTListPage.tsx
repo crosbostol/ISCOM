@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
-import { Alert, Snackbar, Chip, Box, Typography, CircularProgress } from '@mui/material';
+import { Alert, Snackbar, Chip, Box, Typography, CircularProgress, Button } from '@mui/material';
 import { getOTs } from '../api/otService';
+import { UploadOTs } from '../components/UploadOTs';
 import type { OT } from '../types/ot.types';
 
 export const OTListPage: React.FC = () => {
+    const [uploadOpen, setUploadOpen] = useState(false);
     const { data: ots, isLoading, isError, error } = useQuery<OT[]>({
         queryKey: ['ots'],
         queryFn: getOTs,
@@ -52,9 +54,16 @@ export const OTListPage: React.FC = () => {
 
     return (
         <Box sx={{ height: 700, width: '100%', p: 3 }}>
-            <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 3 }}>
-                Listado de Órdenes de Trabajo
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h4" component="h1">
+                    Listado de Órdenes de Trabajo
+                </Typography>
+                <Button variant="contained" color="primary" onClick={() => setUploadOpen(true)}>
+                    Importar CSV
+                </Button>
+            </Box>
+
+            <UploadOTs open={uploadOpen} onClose={() => setUploadOpen(false)} />
 
             <DataGrid
                 rows={ots || []}
