@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# Client V2 Documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
+Modern Frontend application built with React and Vite. It serves as the user interface for the ISCOM application, replacing legacy clients.
 
-Currently, two official plugins are available:
+## Tech Stack
+- **Framework**: React (v19.x)
+- **Build Tool**: Vite
+- **Language**: TypeScript
+- **UI Component Library**: Material UI (MUI) v7
+- **State Management**: React Query (TanStack Query)
+- **Data Fetching**: Axios
+- **Routing**: React Router DOM (v7)
+- **Data Grid**: MUI X Data Grid
+- **Linting**: ESLint
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Prerequisites
+- Node.js (Latest stable recommended)
 
-## React Compiler
+## Configuration
+The application connects to the backend API. Ensure the backend is running (default port 3000).
+Proxy configuration or CORS settings in the backend allow communication.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Scripts
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Development
+Starts the development server with Hot Module Replacement (HMR).
+```bash
+npm run dev
 ```
+Access at `http://localhost:5173` (by default).
+
+### Production Build
+Type-checks and builds the application for production. Output is in `dist` folder.
+```bash
+npm run build
+```
+
+### Preview Production Build
+Preview the built application locally.
+```bash
+npm run preview
+```
+
+### Linting
+Run ESLint to check for code quality issues.
+```bash
+npm run lint
+```
+
+## Project Structure
+- `src/main.tsx`: Application entry point.
+- `src/features`: Feature-based architecture (e.g., `ot`, `auth`).
+  - `components`: Reusable UI components specific to the feature.
+  - `pages`: Page components.
+  - `api`: API service calls.
+  - `types`: TypeScript interfaces/types.
+- `src/api`: Global API configuration (axios instance).
+- `public`: Static assets.
