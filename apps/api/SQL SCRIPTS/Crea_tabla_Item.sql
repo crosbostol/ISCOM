@@ -1,18 +1,16 @@
--- Table: public.item
+-- public.item definition
 
--- DROP TABLE IF EXISTS public.item;
+-- Drop table
 
-CREATE TABLE IF NOT EXISTS public.item
-(
-    item_id character varying(20) COLLATE pg_catalog."default" NOT NULL,
-    description character varying(500) COLLATE pg_catalog."default" NOT NULL,
-    item_value money,
-    item_type character varying(50) COLLATE pg_catalog."default",
-    item_unit character varying(10) COLLATE pg_catalog."default",
-    CONSTRAINT item_pkey PRIMARY KEY (item_id)
-)
+-- DROP TABLE public.item;
 
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.item
-    OWNER to postgres;
+CREATE TABLE public.item (
+	item_id varchar(20) NOT NULL,
+	description varchar(500) NOT NULL,
+	item_value numeric(15, 2) NULL,
+	item_type varchar(50) NULL,
+	item_unit varchar(10) NULL,
+	CONSTRAINT item_description_unique UNIQUE (description),
+	CONSTRAINT item_pkey PRIMARY KEY (item_id)
+);
+CREATE INDEX idx_item_description ON public.item USING btree (description);

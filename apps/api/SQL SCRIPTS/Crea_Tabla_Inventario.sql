@@ -1,8 +1,11 @@
-CREATE TABLE IF NOT EXISTS Inventory(
-		inventory_Id VARCHAR primary key,
-		updated_at timestamp default current_timestamp,
-		product_Id int,
-	FOREIGN KEY (product_Id) References Product (product_Id),
-		product_amount INT NOT NULL default 0
-		
+-- public.inventory definition
+
+-- Drop table
+
+-- DROP TABLE public.inventory;
+
+CREATE TABLE public.inventory (
+	inventory_id varchar(20) NOT NULL,
+	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	CONSTRAINT inventory_pkey PRIMARY KEY (inventory_id)
 );
