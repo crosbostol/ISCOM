@@ -13,6 +13,10 @@ export interface ImportResult {
     success_count: number;
     failed_count: number;
     errors: any[];
+    breakdown: {
+        normal: number;
+        additional: number;
+    };
 }
 
 export class ImportService {
@@ -61,6 +65,8 @@ export class ImportService {
         let totalProcessed = 0;
         let successCount = 0;
         let failedCount = 0;
+        let normalCount = 0;
+        let additionalCount = 0;
         const errors: any[] = [];
 
         // PHASE 1: MEMORY GROUPING (The Grouper)
@@ -121,11 +127,13 @@ export class ImportService {
                     const existingOt = await this.otRepository.findByExternalId(otCode);
                     if (existingOt) {
                         otId = existingOt.id as number;
+                        normalCount++;
                     } else {
                         isNewOt = true;
                         const otData = this.buildOtData(header, executionDate, hydraulicMovilId, otCode, false);
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
+                        normalCount++;
                     }
                 } else {
                     // Case B: Additional OT (Heuristic Search)
@@ -153,6 +161,7 @@ export class ImportService {
 
                         if (match) {
                             otId = match.id;
+                            additionalCount++;
                         }
                     }
 
@@ -161,6 +170,7 @@ export class ImportService {
                         const otData = this.buildOtData(header, executionDate, hydraulicMovilId, null, true);
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
+                        additionalCount++;
                     }
                 }
 
@@ -224,7 +234,11 @@ export class ImportService {
             total_processed: totalProcessed,
             success_count: successCount,
             failed_count: failedCount,
-            errors
+            errors,
+            breakdown: {
+                normal: normalCount,
+                additional: additionalCount
+            }
         };
     }
 
