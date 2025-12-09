@@ -24,6 +24,45 @@ router.get('/ot/finished/:date_start/:date_finished', getFinishedOtsByRangeDate)
 router.get('/ot/rejected', getRejectedOts);
 router.get('/ot', getOt);
 router.post('/ot', validateRequest(OtSchema), postOt);
+/**
+ * @swagger
+ * /ot/upload-csv:
+ *   post:
+ *     summary: Upload a CSV file to import OTs
+ *     tags: [OT]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: CSV processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_processed:
+ *                   type: integer
+ *                 success_count:
+ *                   type: integer
+ *                 failed_count:
+ *                   type: integer
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Bad Request (No file uploaded)
+ *       500:
+ *         description: Server error
+ */
 router.post('/ot/upload-csv', upload.single('file') as any, uploadOtCsv);
 router.get('/ot/:ot_id', getOtById);
 router.get('/ot/state/:state', getOtsByState);

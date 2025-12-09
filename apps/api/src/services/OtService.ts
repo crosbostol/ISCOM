@@ -128,7 +128,7 @@ export class OtService {
                 // Prepare common OT data
                 const otData: any = {
                     street: row['DIRECCIÓN']?.trim().toUpperCase(),
-                    number_street: parseNumberStreet(row['NUMERAL']),
+                    number_street: String(parseNumberStreet(row['NUMERAL'])),
                     commune: row['COMUNA']?.trim().toUpperCase(),
                     started_at: parseChileanDate(row['FECHA EJECUCION']),
                     hydraulic_movil_id: null, // Will optionally set below
@@ -140,7 +140,7 @@ export class OtService {
                 const movilCode = row['MÓVIL'];
                 if (movilCode) {
                     const movil = await this.movilRepository.findByExternalCode(movilCode);
-                    if (movil) otData.hydraulic_movil_id = movil.movil_id;
+                    if (movil) otData.hydraulic_movil_id = movil.movil_id.toString();
                 }
 
                 if (otCode && otCode.length > 0) {
@@ -178,7 +178,7 @@ export class OtService {
                 const normalizedDesc = rawDesc.trim().replace(/\s+/g, ' ');
 
                 // Exact match lookup
-                const itemId = await this.itemRepository.findIdByDescription(normalizedDesc);
+                const itemId = String(await this.itemRepository.findIdByDescription(normalizedDesc));
 
                 if (!itemId) {
                     throw new Error(`Item no encontrado: '${normalizedDesc}'`);

@@ -64,8 +64,8 @@ export interface OrdenTrabajoDTO {
     fuga_location?: string;
     started_at?: Date;
     finished_at?: Date;
-    hydraulic_movil_id?: number;
-    civil_movil_id?: number;
+    hydraulic_movil_id?: string | null;
+    civil_movil_id?: string | null;
     ot_state?: string;
     dismissed?: boolean;
     [key: string]: any; // Allow other fields for flexibility during migration

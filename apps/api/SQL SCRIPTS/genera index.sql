@@ -20,3 +20,10 @@ CREATE UNIQUE INDEX idx_movil_external_code ON public."movil"(external_code);
 
 -- 3. Crear índice para búsqueda rápida durante la carga masiva
 CREATE INDEX idx_movil_lookup ON public."movil"(external_code);
+
+
+
+UPDATE public."movil" SET external_code = 'MOV_HID_09' WHERE "movil_id" = 'RCLP-14';
+UPDATE public."movil" SET external_code = 'MOV_HID_10' WHERE "movil_id" = 'RCLP-22';
+UPDATE public."movil" SET external_code = 'MOV_HID_11' WHERE "movil_id" = 'RCLP-25';
+UPDATE public."movil" SET external_code = 'MOV_HID_12' WHERE "movil_id" = 'GJSF-39';
