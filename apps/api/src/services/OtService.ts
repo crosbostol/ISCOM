@@ -59,137 +59,139 @@ export class OtService {
         return this.otRepository.findRejected();
     }
     async processCsv(filePath: string): Promise<any> {
+        console.log(`[OtService] Starting CSV Processing: ${filePath}`);
         const results: any[] = [];
         return new Promise((resolve, reject) => {
-            fs.createReadStream(filePath)
-                .pipe(csv())
+            fs.createReadStream(filePath, { encoding: 'utf-8' })
+                .pipe(csv({
+                    separator: ';',
+                    mapHeaders: ({ header }) => header.trim().replace(/^\uFEFF/, '').toUpperCase()
+                }))
                 .on('data', (data) => results.push(data))
                 .on('end', async () => {
+                    console.log(`[OtService] CSV Parsing Complete. Rows found: ${results.length}`);
+                    if (results.length > 0) {
+                        console.log(`[OtService] First Row Keys: ${Object.keys(results[0]).join(', ')}`);
+                        console.log(`[OtService] First Row Sample:`, results[0]);
+                    }
                     try {
-                        const result = await this.processGroupedRows(results);
+                        const result = await this.processRows(results);
                         resolve(result);
                     } catch (error) {
+                        console.error('[OtService] Error in processRows:', error);
                         reject(error);
                     } finally {
-                        // Clean up file
-                        fs.unlinkSync(filePath);
+                        if (fs.existsSync(filePath)) {
+                            fs.unlinkSync(filePath);
+                        }
                     }
                 })
                 .on('error', (error) => {
-                    fs.unlinkSync(filePath);
+                    console.error('[OtService] CSV Stream Error:', error);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
                     reject(error);
                 });
         });
     }
 
-    private getGroupingKey(row: any): string {
-        const otCode = row['OT']?.trim();
-        const address = row['DIRECCIÓN']?.trim().toUpperCase();
-        const number = row['NUMERAL']?.trim();
-        const commune = row['COMUNA']?.trim().toUpperCase();
-
-        if (otCode && otCode.length > 0) {
-            return `EXT:${otCode}`;
-        } else {
-            if (!address || !number || !commune) {
-                // Return a special error key or throw? Throwing might abort all. 
-                // Better to return specific error key or just throw to fail this row group.
-                // User said: "throw new Error"
-                throw new Error(`Fila sin OT y sin dirección completa: ${JSON.stringify(row)}`);
-            }
-            return `LOC:${address}|${number}|${commune}`;
-        }
-    }
-
-    private async processGroupedRows(rows: any[]): Promise<any> {
-        // 1. Grouping
-        const groups: { [key: string]: any[] } = {};
-        const errors: any[] = [];
-
-        for (const row of rows) {
-            try {
-                const key = this.getGroupingKey(row);
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(row);
-            } catch (err: any) {
-                errors.push({ row, reason: err.message });
-            }
-        }
-
+    private async processRows(rows: any[]): Promise<any> {
+        console.log(`[OtService] processRows started with ${rows.length} rows.`);
         let totalProcessed = 0;
         let successCount = 0;
         let failedCount = 0;
+        const errors: any[] = [];
 
-        // 2. Iterate Keys
-        for (const key of Object.keys(groups)) {
-            const groupRows = groups[key];
+        for (const row of rows) {
+            // 1. Sanitization (Minimalist)
+            const rawDesc = row['REPARACIÓN']; // Verify EXACT header name
+
+            if (!rawDesc || rawDesc.trim() === '') {
+                console.log(`[OtService] Skipping row due to empty REPARACIÓN. Keys present: ${Object.keys(row).join(',')}`);
+                continue;
+            }
+
             totalProcessed++;
-
             const client = await pool.connect();
 
             try {
+                // Transaction per row
                 await client.query('BEGIN');
 
-                // A. Header Creation
-                const firstRow = groupRows[0];
+                // 2. OT Logic
+                const otCode = row['OT']?.trim();
+                let otId: number;
                 let external_ot_id: string | null = null;
                 let is_additional = false;
 
-                if (key.startsWith('EXT:')) {
-                    external_ot_id = key.substring(4);
-                } else {
-                    is_additional = true; // LOC: => additional
-                }
-
-                // Override if CSV says ADICIONAL = SI
-                if (firstRow['ADICIONAL'] === 'SI') is_additional = true;
-
-                // Lookup Movils
-                // Use repositories directly (read-only doesn't strictly need transaction lock unless we want repeatable read)
-                const movilCode = firstRow['MÓVIL'];
-                let hydraulic_movil_id: number | null = null;
-                // Note: user said "movil_Id" in CSV lookup. assuming MÓVIL column holds external_code.
-                if (movilCode) {
-                    const movil = await this.movilRepository.findByExternalCode(movilCode);
-                    // Assuming we assign to hydraulic first? User said "OT.hydraulic_movil_id (o civil según corresponda)" but logic isn't specific.
-                    // Making a safe assumption to default to hydraulic if simple.
-                    // Or check CSV header mapping more closely? User: "Guardar el ID interno (movil_Id) en OT.hydraulic_movil_id (o civil según corresponda)"
-                    if (movil) hydraulic_movil_id = movil.movil_id;
-                }
-
-                // Prepare OT DTO
+                // Prepare common OT data
                 const otData: any = {
-                    external_ot_id,
-                    is_additional,
-                    street: firstRow['DIRECCIÓN']?.trim().toUpperCase(),
-                    number_street: parseNumberStreet(firstRow['NUMERAL']),
-                    commune: firstRow['COMUNA']?.trim().toUpperCase(),
-                    started_at: parseChileanDate(firstRow['FECHA']), // Assuming 'FECHA' is started_at? User: "started_at: Parsear fecha formato dd-mm-YYYY"
-                    hydraulic_movil_id,
-                    // Defaults
+                    street: row['DIRECCIÓN']?.trim().toUpperCase(),
+                    number_street: parseNumberStreet(row['NUMERAL']),
+                    commune: row['COMUNA']?.trim().toUpperCase(),
+                    started_at: parseChileanDate(row['FECHA EJECUCION']),
+                    hydraulic_movil_id: null, // Will optionally set below
                     ot_state: 'CREADA',
                     received_at: new Date()
                 };
 
-                // Insert OT
-                const createdOt = await this.otRepository.createWithClient(otData, client);
-
-                // B. Details Creation
-                for (const row of groupRows) {
-                    const desc = row['DESCRIPCIÓN']; // Check CSV header? User: "CSV trae descripción"
-                    if (!desc) throw new Error("Item sin descripción");
-
-                    const itemId = await this.itemRepository.findIdByDescription(desc);
-                    if (!itemId) throw new Error(`Item no encontrado: ${desc}`);
-
-                    const itmOtData: ItmOtDTO = {
-                        ot_id: createdOt.id, // Using the SERIAL id
-                        item_id: itemId,
-                        quantity: parseFloat(row['CANTIDAD']?.replace(',', '.') || '0')
-                    };
-
-                    await this.itmOtRepository.createWithClient(itmOtData, client);
+                // Movil Lookup
+                const movilCode = row['MÓVIL'];
+                if (movilCode) {
+                    const movil = await this.movilRepository.findByExternalCode(movilCode);
+                    if (movil) otData.hydraulic_movil_id = movil.movil_id;
                 }
+
+                if (otCode && otCode.length > 0) {
+                    // Case A: Has OT Code
+                    external_ot_id = otCode;
+                    const existingOt = await this.otRepository.findByExternalId(otCode);
+
+                    if (existingOt) {
+                        // Use existing
+                        otId = existingOt.id as number;
+                        // Note: We are NOT updating the OT header here, assuming existing is correct.
+                        // If we needed to update, we would call otRepository.updateWithClient (if it existed) or similar.
+                    } else {
+                        // Create New
+                        otData.external_ot_id = external_ot_id;
+                        otData.is_additional = false;
+                        const newOt = await this.otRepository.createWithClient(otData, client);
+                        otId = newOt.id;
+                    }
+                } else {
+                    // Case B: No OT Code (Additional)
+                    // Always Create new OT
+                    otData.external_ot_id = null;
+                    otData.is_additional = true;
+                    // Override if 'ADICIONAL' column says SI? - Product Owner said just "Si el CSV trae la OT vacía, inserta una nueva OT"
+                    // We can keep the 'ADICIONAL' check if we want to be safe, but pure logic says empty OT = Additional
+                    if (row['ADICIONAL'] === 'SI') otData.is_additional = true;
+
+                    const newOt = await this.otRepository.createWithClient(otData, client);
+                    otId = newOt.id;
+                }
+
+                // 3. Item Logic
+                // Normalize description: trim + single space
+                const normalizedDesc = rawDesc.trim().replace(/\s+/g, ' ');
+
+                // Exact match lookup
+                const itemId = await this.itemRepository.findIdByDescription(normalizedDesc);
+
+                if (!itemId) {
+                    throw new Error(`Item no encontrado: '${normalizedDesc}'`);
+                }
+
+                // 4. Create Detail
+                const itmOtData: ItmOtDTO = {
+                    ot_id: otId,
+                    item_id: itemId,
+                    quantity: parseFloat(row['CANTIDAD']?.replace(',', '.') || '0')
+                };
+
+                await this.itmOtRepository.createWithClient(itmOtData, client);
 
                 await client.query('COMMIT');
                 successCount++;
@@ -197,9 +199,11 @@ export class OtService {
             } catch (err: any) {
                 await client.query('ROLLBACK');
                 failedCount++;
-                errors.push({ key, reason: err.message });
+                // Include identifying info for the error
+                const idInfo = row['OT'] ? `OT: ${row['OT']}` : `ADDR: ${row['DIRECCIÓN']} ${row['NUMERAL']}`;
+                errors.push({ key: idInfo, reason: err.message });
             } finally {
-                client.release(); // CRITICAL
+                client.release();
             }
         }
 
