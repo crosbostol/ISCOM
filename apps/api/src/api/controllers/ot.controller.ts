@@ -7,6 +7,8 @@ import { MovilRepository } from '../../data/repositories/MovilRepository';
 import { ItemRepository } from '../../data/repositories/ItemRepository';
 import { ItmOtRepository } from '../../data/repositories/ItmOtRepository';
 
+import { ImportService } from '../../services/ImportService';
+
 // Manual Dependency Injection
 const otRepository = new OtRepository();
 const movilRepository = new MovilRepository();
@@ -14,6 +16,7 @@ const itemRepository = new ItemRepository();
 const itmOtRepository = new ItmOtRepository();
 
 const otService = new OtService(otRepository, movilRepository, itemRepository, itmOtRepository);
+const importService = new ImportService(otRepository, movilRepository, itemRepository, itmOtRepository);
 
 /**
  * @swagger
@@ -85,7 +88,7 @@ export const uploadOtCsv = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).send({ message: 'No file uploaded' });
         }
-        const result = await otService.processCsv(req.file.path);
+        const result = await importService.processCsv(req.file.path);
         res.status(200).send(result);
     } catch (error) {
         res.status(500).send(error);
