@@ -1,8 +1,4 @@
-/**
- * @swagger
- * components:
- *   schemas:
- *     OrdenTrabajoDTO:
+
 /**
  * @swagger
  * components:

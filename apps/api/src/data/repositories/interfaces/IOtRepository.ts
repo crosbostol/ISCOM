@@ -12,4 +12,5 @@ export interface IOtRepository {
     findByRangeDate(start: string, end: string): Promise<OrdenTrabajoDTO[]>;
     findByState(state: string): Promise<OrdenTrabajoDTO[]>;
     findRejected(): Promise<OrdenTrabajoDTO[]>;
+    createWithClient(ot: OrdenTrabajoDTO, client: any): Promise<any>;
 }

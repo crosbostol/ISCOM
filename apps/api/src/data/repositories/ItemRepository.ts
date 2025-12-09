@@ -43,4 +43,9 @@ export class ItemRepository implements IItemRepository {
         const result = await this.db.query('DELETE FROM item WHERE item_id = $1 RETURNING *', [id]);
         return result.rows[0];
     }
+
+    async findIdByDescription(description: string): Promise<number | null> {
+        const result = await this.db.query('SELECT item_id FROM item WHERE unaccent(description) ILIKE unaccent($1)', [description]);
+        return result.rows[0] ? result.rows[0].item_id : null;
+    }
 }

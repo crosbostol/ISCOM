@@ -1,6 +1,7 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { getHealth } from '../controllers/health.controller';
-import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTableByState, getFinishedOtsByRangeDate, getRejectedOts, getOtsByState } from '../controllers/ot.controller';
+import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTableByState, getFinishedOtsByRangeDate, getRejectedOts, getOtsByState, uploadOtCsv } from '../controllers/ot.controller';
 import { getMonthValue, getTotalOfItem, monthlyYield } from '../controllers/dashboard.controller';
 import { getImagebyOt, postImage, getImageById, deleteImageById, updateImage } from '../controllers/image.controller';
 
@@ -8,6 +9,7 @@ import { validateRequest } from '../middlewares/validator';
 import { OtSchema } from '../../data/schemas/OtSchema';
 
 const router = Router();
+const upload = multer({ dest: 'uploads/' });
 
 // Health Check
 router.get('/health', getHealth);
@@ -22,6 +24,7 @@ router.get('/ot/finished/:date_start/:date_finished', getFinishedOtsByRangeDate)
 router.get('/ot/rejected', getRejectedOts);
 router.get('/ot', getOt);
 router.post('/ot', validateRequest(OtSchema), postOt);
+router.post('/ot/upload-csv', upload.single('file') as any, uploadOtCsv);
 router.get('/ot/:ot_id', getOtById);
 router.get('/ot/state/:state', getOtsByState);
 

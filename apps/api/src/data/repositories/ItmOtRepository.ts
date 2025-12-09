@@ -46,4 +46,11 @@ export class ItmOtRepository implements IItmOtRepository {
         const result = await this.db.query(sql, [quantity, itemId, otId]);
         return result.rows[0];
     }
+
+    async createWithClient(itmOt: ItmOtDTO, client: any): Promise<any> {
+        const { item_id, ot_id, quantity } = itmOt;
+        const sql = 'INSERT INTO itm_ot (item_id, ot_id, quantity) VALUES ($1, $2, $3) RETURNING *';
+        const result = await client.query(sql, [item_id, ot_id, quantity]);
+        return result.rows[0];
+    }
 }

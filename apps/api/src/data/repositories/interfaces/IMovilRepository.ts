@@ -7,4 +7,5 @@ export interface IMovilRepository {
     delete(id: number): Promise<any>;
     update(id: number, movil: Partial<MovilDTO>): Promise<any>;
     getMovilOc(): Promise<any[]>;
+    findByExternalCode(code: string): Promise<MovilDTO | null>;
 }

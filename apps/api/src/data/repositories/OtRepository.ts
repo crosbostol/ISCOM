@@ -136,4 +136,26 @@ export class OtRepository implements IOtRepository {
         const result = await this.db.query(query);
         return result.rows;
     }
+
+    async createWithClient(ot: OrdenTrabajoDTO, client: any): Promise<any> {
+        let { external_ot_id } = ot;
+        if (!external_ot_id && ot['ot_id']) {
+            external_ot_id = ot['ot_id'];
+        }
+
+        const { is_additional, ...rest } = ot;
+        const { ot_id, id, ...otherFields } = rest;
+        if ('external_ot_id' in otherFields) delete otherFields['external_ot_id'];
+
+        const columns = ["external_ot_id", "is_additional", ...Object.keys(otherFields)];
+        const values = [external_ot_id || null, is_additional || false, ...Object.values(otherFields)];
+
+        const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
+        const columnNames = columns.join(", ");
+
+        const query = `INSERT INTO ot (${columnNames}) VALUES (${placeholders}) RETURNING *`;
+
+        const result = await client.query(query, values);
+        return result.rows[0];
+    }
 }
