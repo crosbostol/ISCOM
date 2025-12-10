@@ -24,12 +24,16 @@ router.get('/ot/finished/:date_start/:date_finished', getFinishedOtsByRangeDate)
 router.get('/ot/rejected', getRejectedOts);
 router.get('/ot', getOt);
 router.post('/ot', validateRequest(OtSchema), postOt);
+import { requireApiKey } from '../middlewares/security';
+
 /**
  * @swagger
  * /ot/upload-csv:
  *   post:
  *     summary: Upload a CSV file to import OTs
  *     tags: [OT]
+ *     security:
+ *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -58,12 +62,21 @@ router.post('/ot', validateRequest(OtSchema), postOt);
  *                   type: array
  *                   items:
  *                     type: object
+ *                 breakdown:
+ *                   type: object
+ *                   properties:
+ *                     normal:
+ *                       type: integer
+ *                     additional:
+ *                       type: integer
  *       400:
  *         description: Bad Request (No file uploaded)
+ *       401:
+ *         description: Unauthorized (Invalid API Key)
  *       500:
  *         description: Server error
  */
-router.post('/ot/upload-csv', upload.single('file') as any, uploadOtCsv);
+router.post('/ot/upload-csv', requireApiKey, upload.single('file') as any, uploadOtCsv);
 router.get('/ot/:ot_id', getOtById);
 router.get('/ot/state/:state', getOtsByState);
 

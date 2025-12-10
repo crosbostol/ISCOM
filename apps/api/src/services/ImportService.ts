@@ -147,7 +147,10 @@ export class ImportService {
                         const heuristicQuery = `
                             SELECT id, street, number_street FROM ot 
                             WHERE started_at = $1 
-                            AND hydraulic_movil_id = $2
+                            AND (
+                                ($2::varchar IS NULL AND hydraulic_movil_id IS NULL) 
+                                OR (hydraulic_movil_id = $2)
+                            )
                             AND external_ot_id IS NULL
                         `;
 
