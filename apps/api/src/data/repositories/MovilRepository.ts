@@ -45,4 +45,9 @@ export class MovilRepository implements IMovilRepository {
         const result = await this.db.query(sql, [type]);
         return result.rows;
     }
+
+    async findByExternalCode(code: string): Promise<MovilDTO | null> {
+        const result = await this.db.query('SELECT * FROM movil WHERE external_code = $1', [code]);
+        return result.rows[0] || null;
+    }
 }

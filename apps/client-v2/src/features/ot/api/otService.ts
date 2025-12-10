@@ -17,6 +17,7 @@ export const uploadOTsCsv = async (file: File): Promise<void> => {
     await api.post('/ot/upload-csv', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
+            'x-api-key': import.meta.env.VITE_API_KEY || ''
         },
     });
 };

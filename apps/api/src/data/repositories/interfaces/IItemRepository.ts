@@ -7,4 +7,5 @@ export interface IItemRepository {
     create(item: ItemDTO): Promise<any>;
     update(id: number, item: Partial<ItemDTO>): Promise<any>;
     delete(id: number): Promise<any>;
+    findIdByDescription(description: string): Promise<number | null>;
 }

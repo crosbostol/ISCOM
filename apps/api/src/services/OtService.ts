@@ -1,8 +1,19 @@
+
 import { IOtRepository } from '../data/repositories/interfaces/IOtRepository';
+import { IMovilRepository } from '../data/repositories/interfaces/IMovilRepository';
+import { IItemRepository } from '../data/repositories/interfaces/IItemRepository';
+import { IItmOtRepository } from '../data/repositories/interfaces/IItmOtRepository';
 import { OrdenTrabajoDTO } from '../data/dto/OrdenTrabajoDTO';
+import { ItmOtDTO } from '../data/dto/ItmOtDTO';
+
 
 export class OtService {
-    constructor(private otRepository: IOtRepository) { }
+    constructor(
+        private otRepository: IOtRepository,
+        private movilRepository: IMovilRepository,
+        private itemRepository: IItemRepository,
+        private itmOtRepository: IItmOtRepository
+    ) { }
 
     async createOt(data: OrdenTrabajoDTO): Promise<any> {
         // Here we could add logic to check if external_ot_id is null, then set is_additional = true, etc.
@@ -45,4 +56,5 @@ export class OtService {
     async getRejectedOts(): Promise<OrdenTrabajoDTO[]> {
         return this.otRepository.findRejected();
     }
+
 }
