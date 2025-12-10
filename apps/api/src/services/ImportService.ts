@@ -9,14 +9,19 @@ import { ItmOtDTO } from '../data/dto/ItmOtDTO';
 import { parseChileanDate, parseNumberStreet } from '../utils/csvHelpers';
 
 export interface ImportResult {
-    total_processed: number;
-    success_count: number;
-    failed_count: number;
-    errors: any[];
-    breakdown: {
-        normal: number;
-        additional: number;
+    summary: {
+        total_rows_processed: number;
+        unique_ots_found: number;
+        breakdown_by_type: {
+            normal: number;
+            additional: number;
+        };
     };
+    db_operations: {
+        created: number;
+        updated: number;
+    };
+    errors: any[];
 }
 
 export class ImportService {
@@ -62,18 +67,19 @@ export class ImportService {
     }
 
     private async processRows(rows: any[]): Promise<ImportResult> {
-        let totalProcessed = 0;
-        let successCount = 0;
-        let failedCount = 0;
+        // Initialize Counters
+        let totalRowsProcessed = 0;
         let normalCount = 0;
         let additionalCount = 0;
+        let createdCount = 0;
+        let updatedCount = 0;
         const errors: any[] = [];
 
         // PHASE 1: MEMORY GROUPING (The Grouper)
         const groups = new Map<string, { header: any, items: any[] }>();
 
         for (const row of rows) {
-            totalProcessed++;
+            totalRowsProcessed++;
             const rawDesc = row['REPARACIÓN'];
             if (!rawDesc || rawDesc.trim() === '') continue;
 
@@ -98,6 +104,9 @@ export class ImportService {
         }
 
         console.log(`[ImportService] Grouped into ${groups.size} unique OTs`);
+
+        // Counter: Unique OTs found in file
+        const uniqueOtsFound = groups.size;
 
         // PHASE 2: PERSISTENCE (The Idempotent Loader)
         for (const [key, group] of groups) {
@@ -165,6 +174,7 @@ export class ImportService {
                         // Scenario 1: OT Found -> Upsert (Merge)
                         console.log(`[ImportService] found OT ${otId}, merging data.`);
                         await this.otRepository.updateMovilAndDates(otId, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
+                        updatedCount++;
 
                     } else {
                         // Scenario 2: OT New -> Create with specific IDs
@@ -177,8 +187,9 @@ export class ImportService {
                         console.log(`[ImportService] Creating NEW OT Data:`, JSON.stringify(otData, null, 2));
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
-                        normalCount++;
+                        createdCount++;
                     }
+                    normalCount++;
                 } else {
                     // Case B: Additional OT (Heuristic Search by Location)
                     if (executionDate) {
@@ -221,6 +232,7 @@ export class ImportService {
                             // Scenario 1: OT Found -> Upsert (Merge)
                             // Scenario 1: OT Found -> Upsert (Merge)
                             await this.otRepository.updateMovilAndDates(otId as number, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
+                            updatedCount++;
                         }
                     }
 
@@ -233,8 +245,9 @@ export class ImportService {
                         const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, null, true, derivedCivilDate);
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
-                        additionalCount++;
+                        createdCount++;
                     }
+                    additionalCount++; // Always count as additional if no code
                 }
 
                 if (!otId) throw new Error("Could not resolve OT ID");
@@ -281,11 +294,9 @@ export class ImportService {
                 }
 
                 await client.query('COMMIT');
-                successCount += items.length;
 
             } catch (err: any) {
                 await client.query('ROLLBACK');
-                failedCount += group.items.length;
                 errors.push({ key: key, reason: err.message });
                 console.error(`[ImportService] Error processing group ${key}:`, err);
             } finally {
@@ -294,14 +305,19 @@ export class ImportService {
         }
 
         return {
-            total_processed: totalProcessed,
-            success_count: successCount,
-            failed_count: failedCount,
-            errors,
-            breakdown: {
-                normal: normalCount,
-                additional: additionalCount
-            }
+            summary: {
+                total_rows_processed: totalRowsProcessed,
+                unique_ots_found: uniqueOtsFound,
+                breakdown_by_type: {
+                    normal: normalCount,
+                    additional: additionalCount
+                }
+            },
+            db_operations: {
+                created: createdCount,
+                updated: updatedCount
+            },
+            errors
         };
     }
 
