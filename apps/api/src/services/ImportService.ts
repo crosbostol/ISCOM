@@ -85,10 +85,10 @@ export class ImportService {
             } else {
                 // Generate Internal Composite Key for Additional OTs
                 const fecha = row['FECHA EJECUCION'] || '';
-                const movil = row['MÓVIL'] || '';
                 const direccion = row['DIRECCIÓN']?.trim().toUpperCase() || '';
                 const numeral = row['NUMERAL'] || '';
-                key = `ADIC-${fecha}-${movil}-${direccion}-${numeral}`;
+                // NEW: Group only by Location and Date
+                key = `ADIC-${fecha}-${direccion}-${numeral}`;
             }
 
             if (!groups.has(key)) {
@@ -187,22 +187,28 @@ export class ImportService {
                         const commune = header['COMUNA']?.trim().toUpperCase();
 
                         // New Heuristic Query: "Identity" = Date + Location.
+                        // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
+                        // We check against started_at OR civil_work_date
                         const heuristicQuery = `
                             SELECT id, hydraulic_movil_id, civil_movil_id 
                             FROM ot 
-                            WHERE started_at = $1 
-                            AND commune = $2 
-                            AND street = $3 
-                            AND number_street = $4
+                            WHERE commune = $1 
+                            AND street = $2 
+                            AND number_street = $3
                             AND external_ot_id IS NULL
+                            AND (
+                                (started_at IS NOT NULL AND ABS($4::date - started_at) <= 15)
+                                OR 
+                                (civil_work_date IS NOT NULL AND ABS($4::date - civil_work_date) <= 15)
+                            )
                         `;
 
-                        // Parameters for strict location matching
+                        // Parameters for strict location matching (Fixed order for new queries)
                         const params = [
-                            executionDate,
                             commune,
                             street,
-                            String(numberStreet)
+                            String(numberStreet),
+                            executionDate
                         ];
 
                         const candidates = await client.query(heuristicQuery, params);
