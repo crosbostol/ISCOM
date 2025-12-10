@@ -13,4 +13,7 @@ export interface IOtRepository {
     findByState(state: string): Promise<OrdenTrabajoDTO[]>;
     findRejected(): Promise<OrdenTrabajoDTO[]>;
     createWithClient(ot: OrdenTrabajoDTO, client: any): Promise<any>;
+    updateWithClient(id: number, ot: Partial<OrdenTrabajoDTO>, client: any): Promise<any>;
+    updateMovil(id: number, hydraulicId: string | null, civilId: string | null, client: any): Promise<void>;
+    updateMovilAndDates(id: number, hydraulicId: string | null, civilId: string | null, startedAt: Date | undefined, civilDate: Date | undefined, client: any): Promise<void>;
 }

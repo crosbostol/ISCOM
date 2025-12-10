@@ -110,67 +110,121 @@ export class ImportService {
                 const executionDateStr = header['FECHA EJECUCION'];
                 const executionDate = parseChileanDate(executionDateStr);
 
-                // Resolve Movil ID
-                let hydraulicMovilId: number | null = null;
-                const movilCode = header['MÓVIL'];
-                if (movilCode) {
-                    const movil = await this.movilRepository.findByExternalCode(movilCode);
-                    if (movil) hydraulicMovilId = movil.movil_id;
+                // Resolve Movil ID & Type & DATES - Iterate ALL items to find both types if present
+                let hydraulicMovilId: string | null = null;
+                let civilMovilId: string | null = null;
+                let derivedStartedAt: Date | undefined = undefined;
+                let derivedCivilDate: Date | undefined = undefined;
+
+                // Check all rows in the group for Movils and Dates
+                for (const row of items) {
+                    const code = row['MÓVIL'];
+                    const rowDateStr = row['FECHA EJECUCION'];
+                    const rowDate = parseChileanDate(rowDateStr);
+
+                    if (code) {
+                        const isCivil = code.includes('OC');
+                        // Logic: If code has OC -> It's Civil. Maps to civilMovilId + civilDate.
+                        // If code NOT OC (HID or others) -> It's Hydraulic. Maps to hydraulicMovilId + startedAt.
+
+                        if (isCivil) {
+                            if (!civilMovilId) {
+                                const movil = await this.movilRepository.findByExternalCode(code);
+                                if (movil) civilMovilId = movil.movil_id.toString();
+                            }
+                            if (!derivedCivilDate && rowDate) derivedCivilDate = rowDate;
+                        } else {
+                            if (!hydraulicMovilId) {
+                                const movil = await this.movilRepository.findByExternalCode(code);
+                                if (movil) hydraulicMovilId = movil.movil_id.toString();
+                            }
+                            if (!derivedStartedAt && rowDate) derivedStartedAt = rowDate;
+                        }
+                    }
                 }
+
+                // Fallback: If no startedAt found (e.g. only Civil rows), use executionDate from Header (as is done previously) but be careful.
+                // Actually, if only Civil rows exist, startedAt might remain undefined/null for now, or we force it.
+                // Let's rely on what we found. If it's a pure Civil OT, startedAt might be null? 
+                // Creating an OT usually requires started_at. Let's fallback to header date if derivedStartedAt is missing AND it's a new OT.
+                // For now, let's proceed with what we extracted.
+
+                console.log(`[ImportService] Group '${otCode || 'ADIC'}': HID=${hydraulicMovilId}, CIV=${civilMovilId}, Start=${derivedStartedAt}, CivilDate=${derivedCivilDate}`);
 
                 // STEP A: RESOLVE OT (Find or Create)
                 let otId: number | null = null;
                 let isNewOt = false;
 
                 if (otCode && otCode.length > 0) {
-                    // Case A: External OT
+                    // Case A: External OT (Has Code)
                     const existingOt = await this.otRepository.findByExternalId(otCode);
                     if (existingOt) {
                         otId = existingOt.id as number;
-                        normalCount++;
+
+                        // Scenario 1: OT Found -> Upsert (Merge)
+                        // Scenario 1: OT Found -> Upsert (Merge)
+                        console.log(`[ImportService] found OT ${otId}, merging data.`);
+                        await this.otRepository.updateMovilAndDates(otId, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
+
                     } else {
+                        // Scenario 2: OT New -> Create with specific IDs
                         isNewOt = true;
-                        const otData = this.buildOtData(header, executionDate, hydraulicMovilId, otCode, false);
+                        // Pass specific IDs to buildOtData
+                        // Use derivedStartedAt if available, else fallback to header date.
+                        const finalStartDate = derivedStartedAt || executionDate;
+
+                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, otCode, false, derivedCivilDate);
+                        console.log(`[ImportService] Creating NEW OT Data:`, JSON.stringify(otData, null, 2));
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
                         normalCount++;
                     }
                 } else {
-                    // Case B: Additional OT (Heuristic Search)
+                    // Case B: Additional OT (Heuristic Search by Location)
                     if (executionDate) {
                         const street = header['DIRECCIÓN']?.trim().toUpperCase();
                         const numberStreet = parseNumberStreet(header['NUMERAL']);
                         const commune = header['COMUNA']?.trim().toUpperCase();
 
-                        // Heuristic Query using partial index
-                        // Note: idx_ot_heuristic_search is (started_at, hydraulic_movil_id) WHERE external_ot_id IS NULL
+                        // New Heuristic Query: "Identity" = Date + Location.
                         const heuristicQuery = `
-                            SELECT id, street, number_street FROM ot 
+                            SELECT id, hydraulic_movil_id, civil_movil_id 
+                            FROM ot 
                             WHERE started_at = $1 
-                            AND (
-                                ($2::varchar IS NULL AND hydraulic_movil_id IS NULL) 
-                                OR (hydraulic_movil_id = $2)
-                            )
+                            AND commune = $2 
+                            AND street = $3 
+                            AND number_street = $4
                             AND external_ot_id IS NULL
                         `;
 
-                        const candidates = await client.query(heuristicQuery, [executionDate, hydraulicMovilId ? hydraulicMovilId.toString() : null]);
+                        // Parameters for strict location matching
+                        const params = [
+                            executionDate,
+                            commune,
+                            street,
+                            String(numberStreet)
+                        ];
 
-                        // Memory Filter for exact address match
-                        const match = candidates.rows.find(c =>
-                            c.street === street &&
-                            String(c.number_street) === String(numberStreet)
-                        );
+                        const candidates = await client.query(heuristicQuery, params);
 
-                        if (match) {
+                        if (candidates.rows.length > 0) {
+                            // Find existing match
+                            const match = candidates.rows[0];
                             otId = match.id;
-                            additionalCount++;
+
+                            // Scenario 1: OT Found -> Upsert (Merge)
+                            // Scenario 1: OT Found -> Upsert (Merge)
+                            await this.otRepository.updateMovilAndDates(otId as number, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
                         }
                     }
 
                     if (!otId) {
+                        // Scenario 2: OT New -> Create with specific IDs
                         isNewOt = true;
-                        const otData = this.buildOtData(header, executionDate, hydraulicMovilId, null, true);
+                        // Pass specific IDs to buildOtData
+                        // Pass specific IDs to buildOtData
+                        const finalStartDate = derivedStartedAt || executionDate;
+                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, null, true, derivedCivilDate);
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
                         additionalCount++;
@@ -245,15 +299,17 @@ export class ImportService {
         };
     }
 
-    private buildOtData(row: any, date: Date | null, movilId: number | null, externalId: string | null, isAdditional: boolean) {
+    private buildOtData(row: any, date: Date | null | undefined, hydraulicMovilId: string | null, civilMovilId: string | null, externalId: string | null, isAdditional: boolean, civilDate?: Date) {
         return {
             external_ot_id: externalId,
             is_additional: isAdditional,
             street: row['DIRECCIÓN']?.trim().toUpperCase(),
-            number_street: String(parseNumberStreet(row['NUMERAL'])),
+            number_street: String(parseNumberStreet(row['NUMERAL'])), // Keeping String() check just in case but helper returns string now
             commune: row['COMUNA']?.trim().toUpperCase(),
             started_at: date || undefined,
-            hydraulic_movil_id: movilId ? movilId.toString() : null,
+            civil_work_date: civilDate || undefined,
+            hydraulic_movil_id: hydraulicMovilId || null,
+            civil_movil_id: civilMovilId || null,
             ot_state: 'CREADA',
             received_at: new Date()
         };

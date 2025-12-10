@@ -21,8 +21,8 @@ export function parseChileanDate(value: string | undefined): Date | null {
     return date;
 }
 
-export function parseNumberStreet(value: string | undefined): number {
-    if (!value) return 0;
-    const parsed = parseInt(value, 10);
-    return isNaN(parsed) ? 0 : parsed;
+export function parseNumberStreet(value: string | undefined): string {
+    if (!value) return '';
+    // Return trimmed value, preserving alphanumeric (e.g., "335 13")
+    return value.trim();
 }
