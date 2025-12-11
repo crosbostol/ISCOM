@@ -158,4 +158,40 @@ export class OtRepository implements IOtRepository {
         const result = await client.query(query, values);
         return result.rows[0];
     }
+    async updateWithClient(id: number, ot: Partial<OrdenTrabajoDTO>, client: any): Promise<any> {
+        const fields = Object.keys(ot).filter(k => k !== 'id' && k !== 'ot_id');
+        const values = fields.map(k => ot[k]);
+
+        if (fields.length === 0) return null;
+
+        const setClause = fields.map((field, i) => `${field} = $${i + 1}`).join(", ");
+        const query = `UPDATE ot SET ${setClause} WHERE id = $${fields.length + 1} RETURNING *`;
+
+        const result = await client.query(query, [...values, id]);
+        return result.rows[0];
+    }
+
+    async updateMovil(id: number, hydraulicId: string | null, civilId: string | null, client: any): Promise<void> {
+        const query = `
+            UPDATE ot 
+            SET 
+                hydraulic_movil_id = COALESCE($2, hydraulic_movil_id),
+                civil_movil_id = COALESCE($3, civil_movil_id)
+            WHERE id = $1
+        `;
+        await client.query(query, [id, hydraulicId, civilId]);
+    }
+
+    async updateMovilAndDates(id: number, hydraulicId: string | null, civilId: string | null, startedAt: Date | undefined, civilDate: Date | undefined, client: any): Promise<void> {
+        const query = `
+            UPDATE ot 
+            SET 
+                hydraulic_movil_id = COALESCE($2, hydraulic_movil_id),
+                civil_movil_id = COALESCE($3, civil_movil_id),
+                started_at = COALESCE($4, started_at),
+                civil_work_date = COALESCE($5, civil_work_date)
+            WHERE id = $1
+        `;
+        await client.query(query, [id, hydraulicId, civilId, startedAt, civilDate]);
+    }
 }

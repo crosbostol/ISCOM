@@ -27,3 +27,9 @@ UPDATE public."movil" SET external_code = 'MOV_HID_09' WHERE "movil_id" = 'RCLP-
 UPDATE public."movil" SET external_code = 'MOV_HID_10' WHERE "movil_id" = 'RCLP-22';
 UPDATE public."movil" SET external_code = 'MOV_HID_11' WHERE "movil_id" = 'RCLP-25';
 UPDATE public."movil" SET external_code = 'MOV_HID_12' WHERE "movil_id" = 'GJSF-39';
+
+select sum(quantity) from itm_ot 
+
+DELETE FROM itm_ot;
+DELETE FROM ot;
+
