@@ -9,3 +9,11 @@ exports.up = pgm => {
         WHERE external_ot_id IS NULL;
     `);
 };
+
+exports.down = pgm => {
+    // Eliminar el índice creado
+    pgm.sql('DROP INDEX IF EXISTS idx_ot_heuristic_location;');
+
+    // (Opcional) Restaurar el índice antiguo si es crítico, 
+    // pero para este caso basta con limpiar el nuevo.
+};

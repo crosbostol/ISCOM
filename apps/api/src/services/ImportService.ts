@@ -152,11 +152,7 @@ export class ImportService {
                     }
                 }
 
-                // Fallback: If no startedAt found (e.g. only Civil rows), use executionDate from Header (as is done previously) but be careful.
-                // Actually, if only Civil rows exist, startedAt might remain undefined/null for now, or we force it.
-                // Let's rely on what we found. If it's a pure Civil OT, startedAt might be null? 
-                // Creating an OT usually requires started_at. Let's fallback to header date if derivedStartedAt is missing AND it's a new OT.
-                // For now, let's proceed with what we extracted.
+                // Fallback logic handled by derivedStartedAt || executionDate later.
 
                 console.log(`[ImportService] Group '${otCode || 'ADIC'}': HID=${hydraulicMovilId}, CIV=${civilMovilId}, Start=${derivedStartedAt}, CivilDate=${derivedCivilDate}`);
 
@@ -170,7 +166,6 @@ export class ImportService {
                     if (existingOt) {
                         otId = existingOt.id as number;
 
-                        // Scenario 1: OT Found -> Upsert (Merge)
                         // Scenario 1: OT Found -> Upsert (Merge)
                         console.log(`[ImportService] found OT ${otId}, merging data.`);
                         await this.otRepository.updateMovilAndDates(otId, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
@@ -197,7 +192,7 @@ export class ImportService {
                         const numberStreet = parseNumberStreet(header['NUMERAL']);
                         const commune = header['COMUNA']?.trim().toUpperCase();
 
-                        // New Heuristic Query: "Identity" = Date + Location.
+                        // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
                         // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
                         // We check against started_at OR civil_work_date
                         const heuristicQuery = `
@@ -239,7 +234,6 @@ export class ImportService {
                     if (!otId) {
                         // Scenario 2: OT New -> Create with specific IDs
                         isNewOt = true;
-                        // Pass specific IDs to buildOtData
                         // Pass specific IDs to buildOtData
                         const finalStartDate = derivedStartedAt || executionDate;
                         const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, null, true, derivedCivilDate);
@@ -297,8 +291,15 @@ export class ImportService {
 
             } catch (err: any) {
                 await client.query('ROLLBACK');
-                errors.push({ key: key, reason: err.message });
-                console.error(`[ImportService] Error processing group ${key}:`, err);
+                const sampleRows = group.items ? group.items.slice(0, 3) : []; // Guardamos las primeras 3 filas de muestra
+
+                errors.push({
+                    key: key,
+                    reason: err.message,
+                    sample_data: sampleRows
+                });
+
+                console.error(`[ImportService] Error processing group ${key}:`, err, 'Sample rows:', sampleRows);
             } finally {
                 client.release();
             }
