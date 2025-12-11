@@ -23,6 +23,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/swagger', swaggerUi.serve as any);
 app.get('/swagger', swaggerUi.setup(swaggerSpec) as any);
 
+// NUEVA RUTA PARA ORVAL
+// Esto sirve el objeto JSON crudo que Orval consumirá para generar código
+app.get('/api-docs-json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
 // Routes
 app.use('/api', routes); // Prefixing with /api for better structure, or keep root if legacy requires it.
 // Legacy index.js used app.use(require('./api/routes/index')), which likely mounted on root.

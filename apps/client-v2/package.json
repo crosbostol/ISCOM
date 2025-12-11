@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "gen:api": "kubb generate",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -23,6 +24,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@kubb/cli": "^4.11.0",
+    "@kubb/core": "^4.11.0",
+    "@kubb/plugin-oas": "^4.11.0",
+    "@kubb/plugin-react-query": "^4.11.0",
+    "@kubb/plugin-ts": "^4.11.0",
+    "@kubb/plugin-zod": "^4.11.0",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

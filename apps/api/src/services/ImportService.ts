@@ -5,7 +5,6 @@ import { IOtRepository } from '../data/repositories/interfaces/IOtRepository';
 import { IMovilRepository } from '../data/repositories/interfaces/IMovilRepository';
 import { IItemRepository } from '../data/repositories/interfaces/IItemRepository';
 import { IItmOtRepository } from '../data/repositories/interfaces/IItmOtRepository';
-import { ItmOtDTO } from '../data/dto/ItmOtDTO';
 import { parseChileanDate, parseNumberStreet } from '../utils/csvHelpers';
 
 export interface ImportResult {

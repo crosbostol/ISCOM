@@ -1,39 +1,18 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getHealth } from '../controllers/health.controller';
-import { getOt, postOt, getOtById, updateOt, RejectOtById, getOtTable, getOtTableByState, getFinishedOtsByRangeDate, getRejectedOts, getOtsByState, uploadOtCsv } from '../controllers/ot.controller';
-import { getMonthValue, getTotalOfItem, monthlyYield } from '../controllers/dashboard.controller';
-import { getImagebyOt, postImage, getImageById, deleteImageById, updateImage } from '../controllers/image.controller';
-
-import { validateRequest } from '../middlewares/validator';
-import { OtSchema } from '../../data/schemas/OtSchema';
+import { getOtTable, uploadOtCsv } from '../controllers/ot.controller';
+import { requireApiKey } from '../middlewares/security';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
 
-// Health Check
-router.get('/health', getHealth);
-
-// OT Routes
-// ot rejection and updates
-router.put('/ot/reject/:ot_id', RejectOtById);
-router.put('/ot/:ot_id', updateOt);
-
-// ot queries
-router.get('/ot/finished/:date_start/:date_finished', getFinishedOtsByRangeDate);
-router.get('/ot/rejected', getRejectedOts);
-router.get('/ot', getOt);
-router.post('/ot', validateRequest(OtSchema), postOt);
-import { requireApiKey } from '../middlewares/security';
+// Health Check (Optional but good practice to remove if strict, keeping simplistic as per instructions to only whitelist)
+// Removing health check as strict whitelist requested: /ottable, /ot/upload-csv.
 
 /**
  * @swagger
  * /ot/upload-csv:
  *   post:
- *     summary: Upload a CSV file to import OTs
- *     tags: [OT]
- *     security:
- *       - ApiKeyAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -42,140 +21,72 @@ import { requireApiKey } from '../middlewares/security';
  *             type: object
  *             properties:
  *               file:
- *                 type: string
  *                 format: binary
+ *                 type: string
  *     responses:
  *       200:
  *         description: CSV processed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 total_processed:
- *                   type: integer
- *                 success_count:
- *                   type: integer
- *                 failed_count:
- *                   type: integer
- *                 errors:
- *                   type: array
- *                   items:
- *                     type: object
- *                 breakdown:
- *                   type: object
- *                   properties:
- *                     normal:
- *                       type: integer
- *                     additional:
- *                       type: integer
  *       400:
  *         description: Bad Request (No file uploaded)
  *       401:
  *         description: Unauthorized (Invalid API Key)
  *       500:
  *         description: Server error
+ *     security:
+ *       - ApiKeyAuth: []
+ *     summary: Upload a CSV file to import OTs
+ *     tags: [OTs]
  */
 router.post('/ot/upload-csv', requireApiKey, upload.single('file') as any, uploadOtCsv);
-router.get('/ot/:ot_id', getOtById);
-router.get('/ot/state/:state', getOtsByState);
 
 // ot table view
+/**
+ * @swagger
+ * /ottable:
+ *   get:
+ *     responses:
+ *       200:
+ *         description: List of OTs retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   civil_movil_id:
+ *                     type: integer
+ *                   commune:
+ *                     type: string
+ *                   external_ot_id:
+ *                     type: string
+ *                   finished_at:
+ *                     format: date-time
+ *                     type: string
+ *                   hydraulic_movil_id:
+ *                     type: integer
+ *                   id:
+ *                     type: integer
+ *                   is_additional:
+ *                     type: boolean
+ *                   n_civil:
+ *                     type: string
+ *                   n_hidraulico:
+ *                     type: string
+ *                   number_street:
+ *                     type: string
+ *                   ot_state:
+ *                     type: string
+ *                   started_at:
+ *                     format: date-time
+ *                     type: string
+ *                   street:
+ *                     type: string
+ *       500:
+ *         description: Server error
+ *     summary: Retrieve a list of OTs for the data grid
+ *     tags: [OTs]
+ */
 router.get('/ottable', getOtTable);
-router.get('/ottable/:state', getOtTableByState);
-
-// legacy details routes (aliased)
-import { getProOtbyOt } from '../controllers/pro-ot.controller';
-import { getDetailsOtItem } from '../controllers/ot-item.controller';
-
-router.get('/detailsOtProduct/:ot_id', getProOtbyOt); // Alias to ProOtController
-router.get('/detailsOtItem/:ot_id/:item_type', getDetailsOtItem); // New method in OtItemController
-
-
-// Dashboard Routes
-router.get('/dashboard/monthValue/:date1/:date2', getMonthValue);
-router.get('/dashboard/totalItems', getTotalOfItem);
-router.get('/dashboard/monthlyYield', monthlyYield);
-
-// Image Routes
-router.get('/image/ot/:ot_id', getImagebyOt);
-router.post('/image', postImage);
-router.get('/image/:image_id', getImageById);
-router.delete('/image/:image_id', deleteImageById);
-router.put('/image/:image_id', updateImage);
-
-// Item Routes
-import { getItem, postItem, getItemById, deleteItemById, updateItem, getItemOH, getItemOC } from '../controllers/item.controller';
-router.get('/item', getItem);
-router.post('/item', postItem);
-router.get('/item/:item_id', getItemById);
-router.delete('/item/:item_id', deleteItemById);
-router.put('/item/:item_Id', updateItem);
-router.get('/item-oh', getItemOH);
-router.get('/item-oc', getItemOC);
-
-// Product Routes
-import { getProducts, postProduct, getProductById, deleteProductById, updateProduct } from '../controllers/product.controller';
-router.get('/product', getProducts);
-router.post('/product', postProduct);
-router.get('/product/:product_id', getProductById);
-router.delete('/product/:product_id', deleteProductById);
-router.put('/product/:product_Id', updateProduct);
-
-// Inventory Routes
-import { postInventory, getInventory, getUniqueInventories, getInventoryById, deleteInventory, putInventory } from '../controllers/inventory.controller';
-router.post('/inventory', postInventory);
-router.get('/inventory', getInventory);
-router.get('/inventory/unique', getUniqueInventories);
-router.get('/inventory/:inventory_id', getInventoryById);
-router.delete('/inventory/:inventory_id', deleteInventory);
-router.put('/inventory/:inventory_id', putInventory);
-
-// InvPro Routes
-import { getInvPro, postInvPro, getInvProById, deleteInvProById, updateInvPro, getInvProByInventoryId, getTotalOfProduct, getProductsNotInInventory } from '../controllers/inv-pro.controller';
-router.get('/invpro/get', getInvPro);
-router.get('/invpro/products/unique/:product_id/:inventory_id', getInvProById);
-router.post('/invpro', postInvPro);
-router.delete('/invpro/:product_id/:inventory_id', deleteInvProById);
-router.put('/invpro/:product_Id/:inventory_Id', updateInvPro);
-router.get('/invpro/:inventory_id', getInvProByInventoryId);
-router.get('/invpro/products/:product_id', getTotalOfProduct);
-router.get('/invpro/products/not-in/:inventory_id', getProductsNotInInventory);
-
-// ItmOt Routes
-import { getItmOt, getItmByOt, postItmOt, deleteItmOtById, updateItmOt } from '../controllers/ot-item.controller';
-router.get('/itmot', getItmOt);
-router.get('/itmot/:ot_id', getItmByOt);
-router.post('/itmot', postItmOt);
-router.delete('/itmot/:item_id/:ot_id', deleteItmOtById);
-router.put('/itmot/:item_Id/:ot_Id', updateItmOt);
-
-// ProOt Routes
-import { getProOtbyProduct, deleteProOt, postProOt, updateProOt } from '../controllers/pro-ot.controller'; // getProOtbyOt already imported
-router.get('/pro-ot/ot/:ot_id', getProOtbyOt);
-router.get('/pro-ot/product/:product_id', getProOtbyProduct);
-router.delete('/pro-ot/:ot_id/:product_id', deleteProOt);
-router.post('/pro-ot/', postProOt);
-router.put('/pro-ot/:ot_id/:product_id', updateProOt);
-
-// Movil Routes
-import { getMovils, postMovil, getMovilById, deleteMovilById, updateMovil, getMovilOc } from '../controllers/movil.controller';
-router.get('/movil', getMovils);
-router.get('/movil/:movil_id', getMovilById);
-router.post('/movil', postMovil);
-router.delete('/movil/:movil_id', deleteMovilById);
-router.put('/movil/:movil_Id', updateMovil);
-router.get('/movil/get/oc', getMovilOc);
-
-// Conductor Routes
-import { getConductors, postConductors, getConductorById, deleteConductorById, updateConductor } from '../controllers/conductor.controller';
-router.get('/conductors', getConductors);
-router.get('/conductors/:conductor_id', getConductorById);
-router.post('/conductors', postConductors);
-router.delete('/conductors/:conductor_id', deleteConductorById);
-router.put('/conductors/:conductor_id', updateConductor);
-
-// Placeholder for other routes (to be migrated)
-// router.use('/users', userRoutes);
 
 export default router;

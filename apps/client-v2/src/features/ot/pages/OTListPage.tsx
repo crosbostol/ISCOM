@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
 import { Alert, Snackbar, Chip, Box, Typography, CircularProgress, Button } from '@mui/material';
-import { getOTs } from '../api/otService';
+import { useGetOttable } from '../../../api/generated/hooks/useGetOttable';
 import { UploadOTs } from '../components/UploadOTs';
-import type { OT } from '../types/ot.types';
+import type { GetOttable200 } from '../../../api/generated/models/GetOttable';
+
+type OT = GetOttable200[number];
 
 export const OTListPage: React.FC = () => {
     const [uploadOpen, setUploadOpen] = useState(false);
-    const { data: ots, isLoading, isError, error } = useQuery<OT[]>({
-        queryKey: ['ots'],
-        queryFn: getOTs,
-        // Optional: retry: 1, refetchOnWindowFocus: false to avoid spamming if backend is flaky
+    const { data: ots, isLoading, isError, error } = useGetOttable({
+        query: {
+            queryKey: ['ots'],
+        }
     });
 
     // Snackbar state
@@ -41,7 +42,20 @@ export const OTListPage: React.FC = () => {
         },
         { field: 'n_hidraulico', headerName: 'Móvil Hidráulico', width: 200 },
         { field: 'n_civil', headerName: 'Móvil Civil', width: 200 },
-        { field: 'started_at', headerName: 'Inicio', width: 120 },
+        {
+            field: 'started_at',
+            headerName: 'Inicio',
+            width: 120,
+            valueFormatter: (value) => {
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+        },
     ];
 
     if (isLoading) {
@@ -53,7 +67,16 @@ export const OTListPage: React.FC = () => {
     }
 
     return (
-        <Box sx={{ height: 700, width: '100%', p: 3 }}>
+        <Box sx={{
+            height: '80vh',
+            width: '100%',
+            p: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            resize: 'vertical', // User requested resizing like windows. 'both' allows width too. 'vertical' is safer for layout but user said 'windows'.
+            overflow: 'auto', // Required for resize
+            minHeight: 400
+        }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4" component="h1">
                     Listado de Órdenes de Trabajo
@@ -78,18 +101,35 @@ export const OTListPage: React.FC = () => {
                 pageSizeOptions={[5, 10, 25]}
                 onRowClick={(params) => console.log('Row clicked:', params.row)}
                 sx={{
+                    flex: 1, // Fill available space
+                    minHeight: 0, // Flexbug fix
                     boxShadow: 2,
                     border: 2,
                     borderColor: 'primary.light',
                     '& .MuiDataGrid-cell:hover': {
                         color: 'primary.main',
                     },
+                    /* Minimalist Scrollbar */
+                    '& ::-webkit-scrollbar': {
+                        width: '8px',
+                        height: '8px'
+                    },
+                    '& ::-webkit-scrollbar-track': {
+                        background: '#E8F6FA' // Hover/State color
+                    },
+                    '& ::-webkit-scrollbar-thumb': {
+                        background: '#6ABCE5', // Primary Action color
+                        borderRadius: '4px',
+                    },
+                    '& ::-webkit-scrollbar-thumb:hover': {
+                        background: '#1F6EB1' // Primary Dark color
+                    }
                 }}
             />
 
             <Snackbar open={isErrorOpen} autoHideDuration={6000}>
                 <Alert severity="error" sx={{ width: '100%' }}>
-                    Error al cargar OTs: {(error as any)?.message || 'Unknown error'}
+                    Error al cargar OTs: {(error as Error)?.message || 'Unknown error'}
                 </Alert>
             </Snackbar>
         </Box>
