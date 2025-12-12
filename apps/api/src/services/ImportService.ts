@@ -6,6 +6,8 @@ import { IMovilRepository } from '../data/repositories/interfaces/IMovilReposito
 import { IItemRepository } from '../data/repositories/interfaces/IItemRepository';
 import { IItmOtRepository } from '../data/repositories/interfaces/IItmOtRepository';
 import { parseChileanDate, parseNumberStreet } from '../utils/csvHelpers';
+import { inferirEstadoOT } from './ot-logic.service';
+import { OTState } from '../api/types/ot.enums';
 
 export interface ImportResult {
     summary: {
@@ -80,7 +82,10 @@ export class ImportService {
         for (const row of rows) {
             totalRowsProcessed++;
             const rawDesc = row['REPARACIÓN'];
-            if (!rawDesc || rawDesc.trim() === '') continue;
+            const hasMovil = row['MÓVIL'] && row['MÓVIL'].trim().length > 0;
+
+            // Allow row if it has description OR it has a movil code (e.g. Debris removal without items)
+            if ((!rawDesc || rawDesc.trim() === '') && !hasMovil) continue;
 
             const otCode = row['OT']?.trim();
             let key = '';
@@ -121,12 +126,13 @@ export class ImportService {
                 // Resolve Movil ID & Type & DATES - Iterate ALL items to find both types if present
                 let hydraulicMovilId: string | null = null;
                 let civilMovilId: string | null = null;
+                let debrisMovilId: string | null = null;
                 let derivedStartedAt: Date | undefined = undefined;
                 let derivedCivilDate: Date | undefined = undefined;
 
                 // Check all rows in the group for Movils and Dates
                 for (const row of items) {
-                    const code = row['MÓVIL'];
+                    const code = row['MÓVIL']?.trim();
                     const rowDateStr = row['FECHA EJECUCION'];
                     const rowDate = parseChileanDate(rowDateStr);
 
@@ -141,6 +147,17 @@ export class ImportService {
                                 if (movil) civilMovilId = movil.movil_id.toString();
                             }
                             if (!derivedCivilDate && rowDate) derivedCivilDate = rowDate;
+                        } else if (code === 'MOV_RET_01') {
+                            if (!debrisMovilId) {
+                                console.log('[ImportService] Found Debris Code:', code);
+                                const movil = await this.movilRepository.findByExternalCode(code);
+                                if (movil) {
+                                    debrisMovilId = movil.movil_id.toString();
+                                    console.log('[ImportService] Resolved Debris ID:', debrisMovilId);
+                                } else {
+                                    console.warn('[ImportService] Debris Movil NOT FOUND for code:', code);
+                                }
+                            }
                         } else {
                             if (!hydraulicMovilId) {
                                 const movil = await this.movilRepository.findByExternalCode(code);
@@ -162,12 +179,35 @@ export class ImportService {
                 if (otCode && otCode.length > 0) {
                     // Case A: External OT (Has Code)
                     const existingOt = await this.otRepository.findByExternalId(otCode);
+
                     if (existingOt) {
                         otId = existingOt.id as number;
-
-                        // Scenario 1: OT Found -> Upsert (Merge)
                         console.log(`[ImportService] found OT ${otId}, merging data.`);
-                        await this.otRepository.updateMovilAndDates(otId, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
+
+                        // [B] FUSIÓN (MERGE)
+                        const finalHydraulic = hydraulicMovilId || existingOt.hydraulic_movil_id;
+                        const finalCivil = civilMovilId || existingOt.civil_movil_id;
+                        const finalDebris = debrisMovilId || existingOt.debris_movil_id;
+
+                        // [C] INFERENCIA DE ESTADO
+                        const nuevoEstado = inferirEstadoOT(
+                            finalHydraulic,
+                            finalCivil,
+                            finalDebris,
+                            existingOt.ot_state
+                        );
+
+                        // [D] PERSISTENCIA
+                        const updatePayload: any = {
+                            ot_state: nuevoEstado,
+                            ...(hydraulicMovilId && { hydraulic_movil_id: hydraulicMovilId }),
+                            ...(civilMovilId && { civil_movil_id: civilMovilId }),
+                            ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
+                            ...(derivedStartedAt && { started_at: derivedStartedAt }),
+                            ...(derivedCivilDate && { civil_work_date: derivedCivilDate }),
+                        };
+
+                        await this.otRepository.updateWithClient(otId, updatePayload, client);
                         updatedCount++;
 
                     } else {
@@ -177,7 +217,10 @@ export class ImportService {
                         // Use derivedStartedAt if available, else fallback to header date.
                         const finalStartDate = derivedStartedAt || executionDate;
 
-                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, otCode, false, derivedCivilDate);
+                        // Infer initial state for new OT
+                        const nuevoEstado = inferirEstadoOT(hydraulicMovilId, civilMovilId, debrisMovilId);
+
+                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, otCode, false, derivedCivilDate, nuevoEstado);
                         console.log(`[ImportService] Creating NEW OT Data:`, JSON.stringify(otData, null, 2));
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
@@ -192,21 +235,19 @@ export class ImportService {
                         const commune = header['COMUNA']?.trim().toUpperCase();
 
                         // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
-                        // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
-                        // We check against started_at OR civil_work_date
                         const heuristicQuery = `
-                            SELECT id, hydraulic_movil_id, civil_movil_id 
-                            FROM ot 
-                            WHERE commune = $1 
-                            AND street = $2 
-                            AND number_street = $3
-                            AND external_ot_id IS NULL
-                            AND (
-                                (started_at IS NOT NULL AND ABS($4::date - started_at) <= 15)
-                                OR 
-                                (civil_work_date IS NOT NULL AND ABS($4::date - civil_work_date) <= 15)
-                            )
-                        `;
+                                SELECT id, hydraulic_movil_id, civil_movil_id, debris_movil_id, ot_state 
+                                FROM ot 
+                                WHERE commune = $1 
+                                AND street = $2 
+                                AND number_street = $3
+                                AND external_ot_id IS NULL
+                                AND (
+                                    (started_at IS NOT NULL AND ABS($4::date - started_at) <= 15)
+                                    OR 
+                                    (civil_work_date IS NOT NULL AND ABS($4::date - civil_work_date) <= 15)
+                                )
+                            `;
 
                         // Parameters for strict location matching (Fixed order for new queries)
                         const params = [
@@ -224,8 +265,28 @@ export class ImportService {
                             otId = match.id;
 
                             // Scenario 1: OT Found -> Upsert (Merge)
-                            // Scenario 1: OT Found -> Upsert (Merge)
-                            await this.otRepository.updateMovilAndDates(otId as number, hydraulicMovilId, civilMovilId, derivedStartedAt, derivedCivilDate, client);
+                            const finalHydraulic = hydraulicMovilId || match.hydraulic_movil_id;
+                            const finalCivil = civilMovilId || match.civil_movil_id;
+                            const finalDebris = debrisMovilId || match.debris_movil_id;
+
+                            // [C] INFERENCIA DE ESTADO
+                            const nuevoEstado = inferirEstadoOT(
+                                finalHydraulic,
+                                finalCivil,
+                                finalDebris,
+                                match.ot_state
+                            );
+
+                            const updatePayload: any = {
+                                ot_state: nuevoEstado,
+                                ...(hydraulicMovilId && { hydraulic_movil_id: hydraulicMovilId }),
+                                ...(civilMovilId && { civil_movil_id: civilMovilId }),
+                                ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
+                                ...(derivedStartedAt && { started_at: derivedStartedAt }),
+                                ...(derivedCivilDate && { civil_work_date: derivedCivilDate }),
+                            };
+
+                            await this.otRepository.updateWithClient(otId as number, updatePayload, client);
                             updatedCount++;
                         }
                     }
@@ -235,7 +296,10 @@ export class ImportService {
                         isNewOt = true;
                         // Pass specific IDs to buildOtData
                         const finalStartDate = derivedStartedAt || executionDate;
-                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, null, true, derivedCivilDate);
+                        // Infer initial state for new OT
+                        const nuevoEstado = inferirEstadoOT(hydraulicMovilId, civilMovilId, debrisMovilId);
+
+                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, null, true, derivedCivilDate, nuevoEstado);
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
                         createdCount++;
@@ -249,7 +313,23 @@ export class ImportService {
                 const aggregatedItems = new Map<string, { itemId: any, description: string, quantity: number }>();
 
                 for (const itemRow of items) {
+                    const movilCode = itemRow['MÓVIL']?.trim();
+                    const isRetiro = movilCode === 'MOV_RET_01';
+
+                    // [B] PERSISTENCIA ITEM (Solo si NO es retiro)
+                    // Si es retiro, no procesamos items (no se cobran unitariamente aquí)
+                    if (isRetiro) continue;
+
                     const rawDesc = itemRow['REPARACIÓN'];
+                    // [A] VALIDACIÓN: Para cualquier otro, la descripción es obligatoria
+                    if (!rawDesc || rawDesc.trim() === '') {
+                        // Throw error/warning or skip? User said "Throw Exception" -> invalid row.
+                        // But we are in a group processing. If we throw here, we rollback the whole group (OT).
+                        // "Si faltan, lanzar error (Throw Exception) para rechazar la fila o el archivo."
+                        console.warn(`[ImportService] Warning: Row associated with OT has no description and is not Debris. Skipping item, but this might be invalid.`);
+                        continue;
+                    }
+
                     const dimDescription = rawDesc.trim().replace(/\s+/g, ' ');
 
                     // Resolve Item ID - We do this inside to ensure we have the ID for the key/insert
@@ -321,7 +401,7 @@ export class ImportService {
         };
     }
 
-    private buildOtData(row: any, date: Date | null | undefined, hydraulicMovilId: string | null, civilMovilId: string | null, externalId: string | null, isAdditional: boolean, civilDate?: Date) {
+    private buildOtData(row: any, date: Date | null | undefined, hydraulicMovilId: string | null, civilMovilId: string | null, debrisMovilId: string | null, externalId: string | null, isAdditional: boolean, civilDate?: Date, otState?: string) {
         return {
             external_ot_id: externalId,
             is_additional: isAdditional,
@@ -332,7 +412,8 @@ export class ImportService {
             civil_work_date: civilDate || undefined,
             hydraulic_movil_id: hydraulicMovilId || null,
             civil_movil_id: civilMovilId || null,
-            ot_state: 'CREADA',
+            debris_movil_id: debrisMovilId || null,
+            ot_state: otState || 'CREADA',
             received_at: new Date()
         };
     }

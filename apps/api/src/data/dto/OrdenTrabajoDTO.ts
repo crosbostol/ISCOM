@@ -66,6 +66,8 @@ export interface OrdenTrabajoDTO {
     finished_at?: Date;
     hydraulic_movil_id?: string | null;
     civil_movil_id?: string | null;
+    debris_movil_id?: string | null;
+    civil_work_date?: Date;
     ot_state?: string;
     dismissed?: boolean;
     [key: string]: any; // Allow other fields for flexibility during migration

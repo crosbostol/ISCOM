@@ -90,6 +90,14 @@ export class OtRepository implements IOtRepository {
             LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id 
             LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id 
             LEFT JOIN CONDUCTOR c2 On m2.movil_id = c2.movil_id
+            ORDER BY 
+                CASE 
+                    WHEN o.ot_state = 'PENDIENTE_OC' 
+                        AND o.started_at <= NOW() - INTERVAL '3 days' 
+                    THEN 1 
+                    ELSE 0 
+                END DESC,
+                o.started_at ASC NULLS LAST
         `;
         const result = await this.db.query(query);
         return result.rows;

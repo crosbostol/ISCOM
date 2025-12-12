@@ -5,7 +5,28 @@ import { useGetOttable } from '../../../api/generated/hooks/useGetOttable';
 import { UploadOTs } from '../components/UploadOTs';
 import type { GetOttable200 } from '../../../api/generated/models/GetOttable';
 
+
 type OT = GetOttable200[number];
+
+const getDaysDiff = (dateString?: string | null) => {
+    if (!dateString) return 0;
+    const start = new Date(dateString);
+    const now = new Date();
+    // Diferencia en milisegundos dividida por ms en un día
+    const diffTime = now.getTime() - start.getTime();
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+};
+
+// Mapeo de estados a UX
+const STATE_CONFIG: Record<string, { label: string; color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' }> = {
+    'CREADA': { label: '🆕 Creada', color: 'default' },
+    'PENDIENTE_OC': { label: '🚧 Falta Civil', color: 'warning' }, // Match API Value
+    'PENDIENTE_RET': { label: '🧹 Falta Retiro', color: 'info' },   // Match API Value
+    'OBRA_TERMINADA': { label: '🏗️ Obra Lista', color: 'info' },   // Legacy/Fallback
+    'POR_PAGAR': { label: '💰 Por Pagar', color: 'success' },
+    'PAGADA': { label: '✅ Pagada', color: 'primary' },
+    'ANULADA': { label: '🚫 Anulada', color: 'error' },
+};
 
 export const OTListPage: React.FC = () => {
     const [uploadOpen, setUploadOpen] = useState(false);
@@ -31,12 +52,39 @@ export const OTListPage: React.FC = () => {
                 return <Chip label={`ADICIONAL (Int: ${id})`} color="secondary" size="small" variant="outlined" />;
             }
         },
-        { field: 'ot_state', headerName: 'Estado', width: 150 },
+        {
+            field: 'ot_state',
+            headerName: 'Estado',
+            width: 200, // Un poco más ancho para el mensaje de atraso
+            renderCell: (params: GridRenderCellParams<OT>) => {
+                const stateCode = params.value as string;
+                const config = STATE_CONFIG[stateCode] || { label: stateCode, color: 'default' };
+
+                // --- LÓGICA DE ALERTA DE ATRASO ---
+                // Regla: Si está pendiente de civil y pasaron 3+ días -> ROJO
+                const daysElapsed = getDaysDiff(params.row.started_at);
+                const isDelayed = stateCode === 'PENDIENTE_OC' && daysElapsed >= 3;
+
+                // Si está atrasado, forzamos color error y agregamos texto
+                const finalColor = isDelayed ? 'error' : config.color;
+                const finalLabel = isDelayed ? `${config.label} (${daysElapsed}d)` : config.label;
+
+                return (
+                    <Chip
+                        label={finalLabel}
+                        color={finalColor}
+                        variant={isDelayed ? "filled" : "outlined"} // Relleno si es urgente
+                        size="small"
+                        sx={{ fontWeight: isDelayed ? 'bold' : 'normal' }}
+                    />
+                );
+            }
+        },
         {
             field: 'address',
             headerName: 'Dirección',
             width: 300,
-            valueGetter: (value, row) => {
+            valueGetter: (_value, row) => {
                 return `${row.street || ''} ${row.number_street || ''} ${row.commune || ''}`.trim()
             }
         },
@@ -100,12 +148,23 @@ export const OTListPage: React.FC = () => {
                 }}
                 pageSizeOptions={[5, 10, 25]}
                 onRowClick={(params) => console.log('Row clicked:', params.row)}
+                getRowClassName={(params) => {
+                    const days = getDaysDiff(params.row.started_at);
+                    if (params.row.ot_state === 'PENDIENTE_OC' && days >= 3) {
+                        return 'row-delayed';
+                    }
+                    return '';
+                }}
                 sx={{
                     flex: 1, // Fill available space
                     minHeight: 0, // Flexbug fix
                     boxShadow: 2,
                     border: 2,
                     borderColor: 'primary.light',
+                    '& .row-delayed': {
+                        bgcolor: '#FFEBEE', // Rojo muy suave de fondo
+                        '&:hover': { bgcolor: '#FFCDD2' }
+                    },
                     '& .MuiDataGrid-cell:hover': {
                         color: 'primary.main',
                     },

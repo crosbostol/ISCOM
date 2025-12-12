@@ -1,7 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
 // Types expected by Kubb generated hooks
-export type RequestConfig<TData = unknown> = AxiosRequestConfig;
+export type RequestConfig<TData = unknown> = AxiosRequestConfig<TData>;
 export type ResponseErrorConfig<TError = unknown> = AxiosError<TError>;
 
 export const api = axios.create({
