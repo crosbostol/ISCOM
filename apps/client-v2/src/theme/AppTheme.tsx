@@ -9,7 +9,7 @@ const ColorModeContext = createContext({ toggleColorMode: () => { } });
 export const useColorMode = () => useContext(ColorModeContext);
 
 export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [mode, setMode] = useState<'light' | 'dark'>('light');
+    const [mode, setMode] = useState<'light' | 'dark'>('dark');
 
     const colorMode = useMemo(() => ({
         toggleColorMode: () => {
