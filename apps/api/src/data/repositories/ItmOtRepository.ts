@@ -53,4 +53,9 @@ export class ItmOtRepository implements IItmOtRepository {
         const result = await client.query(sql, [item_id, ot_id, quantity]);
         return result.rows[0];
     }
+
+    async deleteAllByOtId(otId: number): Promise<void> {
+        const sql = 'DELETE FROM itm_ot WHERE ot_id = $1';
+        await this.db.query(sql, [otId]);
+    }
 }

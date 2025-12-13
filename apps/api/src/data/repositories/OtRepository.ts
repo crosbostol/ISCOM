@@ -17,14 +17,19 @@ export class OtRepository implements IOtRepository {
             external_ot_id = ot['ot_id'];
         }
 
-        const { is_additional, ...rest } = ot;
+        // Destructure to separate columns from non-columns (items)
+        // 'items' array must NOT be included in the SQL INSERT for 'ot' table
+        const { is_additional, items, ...rest } = ot as any;
+
         // Exclude properties that are not columns or handled above
         const { ot_id, id, ...otherFields } = rest;
         // Make sure we don't duplicate external_ot_id in otherFields if it was there
         if ('external_ot_id' in otherFields) delete otherFields['external_ot_id'];
 
+        const calculatedAdditional = is_additional || !external_ot_id;
+
         const columns = ["external_ot_id", "is_additional", ...Object.keys(otherFields)];
-        const values = [external_ot_id || null, is_additional || false, ...Object.values(otherFields)];
+        const values = [external_ot_id || null, calculatedAdditional, ...Object.values(otherFields)];
 
         const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
         const columnNames = columns.join(", ");
@@ -42,7 +47,18 @@ export class OtRepository implements IOtRepository {
 
     async findById(id: number): Promise<OrdenTrabajoDTO | null> {
         const result = await this.db.query('SELECT * FROM ot WHERE id = $1', [id]);
-        return result.rows[0] || null;
+        const ot = result.rows[0];
+        if (!ot) return null;
+
+        const itemsResult = await this.db.query(`
+            SELECT io.item_id, io.quantity, i.description, i.item_type, i.item_value 
+            FROM itm_ot io 
+            JOIN item i ON io.item_id = i.item_id 
+            WHERE io.ot_id = $1
+        `, [id]);
+
+        ot.items = itemsResult.rows;
+        return ot;
     }
 
     async findByExternalId(external_id: string): Promise<OrdenTrabajoDTO | null> {
@@ -50,9 +66,24 @@ export class OtRepository implements IOtRepository {
         return result.rows[0] || null;
     }
 
+    async findByAddress(street: string, number: string, commune: string): Promise<OrdenTrabajoDTO[]> {
+        const query = `
+            SELECT * FROM ot 
+            WHERE LOWER(street) = LOWER($1) 
+            AND number_street = $2 
+            AND LOWER(commune) = LOWER($3) 
+            AND dismissed = false
+        `;
+        const result = await this.db.query(query, [street, number, commune]);
+        return result.rows;
+    }
+
     async update(id: number, ot: Partial<OrdenTrabajoDTO>): Promise<any> {
-        const fields = Object.keys(ot).filter(k => k !== 'id' && k !== 'ot_id'); // Don't update PK
-        const values = fields.map(k => ot[k]);
+        // Exclude fields that are not columns in OT table
+        const { items, debris_date, ...updateData } = ot as any;
+
+        const fields = Object.keys(updateData).filter(k => k !== 'id' && k !== 'ot_id'); // Don't update PK
+        const values = fields.map(k => updateData[k]);
 
         if (fields.length === 0) return null;
 
@@ -83,7 +114,8 @@ export class OtRepository implements IOtRepository {
                 o.hydraulic_movil_id, 
                 c.name as N_hidraulico, 
                 o.civil_movil_id, 
-                c2.name as N_civil, 
+                c2.name as N_civil,
+                o.civil_work_at, 
                 o.ot_state 
             FROM OT o 
             LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id 
@@ -151,12 +183,15 @@ export class OtRepository implements IOtRepository {
             external_ot_id = ot['ot_id'];
         }
 
-        const { is_additional, ...rest } = ot;
+        // Destructure items to exclude from INSERT
+        const { is_additional, items, ...rest } = ot as any;
         const { ot_id, id, ...otherFields } = rest;
         if ('external_ot_id' in otherFields) delete otherFields['external_ot_id'];
 
+        const calculatedAdditional = is_additional || !external_ot_id;
+
         const columns = ["external_ot_id", "is_additional", ...Object.keys(otherFields)];
-        const values = [external_ot_id || null, is_additional || false, ...Object.values(otherFields)];
+        const values = [external_ot_id || null, calculatedAdditional, ...Object.values(otherFields)];
 
         const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
         const columnNames = columns.join(", ");
@@ -197,7 +232,7 @@ export class OtRepository implements IOtRepository {
                 hydraulic_movil_id = COALESCE($2, hydraulic_movil_id),
                 civil_movil_id = COALESCE($3, civil_movil_id),
                 started_at = COALESCE($4, started_at),
-                civil_work_date = COALESCE($5, civil_work_date)
+                civil_work_at = COALESCE($5, civil_work_at)
             WHERE id = $1
         `;
         await client.query(query, [id, hydraulicId, civilId, startedAt, civilDate]);

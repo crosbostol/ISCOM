@@ -4,6 +4,18 @@
 */
 
 
+export const ordenTrabajoDTOOtStateEnum = {
+    "CREADA": "CREADA",
+    "PENDIENTE_OC": "PENDIENTE_OC",
+    "PENDIENTE_RET": "PENDIENTE_RET",
+    "POR_PAGAR": "POR_PAGAR",
+    "PAGADA": "PAGADA",
+    "ANULADA": "ANULADA",
+    "RECHAZADA": "RECHAZADA"
+} as const;
+
+export type OrdenTrabajoDTOOtStateEnumKey = (typeof ordenTrabajoDTOOtStateEnum)[keyof typeof ordenTrabajoDTOOtStateEnum];
+
 export type OrdenTrabajoDTO = {
     /**
      * @description ID of the civil movil
@@ -60,7 +72,7 @@ export type OrdenTrabajoDTO = {
      * @description State of the OT
      * @type string | undefined
     */
-    ot_state?: string;
+    ot_state?: OrdenTrabajoDTOOtStateEnumKey;
     /**
      * @description Start date
      * @type string | undefined, date-time

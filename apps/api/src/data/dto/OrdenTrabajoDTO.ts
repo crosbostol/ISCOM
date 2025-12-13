@@ -41,6 +41,14 @@
  *         ot_state:
  *           description: State of the OT
  *           type: string
+ *           enum:
+ *             - CREADA
+ *             - PENDIENTE_OC
+ *             - PENDIENTE_RET
+ *             - POR_PAGAR
+ *             - PAGADA
+ *             - ANULADA
+ *             - RECHAZADA
  *         started_at:
  *           description: Start date
  *           format: date-time
@@ -68,6 +76,7 @@ export interface OrdenTrabajoDTO {
     civil_movil_id?: string | null;
     debris_movil_id?: string | null;
     civil_work_date?: Date;
+    civil_work_at?: Date;
     ot_state?: string;
     dismissed?: boolean;
     [key: string]: any; // Allow other fields for flexibility during migration

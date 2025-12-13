@@ -5,6 +5,7 @@ export interface IOtRepository {
     findAll(): Promise<OrdenTrabajoDTO[]>;
     findById(id: number): Promise<OrdenTrabajoDTO | null>;
     findByExternalId(external_id: string): Promise<OrdenTrabajoDTO | null>;
+    findByAddress(street: string, number: string, commune: string): Promise<OrdenTrabajoDTO[]>;
     update(id: number, ot: Partial<OrdenTrabajoDTO>): Promise<any>;
     softDelete(id: number): Promise<any>;
     getOtTable(): Promise<any[]>;

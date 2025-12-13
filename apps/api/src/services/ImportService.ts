@@ -204,7 +204,7 @@ export class ImportService {
                             ...(civilMovilId && { civil_movil_id: civilMovilId }),
                             ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
                             ...(derivedStartedAt && { started_at: derivedStartedAt }),
-                            ...(derivedCivilDate && { civil_work_date: derivedCivilDate }),
+                            ...(derivedCivilDate && { civil_work_at: derivedCivilDate }),
                         };
 
                         await this.otRepository.updateWithClient(otId, updatePayload, client);
@@ -245,7 +245,7 @@ export class ImportService {
                                 AND (
                                     (started_at IS NOT NULL AND ABS($4::date - started_at) <= 15)
                                     OR 
-                                    (civil_work_date IS NOT NULL AND ABS($4::date - civil_work_date) <= 15)
+                                    (civil_work_at IS NOT NULL AND ABS($4::date - civil_work_at::date) <= 15)
                                 )
                             `;
 
@@ -283,7 +283,7 @@ export class ImportService {
                                 ...(civilMovilId && { civil_movil_id: civilMovilId }),
                                 ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
                                 ...(derivedStartedAt && { started_at: derivedStartedAt }),
-                                ...(derivedCivilDate && { civil_work_date: derivedCivilDate }),
+                                ...(derivedCivilDate && { civil_work_at: derivedCivilDate }),
                             };
 
                             await this.otRepository.updateWithClient(otId as number, updatePayload, client);
@@ -409,7 +409,7 @@ export class ImportService {
             number_street: String(parseNumberStreet(row['NUMERAL'])), // Keeping String() check just in case but helper returns string now
             commune: row['COMUNA']?.trim().toUpperCase(),
             started_at: date || undefined,
-            civil_work_date: civilDate || undefined,
+            civil_work_at: civilDate || undefined,
             hydraulic_movil_id: hydraulicMovilId || null,
             civil_movil_id: civilMovilId || null,
             debris_movil_id: debrisMovilId || null,

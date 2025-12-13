@@ -16,7 +16,7 @@ export const ordenTrabajoDTOSchema = z.object({
 "id": z.optional(z.int().describe("The auto-generated id of the OT (Internal PK)")),
 "is_additional": z.optional(z.boolean().default(false).describe("Flag for additional OTs")),
 "number_street": z.string().describe("Street number"),
-"ot_state": z.optional(z.string().describe("State of the OT")),
+"ot_state": z.optional(z.enum(["CREADA", "PENDIENTE_OC", "PENDIENTE_RET", "POR_PAGAR", "PAGADA", "ANULADA", "RECHAZADA"]).describe("State of the OT")),
 "started_at": z.optional(z.string().datetime().describe("Start date")),
 "street": z.string().describe("Street name")
     })

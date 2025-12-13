@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getOtTable, uploadOtCsv } from '../controllers/ot.controller';
+import { getOtTable, uploadOtCsv, createOt, updateOt, getMovils, getItems, getOtById } from '../controllers/ot.controller';
 import { requireApiKey } from '../middlewares/security';
 
 const router = Router();
@@ -88,5 +88,10 @@ router.post('/ot/upload-csv', requireApiKey, upload.single('file') as any, uploa
  *     tags: [OTs]
  */
 router.get('/ottable', getOtTable);
+router.post('/ot', createOt);
+router.put('/ot/:id', updateOt);
+router.get('/ot/:id', getOtById);
+router.get('/movils', getMovils);
+router.get('/items', getItems);
 
 export default router;
