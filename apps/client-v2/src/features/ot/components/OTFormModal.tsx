@@ -53,7 +53,7 @@ const OTSchema = z.object({
     // Logic: If movil selected (hyd/civ), items required. Debris does NOT require items.
     const hasHydraulic = !!data.hydraulic_movil_id;
     const hasCivil = !!data.civil_movil_id;
-    const hasDebris = !!data.debris_movil_id;
+
 
     // Validation removed as per user request (Optional date, defaults to today)
     // if (hasDebris && !data.debris_date) { ... }
