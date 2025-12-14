@@ -51,20 +51,13 @@ const OTSchema = z.object({
     // Logic: If movil selected (hyd/civ), items required. Debris does NOT require items.
     const hasHydraulic = !!data.hydraulic_movil_id;
     const hasCivil = !!data.civil_movil_id;
+    const hasDebris = !!data.debris_movil_id;
 
-    if (hasHydraulic && !data.started_at) {
+    if (hasDebris && !data.debris_date) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Fecha Hidráulica requerida",
-            path: ["started_at"]
-        });
-    }
-
-    if (hasCivil && !data.civil_work_at) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Fecha Civil requerida",
-            path: ["civil_work_at"]
+            message: "Fecha de Retiro requerida",
+            path: ["debris_date"]
         });
     }
 

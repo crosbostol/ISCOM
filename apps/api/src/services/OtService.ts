@@ -92,7 +92,10 @@ export class OtService {
         if (data.civil_movil_id && !data.civil_work_at) {
             data.civil_work_at = new Date();
         }
-        if (data.debris_movil_id && !data.finished_at) {
+        // Logic: Debris Date Mapping
+        if (data.debris_date) {
+            data.finished_at = data.debris_date;
+        } else if (data.debris_movil_id && !data.finished_at) {
             data.finished_at = new Date();
         }
 
@@ -128,7 +131,10 @@ export class OtService {
         if (data.civil_movil_id && !data.civil_work_at) {
             data.civil_work_at = new Date();
         }
-        if (data.debris_movil_id && !data.finished_at) {
+        // Logic: Debris Date Mapping
+        if (data.debris_date) {
+            data.finished_at = data.debris_date;
+        } else if (data.debris_movil_id && !data.finished_at) {
             data.finished_at = new Date();
         }
 

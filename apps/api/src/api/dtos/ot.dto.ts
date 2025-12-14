@@ -12,7 +12,8 @@ export const CreateOTSchema = z.object({
     items: z.array(z.object({
         item_id: z.string().min(1, "Seleccione un ítem"),
         quantity: z.number().min(1, "La cantidad debe ser mayor a 0")
-    })).optional().default([])
+    })).optional().default([]),
+    debris_date: z.string().datetime().optional().nullable()
 }).superRefine((data, ctx) => {
     const hasResource = !!data.hydraulic_movil_id || !!data.civil_movil_id;
     const hasItems = data.items && data.items.length > 0;
