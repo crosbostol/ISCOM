@@ -11,13 +11,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(morgan('dev')); // Logging
+const morganFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
+app.use(morgan(morganFormat));//loggins
 app.use(helmet()); // Security Headers
 app.use(cors({
-    origin: ['http://localhost:4200', 'http://localhost:5173']
+    origin: [
+        'http://localhost:4200',
+        'http://localhost:5173',
+        'http://localhost:3000', // Por si acaso
+        process.env.FRONTEND_URL //  LA CLAVE MAESTRA
+    ].filter(Boolean) as string[], // Filtra valores nulos si la variable no existe]
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Swagger Documentation
 app.use('/swagger', swaggerUi.serve as any);

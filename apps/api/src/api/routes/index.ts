@@ -6,8 +6,10 @@ import { requireApiKey } from '../middlewares/security';
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
 
-// Health Check (Optional but good practice to remove if strict, keeping simplistic as per instructions to only whitelist)
-// Removing health check as strict whitelist requested: /ottable, /ot/upload-csv.
+// Health Check
+router.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 /**
  * @swagger
