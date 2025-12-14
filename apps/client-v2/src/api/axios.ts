@@ -4,8 +4,10 @@ import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from '
 export type RequestConfig<TData = unknown> = AxiosRequestConfig<TData>;
 export type ResponseErrorConfig<TError = unknown> = AxiosError<TError>;
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 export const api = axios.create({
-    baseURL: 'http://localhost:3000/api',
+    baseURL: BASE_URL,
 });
 
 // Interceptor para agregar API Key
