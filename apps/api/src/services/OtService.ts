@@ -95,6 +95,7 @@ export class OtService {
         // Logic: Debris Date Mapping
         if (data.debris_date) {
             data.finished_at = data.debris_date;
+            delete data.debris_date;
         } else if (data.debris_movil_id && !data.finished_at) {
             data.finished_at = new Date();
         }
@@ -134,6 +135,7 @@ export class OtService {
         // Logic: Debris Date Mapping
         if (data.debris_date) {
             data.finished_at = data.debris_date;
+            delete data.debris_date;
         } else if (data.debris_movil_id && !data.finished_at) {
             data.finished_at = new Date();
         }
@@ -168,8 +170,8 @@ export class OtService {
         return this.otRepository.findById(id);
     }
 
-    async getOtTable(): Promise<any[]> {
-        return this.otRepository.getOtTable();
+    async getOtTable(limit?: number, offset?: number): Promise<any[]> {
+        return this.otRepository.getOtTable(limit, offset);
     }
 
     async getMovils(): Promise<any[]> {

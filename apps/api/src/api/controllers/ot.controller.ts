@@ -38,7 +38,15 @@ export const uploadOtCsv = async (req: Request, res: Response) => {
 
 export const getOtTable = async (req: Request, res: Response) => {
     try {
-        const result = await otService.getOtTable();
+        const page = parseInt(req.query.page as string) || undefined;
+        const limit = parseInt(req.query.limit as string) || undefined;
+        let offset = undefined;
+
+        if (page && limit) {
+            offset = (page - 1) * limit;
+        }
+
+        const result = await otService.getOtTable(limit, offset);
         res.status(200).send(result);
     } catch (error) {
         res.status(500).send(error);

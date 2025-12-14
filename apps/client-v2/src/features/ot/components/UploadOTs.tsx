@@ -16,6 +16,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePostOtUploadCsv } from '../../../api/generated/hooks/usePostOtUploadCsv';
+import { getOttableQueryKey } from '../../../api/generated/hooks/useGetOttable';
 import { UploadResultsDialog } from './UploadResultsDialog';
 import type { ImportSummary } from '../types/ot.types';
 
@@ -49,7 +50,7 @@ export const UploadOTs: React.FC<UploadOTsProps> = ({ open, onClose }) => {
                 setResultsOpen(true);
 
                 // Refresh List
-                queryClient.invalidateQueries({ queryKey: ['ots'] });
+                queryClient.invalidateQueries({ queryKey: getOttableQueryKey() });
             },
             onError: (err: unknown) => {
                 const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;

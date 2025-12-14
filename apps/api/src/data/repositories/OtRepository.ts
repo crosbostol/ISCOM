@@ -100,7 +100,8 @@ export class OtRepository implements IOtRepository {
         return result.rows[0];
     }
 
-    async getOtTable(): Promise<any[]> {
+    async getOtTable(limit?: number, offset?: number): Promise<any[]> {
+        const paginationClause = (limit && offset !== undefined) ? `LIMIT ${limit} OFFSET ${offset}` : '';
         const query = `
             SELECT 
                 o.id,
@@ -130,6 +131,7 @@ export class OtRepository implements IOtRepository {
                     ELSE 0 
                 END DESC,
                 o.started_at ASC NULLS LAST
+            ${paginationClause}
         `;
         const result = await this.db.query(query);
         return result.rows;

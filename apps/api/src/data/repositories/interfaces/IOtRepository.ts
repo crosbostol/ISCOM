@@ -8,7 +8,7 @@ export interface IOtRepository {
     findByAddress(street: string, number: string, commune: string): Promise<OrdenTrabajoDTO[]>;
     update(id: number, ot: Partial<OrdenTrabajoDTO>): Promise<any>;
     softDelete(id: number): Promise<any>;
-    getOtTable(): Promise<any[]>;
+    getOtTable(limit?: number, offset?: number): Promise<any[]>;
     getOtTableByState(state: string): Promise<any[]>;
     findByRangeDate(start: string, end: string): Promise<OrdenTrabajoDTO[]>;
     findByState(state: string): Promise<OrdenTrabajoDTO[]>;

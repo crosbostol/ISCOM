@@ -24,6 +24,8 @@ import { useGetOtId } from '../../../api/generated/hooks/useGetOtId';
 import { useGetMovils } from '../../../api/generated/hooks/useGetMovils';
 import { useGetItems } from '../../../api/generated/hooks/useGetItems';
 import { useQueryClient } from '@tanstack/react-query';
+import { getOttableQueryKey } from '../../../api/generated/hooks/useGetOttable';
+import { getOtIdQueryKey } from '../../../api/generated/hooks/useGetOtId';
 
 // Helper for currency formatting
 const formatCurrency = (value: number) => {
@@ -53,13 +55,8 @@ const OTSchema = z.object({
     const hasCivil = !!data.civil_movil_id;
     const hasDebris = !!data.debris_movil_id;
 
-    if (hasDebris && !data.debris_date) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Fecha de Retiro requerida",
-            path: ["debris_date"]
-        });
-    }
+    // Validation removed as per user request (Optional date, defaults to today)
+    // if (hasDebris && !data.debris_date) { ... }
 
     if ((hasHydraulic || hasCivil) && (!data.items || data.items.length === 0)) {
         ctx.addIssue({
@@ -87,7 +84,8 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     const { mutate: createOt, isPending: isCreating } = usePostOt({
         mutation: {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['ots'] });
+                // Invalidate using the specific key from the generated hook
+                queryClient.invalidateQueries({ queryKey: getOttableQueryKey() });
                 handleClose();
                 onNotify("Orden guardada correctamente", "success");
             },
@@ -102,8 +100,13 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     const { mutate: updateOt, isPending: isUpdating } = usePutOtId({
         mutation: {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ['ots'] });
-                queryClient.invalidateQueries({ queryKey: ['ot', otId] });
+                // Invalidate list
+                queryClient.invalidateQueries({ queryKey: getOttableQueryKey() });
+                // Invalidate specific OT
+                if (otId) {
+                    // Use the GENERATED key structure
+                    queryClient.invalidateQueries({ queryKey: getOtIdQueryKey(otId) });
+                }
                 handleClose();
                 onNotify("Orden guardada correctamente", "success");
             },
@@ -187,8 +190,8 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     debris_movil_id: (otData as any).debris_movil_id?.toString() || null,
                     debris_date: (otData as any).finished_at ? dayjs((otData as any).finished_at) : null,
                     items: (otData as any).items?.map((i: any) => ({
-                        item_id: i.item_id,
-                        quantity: i.quantity
+                        item_id: Number(i.item_id),
+                        quantity: Number(i.quantity)
                     })) || []
                 });
                 setActiveTab(0);
@@ -431,10 +434,63 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                 {/* List */}
                                 <List dense sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'rgba(0,0,0,0.2)', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
                                     {fields.map((field, index) => {
-                                        const currentItem = items?.find(i => i.item_id === field.item_id) as any;
-                                        if (currentItem && currentItem.item_type !== itemFilter && currentItem.item_type !== 'CLOSING_ITEM') return null;
-                                        if (!currentItem) return null;
-                                        const total = (currentItem.item_value || 0) * field.quantity;
+                                        // Force Number casting for comparison
+                                        const currentItem = items?.find(i => Number(i.item_id) === Number(field.item_id));
+
+                                        // If item doesn't exist in catalogue, we MUST render it anyway to prevent data loss.
+                                        // We treat it as "Uncategorized" so it shows up in both tabs (or fallback).
+                                        const isMissingFromCatalogue = !currentItem;
+
+                                        if (isMissingFromCatalogue) {
+                                            // Render basic row for unknown item
+                                            return (
+                                                <ListItem
+                                                    key={field.id}
+                                                    secondaryAction={
+                                                        <IconButton edge="end" onClick={() => remove(index)} color="error"><DeleteIcon /></IconButton>
+                                                    }
+                                                    sx={{ borderBottom: '1px solid #f0f0f0', bgcolor: 'error.lighter' }}
+                                                >
+                                                    <Box>
+                                                        <Typography variant="body2" color="error">Ítem ID {field.item_id} (No encontrado en catálogo)</Typography>
+                                                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                                                            <Controller
+                                                                name={`items.${index}.quantity`}
+                                                                control={control}
+                                                                render={({ field: qtyField }) => (
+                                                                    <TextField
+                                                                        {...qtyField}
+                                                                        type="number"
+                                                                        size="small"
+                                                                        variant="outlined"
+                                                                        label="Cant."
+                                                                        sx={{ width: 80 }}
+                                                                        inputProps={{ min: 1 }}
+                                                                        onChange={(e) => qtyField.onChange(Number(e.target.value))}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </Stack>
+                                                    </Box>
+                                                </ListItem>
+                                            );
+                                        }
+
+                                        // Filter Logic for known items:
+                                        // 1. Match current filter? (e.g. AGUA POTABLE matches AGUA POTABLE)
+                                        const matchesFilter = (currentItem as any).item_type === itemFilter;
+                                        // 2. Is it a Closing Item? (Always show)
+                                        const isClosing = (currentItem as any).item_type === 'CLOSING_ITEM';
+                                        // 3. Is it an Uncategorized item? (Show in both tabs to ensure visibility)
+                                        const isUncategorized = (currentItem as any).item_type !== 'AGUA POTABLE' && (currentItem as any).item_type !== 'OBRAS';
+
+                                        // Strict Filter: Only separate by Type if it matches explicitly.
+                                        // If we are in Hydraulic (Filter=AGUA POTABLE), we show AGUA POTABLE + CLOSING + UNCATEGORIZED.
+                                        // If we are in Civil (Filter=OBRAS), we show OBRAS + CLOSING + UNCATEGORIZED.
+                                        // This means OBRAS won't show in Hydraulic, and AGUA POTABLE won't show in Civil.
+                                        if (!matchesFilter && !isClosing && !isUncategorized) return null;
+
+                                        const total = ((currentItem as any).item_value || 0) * field.quantity;
 
                                         return (
                                             <ListItem
@@ -448,7 +504,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                                 sx={{ borderBottom: '1px solid #f0f0f0' }}
                                             >
                                                 <Box>
-                                                    <Typography variant="body2" fontWeight="medium">{currentItem.description}</Typography>
+                                                    <Typography variant="body2" fontWeight="medium">{(currentItem as any).description}</Typography>
                                                     <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
                                                         <Controller
                                                             name={`items.${index}.quantity`}
@@ -497,11 +553,11 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
         const renderSummaryCard = (title: string, movilId: string | null | undefined, dateVal: any, filter: string, badgeIndex: number) => {
             if (!movilId) return null;
             const cardItems = fields.filter(f => {
-                const i = items?.find(it => it.item_id === f.item_id);
+                const i = items?.find(it => Number(it.item_id) === Number(f.item_id));
                 return i?.item_type === filter;
             });
             const total = cardItems.reduce((acc, curr) => {
-                const i = items?.find(it => it.item_id === curr.item_id);
+                const i = items?.find(it => Number(it.item_id) === Number(curr.item_id));
                 return acc + ((i as any)?.item_value || 0) * curr.quantity;
             }, 0);
 
@@ -536,7 +592,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                         }}>
                             <List dense disablePadding>
                                 {cardItems.map((f, idx) => {
-                                    const it = items?.find(i => i.item_id === f.item_id);
+                                    const it = items?.find(i => Number(i.item_id) === Number(f.item_id));
                                     return (
                                         <ListItem key={idx} sx={{ px: 0, py: 0.5, borderBottom: '1px dashed #bdbdbd' }}>
                                             <Box sx={{ width: '100%' }}>
@@ -658,8 +714,9 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
 
     const renderTabsContent = () => {
         return (
-            <Box sx={{ mt: 1 }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 10 }}>
+            <Box sx={{ mt: 0 }}>
+                {/* Sticky Header with negative margin to counteract DialogContent padding if needed, or better: Use P-0 on DialogContent */}
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 11, mx: -3, px: 3, pt: 1 }}>
                     <Tabs value={activeTab} onChange={handleTabChange} aria-label="ot edit tabs">
                         <Tab label="Información" />
                         <Tab label="Hidráulico" />
@@ -672,23 +729,44 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     {activeTab === 1 && renderResourceSection('HIDRAULICO', 'hydraulic_movil_id', 'started_at', 'AGUA POTABLE')}
                     {activeTab === 2 && renderResourceSection('OBRA CIVIL', 'civil_movil_id', 'civil_work_at', 'OBRAS')}
                     {activeTab === 3 && (
-                        <Box>
-                            <Typography variant="h6" sx={{ mb: 2 }}>Cierre y Retiro</Typography>
-                            <Controller
-                                name="debris_movil_id"
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField {...field} select label="Asignar Camión Retiro" fullWidth value={field.value || ''}>
-                                        <MenuItem value=""><em>Ninguno</em></MenuItem>
-                                        {debrisMovils.map(m => <MenuItem key={m.movil_id} value={m.movil_id!.toString()}>{m.movil_id}</MenuItem>)}
-                                    </TextField>
-                                )}
-                            />
-                            <Alert severity="info" sx={{ mt: 2 }}>
-                                Asignar un camión de retiro implica que la obra ha concluido o hay escombros por retirar.
-                                Si la OT tiene todos sus recursos asignados, el sistema asumirá que el trabajo está completo.
-                            </Alert>
-                        </Box>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <Box>
+                                <Typography variant="h6" sx={{ mb: 2 }}>Cierre y Retiro</Typography>
+                                <Grid container spacing={2}>
+                                    <Grid size={{ xs: 12, md: 8 }}>
+                                        <Controller
+                                            name="debris_movil_id"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <TextField {...field} select label="Asignar Camión Retiro" fullWidth value={field.value || ''}>
+                                                    <MenuItem value=""><em>Ninguno</em></MenuItem>
+                                                    {debrisMovils.map(m => <MenuItem key={m.movil_id} value={m.movil_id!.toString()}>{m.movil_id}</MenuItem>)}
+                                                </TextField>
+                                            )}
+                                        />
+                                    </Grid>
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <Controller
+                                            name="debris_date"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <DatePicker
+                                                    label="Fecha (Opcional)"
+                                                    value={field.value || null}
+                                                    format="DD-MM-YYYY"
+                                                    onChange={(newValue) => field.onChange(newValue)}
+                                                    slotProps={{ textField: { fullWidth: true, helperText: "Vacío = Hoy" } }}
+                                                />
+                                            )}
+                                        />
+                                    </Grid>
+                                </Grid>
+                                <Alert severity="info" sx={{ mt: 2 }}>
+                                    Asignar un camión de retiro implica que la obra ha concluido o hay escombros por retirar.
+                                    Si la OT tiene todos sus recursos asignados, el sistema asumirá que el trabajo está completo.
+                                </Alert>
+                            </Box>
+                        </LocalizationProvider>
                     )}
                 </Box>
             </Box>

@@ -70,11 +70,8 @@ export const OTListPage: React.FC = () => {
     const [filterDateStart, setFilterDateStart] = useState<dayjs.Dayjs | null>(null);
     const [filterDateEnd, setFilterDateEnd] = useState<dayjs.Dayjs | null>(null);
 
-    const { data: ots, isLoading, isError, error } = useGetOttable({
-        query: {
-            queryKey: ['ots'],
-        }
-    });
+    // TODO: REFACTOR TO SERVER-SIDE PAGINATION
+    const { data: ots, isLoading, isError, error } = useGetOttable();
 
     const filteredOts = useMemo(() => {
         if (!ots) return [];
