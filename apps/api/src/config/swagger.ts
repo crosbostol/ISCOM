@@ -10,7 +10,11 @@ const options: swaggerJSDoc.Options = {
         openapi: '3.0.0',
         servers: [
             {
-                description: 'Local server',
+                description: 'Producción (Render)',
+                url: 'https://iscom-api-core.onrender.com/api',
+            },
+            {
+                description: 'Local',
                 url: 'http://localhost:3000/api',
             },
         ],
