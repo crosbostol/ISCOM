@@ -187,7 +187,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     street: otData.street,
                     number_street: otData.number_street,
                     commune: otData.commune,
-                    observation: '', // TODO: If backend returns obs, map it
+                    observation: (otData as any).observation || '',
                     hydraulic_movil_id: otData.hydraulic_movil_id?.toString() || null,
                     started_at: otData.started_at ? dayjs(otData.started_at) : null,
                     civil_movil_id: otData.civil_movil_id?.toString() || null,

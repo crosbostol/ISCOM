@@ -9,5 +9,6 @@ export enum OTState {
     POR_PAGAR = 'POR_PAGAR',               // Tiene TODO (Hid + Civ + Ret) -> Listo para cobrar
 
     PAGADA = 'PAGADA',                     // Financiero
-    ANULADA = 'ANULADA'
+    ANULADA = 'ANULADA',
+    OBSERVADA = 'OBSERVADA'                // New State: Inconsistencia detectada (ej. Retiro sin Civil)
 }
