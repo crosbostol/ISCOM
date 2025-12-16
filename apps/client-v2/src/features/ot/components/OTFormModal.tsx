@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, IconButton, Typography,
-    MenuItem, Box, Stepper, Step, StepLabel, Alert,
+    MenuItem, Box, Alert,
     Autocomplete, Stack, List, ListItem, Chip, Tabs, Tab, FormControlLabel, Checkbox
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
@@ -42,6 +42,8 @@ const parseQty = (val: any): number => {
     }
     return 0;
 };
+
+import { LiquidStepper } from './LiquidStepper';
 
 // --- SCHEMA DEFINITION ---
 const OTSchema = z.object({
@@ -809,9 +811,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     ) : (
                         // Stepper for Create Mode
                         <>
-                            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3, position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 10, py: 1 }}>
-                                {['Ubicación', 'Hidráulico', 'Civil', 'Resumen'].map(label => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
-                            </Stepper>
+                            <LiquidStepper activeStep={activeStep} steps={['Ubicación', 'Hidráulico', 'Civil', 'Resumen']} />
                             <div style={{ display: activeStep === 0 ? 'block' : 'none' }}>{renderGeneralFields()}</div>
                             <div style={{ display: activeStep === 1 ? 'block' : 'none' }}>{renderResourceSection('HIDRAULICO', 'hydraulic_movil_id', 'started_at', 'AGUA POTABLE')}</div>
                             <div style={{ display: activeStep === 2 ? 'block' : 'none' }}>{renderResourceSection('OBRA CIVIL', 'civil_movil_id', 'civil_work_at', 'OBRAS')}</div>
