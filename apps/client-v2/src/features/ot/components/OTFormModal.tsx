@@ -423,7 +423,28 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     </Stack>
 
                     {/* List */}
-                    <List dense sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'rgba(0,0,0,0.2)', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                    <List dense sx={{
+                        bgcolor: 'background.paper',
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        maxHeight: '30vh',
+                        minHeight: '150px',
+                        overflowY: 'auto',
+                        pr: 1,
+                        mt: 2,
+                        // Ensure it takes space
+                        display: 'block',
+                        '&::-webkit-scrollbar': { width: '6px' },
+                        '&::-webkit-scrollbar-track': { background: 'transparent' },
+                        '&::-webkit-scrollbar-thumb': {
+                            background: (theme) => theme.palette.mode === 'dark' ? '#009688' : '#B0BEC5',
+                            borderRadius: '3px',
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            background: (theme) => theme.palette.mode === 'dark' ? '#00796B' : '#78909C',
+                        }
+                    }}>
                         {fields.map((field, index) => {
                             const currentItem = items?.find(i => Number(i.item_id) === Number(field.item_id));
                             const isMissingFromCatalogue = !currentItem;
@@ -772,8 +793,44 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
         return (
             <Box sx={{ mt: 0 }}>
                 {/* Sticky Header with negative margin to counteract DialogContent padding if needed, or better: Use P-0 on DialogContent */}
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 11, mx: -3, px: 3, pt: 1 }}>
-                    <Tabs value={activeTab} onChange={handleTabChange} aria-label="ot edit tabs">
+                <Box sx={{ position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 11, mx: -3, px: 3, pt: 1 }}>
+                    <Tabs
+                        value={activeTab}
+                        onChange={handleTabChange}
+                        textColor="primary"
+                        indicatorColor="primary"
+                        sx={{
+                            minHeight: '48px',
+                            // Removed borderBottom to prevent double lines
+                            '& .MuiTab-root': {
+                                textTransform: 'none',
+                                fontWeight: 500,
+                                fontSize: '0.95rem',
+                                mr: 1,
+                                color: 'text.secondary',
+                                minHeight: '48px',
+                                transition: '0.3s',
+                                border: 'none !important',
+                                outline: 'none !important',
+                                '&:hover': {
+                                    color: 'text.primary',
+                                    bgcolor: (theme) => theme.palette.mode === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)',
+                                    border: 'none !important',
+                                },
+                                '&.Mui-selected': {
+                                    color: 'primary.main',
+                                    fontWeight: 700,
+                                    border: 'none !important',
+                                    outline: 'none !important',
+                                },
+                            },
+                            '& .MuiTabs-indicator': {
+                                height: '3px',
+                                borderRadius: '3px 3px 0 0',
+                                backgroundColor: 'primary.main',
+                            },
+                        }}
+                    >
                         <Tab label="Información" />
                         <Tab label="Hidráulico" />
                         <Tab label="Civil" />
@@ -801,8 +858,24 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-            <DialogTitle>{isEdit ? `Editar OT #${otId}` : 'Nueva Orden de Trabajo'}</DialogTitle>
-            <DialogContent dividers className="custom-scrollbar">
+            <DialogTitle sx={{ pb: 1 }}>
+                {isEdit ? (
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                        <span>Editar OT #{otId}</span>
+                        {otData && (otData as any).ot_state && (
+                            <Chip
+                                label={(otData as any).ot_state}
+                                color={(otData as any).ot_state === 'PAGADA' ? 'success' : (otData as any).ot_state === 'PENDIENTE_OC' ? 'warning' : 'info'}
+                                size="small"
+                                variant="outlined"
+                            />
+                        )}
+                    </Stack>
+                ) : (
+                    'Nueva Orden de Trabajo'
+                )}
+            </DialogTitle>
+            <DialogContent dividers sx={{ overflowY: 'hidden' }}>
                 {submitError && <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert>}
 
                 <form id="ot-form" onSubmit={handleSubmit(onSubmit)}>
