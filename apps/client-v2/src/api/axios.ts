@@ -11,14 +11,32 @@ export const api = axios.create({
 });
 
 // Interceptor para agregar API Key
+// Interceptor to add Authorization Header (JWT)
 api.interceptors.request.use((config) => {
-    // Check both standard naming and the one found in .env.production
-    const apiKey = import.meta.env.VITE_API_KEY || import.meta.env.VITE_API_SECRET_KEY;
-    if (apiKey) {
-        config.headers['x-api-key'] = apiKey;
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });
+
+// Interceptor to handle 401 Unauthorized
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Clear session and redirect to login
+            localStorage.removeItem('token');
+            localStorage.removeItem('user'); // Optional: Clear user data if stored
+
+            // Avoid redirect loops if already on login
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 // Custom instance matching Kubb's expected signature
 export const customInstance = <TData, _TError = unknown, _TVariables = unknown>(

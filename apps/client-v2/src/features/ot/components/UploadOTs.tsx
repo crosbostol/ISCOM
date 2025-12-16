@@ -23,10 +23,27 @@ import type { ImportSummary } from '../types/ot.types';
 interface UploadOTsProps {
     open: boolean;
     onClose: () => void;
+    initialFile?: File | null;
 }
 
-export const UploadOTs: React.FC<UploadOTsProps> = ({ open, onClose }) => {
+export const UploadOTs: React.FC<UploadOTsProps> = ({ open, onClose, initialFile }) => {
     const [file, setFile] = useState<File | null>(null);
+
+    // Reset file when modal closes or opens
+    React.useEffect(() => {
+        if (!open) {
+            setFile(null);
+        } else if (initialFile) {
+            setFile(initialFile);
+        }
+    }, [open, initialFile]);
+
+    // Load initial file when opened
+    React.useEffect(() => {
+        if (open && initialFile) {
+            setFile(initialFile);
+        }
+    }, [open, initialFile]);
     const [error, setError] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [successOpen, setSuccessOpen] = useState(false);

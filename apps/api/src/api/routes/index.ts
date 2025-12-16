@@ -2,14 +2,22 @@ import { Router } from 'express';
 import multer from 'multer';
 import { getOtTable, uploadOtCsv, createOt, updateOt, getMovils, getItems, getOtById } from '../controllers/ot.controller';
 import { requireApiKey } from '../middlewares/security';
+import authRoutes from './auth.routes';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
+
+
+// Public Routes
+router.use('/auth', authRoutes);
 
 // Health Check
 router.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Protect all subsequent routes
+router.use(requireApiKey);
 
 /**
  * @swagger
@@ -39,7 +47,7 @@ router.get('/health', (req, res) => {
  *     summary: Upload a CSV file to import OTs
  *     tags: [OTs]
  */
-router.post('/ot/upload-csv', requireApiKey, upload.single('file') as any, uploadOtCsv);
+router.post('/ot/upload-csv', upload.single('file') as any, uploadOtCsv);
 
 // ot table view
 /**

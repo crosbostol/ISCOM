@@ -29,19 +29,16 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use('/swagger', swaggerUi.serve as any);
 app.get('/swagger', swaggerUi.setup(swaggerSpec) as any);
 
-// NUEVA RUTA PARA ORVAL
-// Esto sirve el objeto JSON crudo que Orval consumirá para generar código
+// Ruta JSON para Generación de Código (Kubb)
+// Esto sirve el objeto JSON crudo que Kubb consumirá para generar código
 app.get('/api-docs-json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
 });
 
 // Routes
-app.use('/api', routes); // Prefixing with /api for better structure, or keep root if legacy requires it.
-// Legacy index.js used app.use(require('./api/routes/index')), which likely mounted on root.
-// Let's mount on root to be safe, or check legacy routes.
-// Legacy: app.use(require('./api/routes/index'))
-// If legacy routes defined paths like '/ot', then mounting on root is correct.
+app.use('/api', routes); // Prefixing with /api for better structure.
+
 app.use(routes);
 
 // 404 Handler
@@ -54,8 +51,14 @@ app.use((req, res, next) => {
 // Error Handler
 app.use(errorHandler);
 
+// Validate critical environment variables
+if (!process.env.JWT_SECRET) {
+    console.error('[FATAL] JWT_SECRET is not defined in .env. Server cannot start.');
+    process.exit(1);
+}
+
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
 
 export default app;

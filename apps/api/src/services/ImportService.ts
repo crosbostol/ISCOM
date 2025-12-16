@@ -151,7 +151,7 @@ export class ImportService {
                                 if (movil) civilMovilId = movil.movil_id.toString();
                             }
                             if (!derivedCivilDate && rowDate) derivedCivilDate = rowDate;
-                        } else if (MOVIL_PATTERNS.DEBRIS.some(id => code.includes(id))) {
+                        } else if (MOVIL_PATTERNS.DEBRIS.some((id: string) => code.includes(id))) {
                             if (!debrisMovilId) {
                                 console.log('[ImportService] Found Debris Code:', code);
                                 const movil = await this.movilRepository.findByExternalCode(code);
@@ -175,12 +175,7 @@ export class ImportService {
                                 derivedStartedAt = rowDate;
                             }
                         }
-                    } else {
-                        if (!hydraulicMovilId) {
-                            const movil = await this.movilRepository.findByExternalCode(code);
-                            if (movil) hydraulicMovilId = movil.movil_id.toString();
-                        }
-                        if (!derivedStartedAt && rowDate) derivedStartedAt = rowDate;
+
                     }
                 }
 
@@ -272,19 +267,7 @@ export class ImportService {
                         const commune = header['COMUNA']?.trim().toUpperCase();
 
                         // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
-                        const heuristicQuery = `
-                                SELECT id, hydraulic_movil_id, civil_movil_id, debris_movil_id, ot_state, observation 
-                                FROM ot 
-                                WHERE commune = $1 
-                                AND street = $2 
-                                AND number_street = $3
-                                AND external_ot_id IS NULL
-                                AND (
-                                    (started_at IS NOT NULL AND ABS($4::date - started_at) <= 15)
-                                    OR 
-                                    (civil_work_at IS NOT NULL AND ABS($4::date - civil_work_at::date) <= 15)
-                                )
-                            `;
+                        const heuristicQuery = `SELECT id, hydraulic_movil_id, civil_movil_id, debris_movil_id, ot_state, observation FROM ot WHERE commune = $1 AND street = $2 AND number_street = $3 AND external_ot_id IS NULL AND ((started_at IS NOT NULL AND ABS($4::date - started_at) <= 15) OR (civil_work_at IS NOT NULL AND ABS($4::date - civil_work_at::date) <= 15))`;
 
                         // Parameters for strict location matching (Fixed order for new queries)
                         const params = [
@@ -372,7 +355,7 @@ export class ImportService {
 
                 for (const itemRow of items) {
                     const movilCode = itemRow['MÓVIL']?.trim();
-                    const isDebris = movilCode && MOVIL_PATTERNS.DEBRIS.some(id => movilCode.includes(id));
+                    const isDebris = movilCode && MOVIL_PATTERNS.DEBRIS.some((id: string) => movilCode.includes(id));
 
                     const rawDesc = itemRow['REPARACIÓN'];
                     // [B] DEBRIS LOGIC
@@ -384,7 +367,7 @@ export class ImportService {
 
                         // Case B: Allowed Item -> OK (Process it)
                         // Note: DEBRIS_RULES.allowedItems is readonly, need to cast or use some()
-                        const isAllowed = DEBRIS_RULES.allowedItems.some(allowed => allowed === dimDescription.toUpperCase());
+                        const isAllowed = DEBRIS_RULES.allowedItems.some((allowed: string) => allowed === dimDescription.toUpperCase());
 
                         if (!isAllowed) {
                             // Case C: Invalid -> Warning & Skip
@@ -448,10 +431,10 @@ export class ImportService {
                 for (const aggItem of aggregatedItems.values()) {
                     // UPSERT / ON CONFLICT DO NOTHING
                     const insertQuery = `
-                        INSERT INTO itm_ot (ot_id, item_id, quantity, created_at)
-                        VALUES ($1, $2, $3, CURRENT_DATE)
-                        ON CONFLICT (ot_id, item_id) DO NOTHING
-                    `;
+                    INSERT INTO itm_ot (ot_id, item_id, quantity, created_at)
+                    VALUES ($1, $2, $3, CURRENT_DATE)
+                    ON CONFLICT (ot_id, item_id) DO NOTHING
+                `;
                     await client.query(insertQuery, [otId, aggItem.itemId, aggItem.quantity]);
                 }
 

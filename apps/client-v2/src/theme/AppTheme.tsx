@@ -156,13 +156,24 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 styleOverrides: {
                     root: {
                         border: 'none',
+                        // Darken borders in Light Mode
+                        '& .MuiDataGrid-cell': {
+                            borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.25)' : undefined,
+                        },
+                        '& .MuiDataGrid-columnHeaders': {
+                            borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.25)' : undefined,
+                        },
+                        '& .MuiDataGrid-columnHeader': {
+                            borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.25)' : undefined,
+                        },
                     },
                     columnHeaders: {
                         backgroundColor: mode === 'light' ? 'rgba(0, 150, 136, 0.08)' : 'rgba(77, 182, 172, 0.15)',
                         color: mode === 'light' ? '#0D4A73' : '#E3F2FD',
+                        borderColor: mode === 'light' ? 'rgba(0, 0, 0, 0.25)' : undefined,
                     },
                     footerContainer: {
-                        borderTop: `1px solid ${mode === 'light' ? 'rgba(0, 0, 0, 0.12)' : 'rgba(194, 224, 255, 0.08)'}`,
+                        borderTop: `1px solid ${mode === 'light' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(194, 224, 255, 0.08)'}`,
                     }
                 }
             }
