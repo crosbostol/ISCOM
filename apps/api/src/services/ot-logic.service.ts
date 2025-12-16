@@ -4,27 +4,54 @@ export const inferirEstadoOT = (
     hidraulicoId: string | null | undefined,
     civilId: string | null | undefined,
     retiroId: string | null | undefined,
+    retiroFinishedAt: Date | string | null | undefined,
     estadoActual?: string
 ): OTState => {
-    // 1. Inmutabilidad (No tocar si ya está cerrado)
+    // 1. Inmutabilidad (Prioridad Máxima)
     if (estadoActual === OTState.PAGADA) return OTState.PAGADA;
     if (estadoActual === OTState.ANULADA) return OTState.ANULADA;
 
-    // 2. Meta Final
-    if (hidraulicoId && civilId && retiroId) return OTState.POR_PAGAR;
+    // 2. Evaluar Finalización del Ciclo (Retiro)
+    const tieneRetiroFinalizado = !!(retiroId && retiroFinishedAt);
+    const tieneAntecedentes = !!(hidraulicoId || civilId);
 
-    // 3. Lógica de "Siguiente Paso"
+    if (tieneRetiroFinalizado) {
+        // --- NUEVA REGLA: DETECCIÓN DE SALTO DE PROCESO ---
+        // Si se hizo trabajo hidráulico (hoyo), DEBE haber registro civil (tapar) 
+        // antes de considerar válido el retiro (limpiar).
+        if (hidraulicoId && !civilId) {
+            return OTState.OBSERVADA; // Faltan antecedentes Civiles (tiene Hid pero no Civ)
+        }
 
-    // Si ya tiene Civil (y asumimos Hidráulico), lo único que falta es limpiar.
+        if (tieneAntecedentes) {
+            // Ciclo completo y coherente
+            return OTState.POR_PAGAR;
+        } else {
+            // ALERTA DE INTEGRIDAD: 
+            // Tenemos el final de la historia (Retiro) pero falta el inicio.
+            // No podemos pagarla ciegamente.
+            return OTState.OBSERVADA;
+        }
+    }
+
+    // 3. Progreso Parcial (Cascada hacia atrás)
     if (civilId) return OTState.PENDIENTE_RETIRO;
-
-    // Si tiene Hidráulico pero NO Civil, falta la Obra Civil.
-    if (hidraulicoId && !civilId) return OTState.PENDIENTE_OBRA_CIVIL;
-
-    // Si solo tiene Retiro (Caso borde raro), asumimos que falta validar civil/hid
-    // O se puede dejar en PENDIENTE_RETIRO si asumimos que es un update parcial.
-    // Regla segura:
-    if (retiroId && !civilId) return OTState.PENDIENTE_OBRA_CIVIL;
+    if (hidraulicoId) return OTState.PENDIENTE_OBRA_CIVIL;
 
     return OTState.CREADA;
+};
+
+export const generateObservationText = (
+    estado: OTState,
+    hidraulicoId: string | null | undefined,
+    civilId: string | null | undefined
+): string | null => {
+    if (estado === OTState.OBSERVADA) {
+        if (!hidraulicoId && !civilId) {
+            return '[SISTEMA] Inconsistencia: Retiro finalizado sin antecedentes previos (Hid/Civ).';
+        } else if (hidraulicoId && !civilId) {
+            return '[SISTEMA] Inconsistencia: Retiro finalizado sin Obra Civil registrada.';
+        }
+    }
+    return null;
 };

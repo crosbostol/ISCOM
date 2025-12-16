@@ -26,10 +26,21 @@ import { useGetItems } from '../../../api/generated/hooks/useGetItems';
 import { useQueryClient } from '@tanstack/react-query';
 import { getOttableQueryKey } from '../../../api/generated/hooks/useGetOttable';
 import { getOtIdQueryKey } from '../../../api/generated/hooks/useGetOtId';
+import { isSharedItem } from '../../../constants/businessRules';
 
 // Helper for currency formatting
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
+};
+
+// Helper for safe quantity parsing (handles "1,5" strings from input)
+const parseQty = (val: any): number => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+        const parsed = parseFloat(val.replace(',', '.'));
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
 };
 
 // --- SCHEMA DEFINITION ---
@@ -47,7 +58,11 @@ const OTSchema = z.object({
     debris_date: z.any().optional().nullable(),
     items: z.array(z.object({
         item_id: z.coerce.number().min(1, "Seleccione un ítem"),
-        quantity: z.coerce.number().min(1, "Cantidad > 0")
+        // Allow strings with commas, transform to number
+        quantity: z.preprocess(
+            (val) => (typeof val === 'string' ? val.replace(',', '.') : val),
+            z.coerce.number().min(0.001, "Cantidad > 0")
+        )
     }))
 }).superRefine((data, ctx) => {
     // Logic: If movil selected (hyd/civ), items required. Debris does NOT require items.
@@ -182,7 +197,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     street: otData.street,
                     number_street: otData.number_street,
                     commune: otData.commune,
-                    observation: '', // TODO: If backend returns obs, map it
+                    observation: (otData as any).observation || '',
                     hydraulic_movil_id: otData.hydraulic_movil_id?.toString() || null,
                     started_at: otData.started_at ? dayjs(otData.started_at) : null,
                     civil_movil_id: otData.civil_movil_id?.toString() || null,
@@ -240,10 +255,14 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     const handleTabChange = (_: any, newValue: number) => setActiveTab(newValue);
 
     const handleAddItem = () => {
-        if (!pendingItem || !pendingQty || Number(pendingQty) <= 0) return;
+        // Ensure pendingQty is a string before using replace
+        if (typeof pendingQty !== 'string') return;
+        // Parse quantity handling comma
+        const parsedQty = parseFloat(pendingQty.replace(',', '.'));
+        if (!pendingItem || !pendingQty || isNaN(parsedQty) || parsedQty <= 0) return;
         append({
             item_id: pendingItem.item_id,
-            quantity: Number(pendingQty)
+            quantity: parsedQty // Store as number in the array
         });
         setPendingItem(null);
         setPendingQty('');
@@ -336,9 +355,186 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
         </Grid>
     );
 
-    const renderResourceSection = (type: 'HIDRAULICO' | 'OBRA CIVIL', fieldName: 'hydraulic_movil_id' | 'civil_movil_id', dateFieldName: 'started_at' | 'civil_work_at', itemFilter: string) => {
+    // --- Item Manager Renderer (Reusable) ---
+    const renderItemsManager = (movilId: string | null | undefined, filter: string) => {
+        if (!movilId) return null;
+
+        return (
+            <Grid size={{ xs: 12 }}>
+                <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold' }}>
+                        Materiales y Partidas ({filter})
+                    </Typography>
+                    {/* Input Row */}
+                    <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2 }}>
+                        <Autocomplete
+                            options={items?.filter(i => {
+                                // Filter Logic:
+                                // 1. Exact Match on Type
+                                if (i.item_type === filter) return true;
+                                // 2. Closing Items always show (Except in Debris/RETIRO where we want strict list)
+                                if (i.item_type === 'CLOSING_ITEM' && filter !== 'RETIRO') return true;
+                                // 3. Shared Items Logic: Show in CIVIL ('OBRAS') and DEBRIS ('RETIRO')
+                                if ((filter === 'OBRAS' || filter === 'RETIRO') && isSharedItem(i.description || '')) return true;
+                                // 4. Uncategorized (Show everywhere to be safe, or just fallbacks) match List filter
+                                const isUncategorized = (i as any).item_type !== 'AGUA POTABLE' && (i as any).item_type !== 'OBRAS' && !(i as any).item_type;
+                                if (isUncategorized) return true;
+
+                                return false;
+                            }) || []}
+                            getOptionLabel={(option) => `${option.item_id} - ${option.description}`}
+                            value={pendingItem}
+                            onChange={(_, newValue) => setPendingItem(newValue)}
+                            renderOption={(props, option: any) => {
+                                const { key, ...otherProps } = props;
+                                return (
+                                    <li key={key} {...otherProps}>
+                                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Box>
+                                                <Typography variant="body2">{option.description}</Typography>
+                                                <Typography variant="caption" color="text.secondary">Cod: {option.item_id}</Typography>
+                                            </Box>
+                                            <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                                {formatCurrency(option.item_value || 0)} / un
+                                            </Typography>
+                                        </Box>
+                                    </li>
+                                );
+                            }}
+                            renderInput={(params) => <TextField {...params} label="Buscar Ítem" inputRef={itemInputRef} />}
+                            sx={{ flex: 1 }}
+                        />
+                        <TextField
+                            label="Cant."
+                            value={pendingQty}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9,.]/g, '');
+                                setPendingQty(val);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddItem(); } }}
+                            sx={{ width: 100 }}
+                            inputProps={{ inputMode: 'decimal' }}
+                        />
+                        <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} disabled={!pendingItem || !pendingQty} sx={{ height: 56 }}>
+                            Agregar
+                        </Button>
+                    </Stack>
+
+                    {/* List */}
+                    <List dense sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'rgba(0,0,0,0.2)', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                        {fields.map((field, index) => {
+                            const currentItem = items?.find(i => Number(i.item_id) === Number(field.item_id));
+                            const isMissingFromCatalogue = !currentItem;
+
+                            if (isMissingFromCatalogue) {
+                                return (
+                                    <ListItem
+                                        key={field.id}
+                                        secondaryAction={
+                                            <IconButton edge="end" onClick={() => remove(index)} color="error"><DeleteIcon /></IconButton>
+                                        }
+                                        sx={{ borderBottom: '1px solid #f0f0f0', bgcolor: 'error.lighter' }}
+                                    >
+                                        <Box>
+                                            <Typography variant="body2" color="error">Ítem ID {field.item_id} (No encontrado)</Typography>
+                                            <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                                                <Controller
+                                                    name={`items.${index}.quantity`}
+                                                    control={control}
+                                                    render={({ field: qtyField }) => (
+                                                        <TextField
+                                                            {...qtyField}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            label="Cant."
+                                                            sx={{ width: 80 }}
+                                                            value={qtyField.value}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value.replace(/[^0-9,.]/g, '');
+                                                                qtyField.onChange(val);
+                                                            }}
+                                                            inputProps={{ inputMode: 'decimal' }}
+                                                        />
+                                                    )}
+                                                />
+                                            </Stack>
+                                        </Box>
+                                    </ListItem>
+                                );
+                            }
+
+                            // Filter Logic for List Display
+                            // 1. Match current filter?
+                            const matchesFilter = (currentItem as any).item_type === filter;
+                            // 2. Is it a Closing Item?
+                            const isClosing = (currentItem as any).item_type === 'CLOSING_ITEM' && filter !== 'RETIRO';
+                            // 3. Shared Items
+                            const isShared = (filter === 'OBRAS' || filter === 'RETIRO') && isSharedItem((currentItem as any).description || '');
+                            // 4. Uncategorized (Show everywhere to be safe, or just fallbacks)
+                            const isUncategorized = (currentItem as any).item_type !== 'AGUA POTABLE' && (currentItem as any).item_type !== 'OBRAS' && !(currentItem as any).item_type;
+
+                            if (!matchesFilter && !isClosing && !isShared && !isUncategorized) return null;
+
+                            const qty = parseQty(field.quantity);
+                            const total = ((currentItem as any).item_value || 0) * qty;
+
+                            return (
+                                <ListItem
+                                    key={field.id}
+                                    secondaryAction={
+                                        <Stack direction="row" alignItems="center" spacing={2}>
+                                            <Typography variant="body2" fontWeight="bold" color="primary.main">{formatCurrency(total)}</Typography>
+                                            <IconButton edge="end" onClick={() => remove(index)} color="error"><DeleteIcon /></IconButton>
+                                        </Stack>
+                                    }
+                                    sx={{ borderBottom: '1px solid #f0f0f0' }}
+                                >
+                                    <Box>
+                                        <Typography variant="body2" fontWeight="medium">{(currentItem as any).description}</Typography>
+                                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                                            <Controller
+                                                name={`items.${index}.quantity`}
+                                                control={control}
+                                                render={({ field: qtyField }) => (
+                                                    <TextField
+                                                        {...qtyField}
+                                                        size="small"
+                                                        variant="outlined"
+                                                        label="Cant."
+                                                        sx={{ width: 80 }}
+                                                        value={qtyField.value}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value.replace(/[^0-9,.]/g, '');
+                                                            qtyField.onChange(val);
+                                                        }}
+                                                        inputProps={{ inputMode: 'decimal' }}
+                                                    />
+                                                )}
+                                            />
+                                            <Typography variant="body2" color="text.secondary">x {formatCurrency((currentItem as any)?.item_value || 0)}</Typography>
+                                        </Stack>
+                                    </Box>
+                                </ListItem>
+                            );
+                        })}
+                    </List>
+                </Box>
+            </Grid>
+        );
+    };
+
+    const renderResourceSection = (type: string, fieldName: 'hydraulic_movil_id' | 'civil_movil_id' | 'debris_movil_id', dateFieldName: 'started_at' | 'civil_work_at' | 'debris_date', itemFilter: string) => {
         const relevantMovilId = watch(fieldName);
-        const relevantMovils = type === 'HIDRAULICO' ? hydraulicMovils : civilMovils;
+
+        // Define movil list based on type
+        let relevantMovils: any[] = [];
+        if (type === 'HIDRAULICO') {
+            relevantMovils = hydraulicMovils;
+        } else if (type === 'OBRA CIVIL') {
+            relevantMovils = civilMovils;
+        } else if (type === 'CIERRE / RETIRO') {
+            relevantMovils = debrisMovils;
+        }
 
         return (
             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -351,7 +547,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                 <TextField
                                     {...field}
                                     select
-                                    label={type === 'HIDRAULICO' ? "Seleccione Móvil Hidráulico" : "Seleccione Móvil Civil"}
+                                    label={`Seleccionar Móvil`}
                                     fullWidth
                                     value={field.value || ''}
                                     helperText={!field.value ? "Seleccione un móvil para agregar partidas" : ""}
@@ -385,153 +581,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                         />
                     </Grid>
 
-                    {relevantMovilId && (
-                        <Grid size={{ xs: 12 }}>
-                            <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold' }}>
-                                    Materiales y Partidas ({itemFilter})
-                                </Typography>
-                                {/* Input Row */}
-                                <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2 }}>
-                                    <Autocomplete
-                                        options={items?.filter(i => i.item_type === itemFilter || i.item_type === 'CLOSING_ITEM') || []}
-                                        getOptionLabel={(option) => `${option.item_id} - ${option.description}`}
-                                        value={pendingItem}
-                                        onChange={(_, newValue) => setPendingItem(newValue)}
-                                        renderOption={(props, option: any) => {
-                                            const { key, ...otherProps } = props;
-                                            return (
-                                                <li key={key} {...otherProps}>
-                                                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <Box>
-                                                            <Typography variant="body2">{option.description}</Typography>
-                                                            <Typography variant="caption" color="text.secondary">Cod: {option.item_id}</Typography>
-                                                        </Box>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
-                                                            {formatCurrency(option.item_value || 0)} / un
-                                                        </Typography>
-                                                    </Box>
-                                                </li>
-                                            );
-                                        }}
-                                        renderInput={(params) => <TextField {...params} label="Buscar Ítem" inputRef={itemInputRef} />}
-                                        sx={{ flex: 1 }}
-                                    />
-                                    <TextField
-                                        label="Cant."
-                                        type="number"
-                                        value={pendingQty}
-                                        onChange={(e) => setPendingQty(e.target.value)}
-                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddItem(); } }}
-                                        sx={{ width: 100 }}
-                                    />
-                                    <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} disabled={!pendingItem || !pendingQty || Number(pendingQty) <= 0} sx={{ height: 56 }}>
-                                        Agregar
-                                    </Button>
-                                </Stack>
-
-                                {/* List */}
-                                {/* List */}
-                                <List dense sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'rgba(0,0,0,0.2)', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                                    {fields.map((field, index) => {
-                                        // Force Number casting for comparison
-                                        const currentItem = items?.find(i => Number(i.item_id) === Number(field.item_id));
-
-                                        // If item doesn't exist in catalogue, we MUST render it anyway to prevent data loss.
-                                        // We treat it as "Uncategorized" so it shows up in both tabs (or fallback).
-                                        const isMissingFromCatalogue = !currentItem;
-
-                                        if (isMissingFromCatalogue) {
-                                            // Render basic row for unknown item
-                                            return (
-                                                <ListItem
-                                                    key={field.id}
-                                                    secondaryAction={
-                                                        <IconButton edge="end" onClick={() => remove(index)} color="error"><DeleteIcon /></IconButton>
-                                                    }
-                                                    sx={{ borderBottom: '1px solid #f0f0f0', bgcolor: 'error.lighter' }}
-                                                >
-                                                    <Box>
-                                                        <Typography variant="body2" color="error">Ítem ID {field.item_id} (No encontrado en catálogo)</Typography>
-                                                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-                                                            <Controller
-                                                                name={`items.${index}.quantity`}
-                                                                control={control}
-                                                                render={({ field: qtyField }) => (
-                                                                    <TextField
-                                                                        {...qtyField}
-                                                                        type="number"
-                                                                        size="small"
-                                                                        variant="outlined"
-                                                                        label="Cant."
-                                                                        sx={{ width: 80 }}
-                                                                        inputProps={{ min: 1 }}
-                                                                        onChange={(e) => qtyField.onChange(Number(e.target.value))}
-                                                                    />
-                                                                )}
-                                                            />
-                                                        </Stack>
-                                                    </Box>
-                                                </ListItem>
-                                            );
-                                        }
-
-                                        // Filter Logic for known items:
-                                        // 1. Match current filter? (e.g. AGUA POTABLE matches AGUA POTABLE)
-                                        const matchesFilter = (currentItem as any).item_type === itemFilter;
-                                        // 2. Is it a Closing Item? (Always show)
-                                        const isClosing = (currentItem as any).item_type === 'CLOSING_ITEM';
-                                        // 3. Is it an Uncategorized item? (Show in both tabs to ensure visibility)
-                                        const isUncategorized = (currentItem as any).item_type !== 'AGUA POTABLE' && (currentItem as any).item_type !== 'OBRAS';
-
-                                        // Strict Filter: Only separate by Type if it matches explicitly.
-                                        // If we are in Hydraulic (Filter=AGUA POTABLE), we show AGUA POTABLE + CLOSING + UNCATEGORIZED.
-                                        // If we are in Civil (Filter=OBRAS), we show OBRAS + CLOSING + UNCATEGORIZED.
-                                        // This means OBRAS won't show in Hydraulic, and AGUA POTABLE won't show in Civil.
-                                        if (!matchesFilter && !isClosing && !isUncategorized) return null;
-
-                                        const total = ((currentItem as any).item_value || 0) * field.quantity;
-
-                                        return (
-                                            <ListItem
-                                                key={field.id}
-                                                secondaryAction={
-                                                    <Stack direction="row" alignItems="center" spacing={2}>
-                                                        <Typography variant="body2" fontWeight="bold" color="primary.main">{formatCurrency(total)}</Typography>
-                                                        <IconButton edge="end" onClick={() => remove(index)} color="error"><DeleteIcon /></IconButton>
-                                                    </Stack>
-                                                }
-                                                sx={{ borderBottom: '1px solid #f0f0f0' }}
-                                            >
-                                                <Box>
-                                                    <Typography variant="body2" fontWeight="medium">{(currentItem as any).description}</Typography>
-                                                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-                                                        <Controller
-                                                            name={`items.${index}.quantity`}
-                                                            control={control}
-                                                            render={({ field: qtyField }) => (
-                                                                <TextField
-                                                                    {...qtyField}
-                                                                    type="number"
-                                                                    size="small"
-                                                                    variant="outlined"
-                                                                    label="Cant."
-                                                                    sx={{ width: 80 }}
-                                                                    inputProps={{ min: 1 }}
-                                                                    onChange={(e) => qtyField.onChange(Number(e.target.value))}
-                                                                />
-                                                            )}
-                                                        />
-                                                        <Typography variant="body2" color="text.secondary">x {formatCurrency((currentItem as any)?.item_value || 0)}</Typography>
-                                                    </Stack>
-                                                </Box>
-                                            </ListItem>
-                                        );
-                                    })}
-                                </List>
-                            </Box>
-                        </Grid>
-                    )}
+                    {renderItemsManager(relevantMovilId, itemFilter)}
                 </Grid>
             </LocalizationProvider>
         );
@@ -558,7 +608,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
             });
             const total = cardItems.reduce((acc, curr) => {
                 const i = items?.find(it => Number(it.item_id) === Number(curr.item_id));
-                return acc + ((i as any)?.item_value || 0) * curr.quantity;
+                return acc + ((i as any)?.item_value || 0) * parseQty(curr.quantity);
             }, 0);
 
             return (
@@ -599,7 +649,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                                 <Typography variant="body2">{it?.description}</Typography>
                                                 <Stack direction="row" justifyContent="space-between">
                                                     <Chip label={`${f.quantity} un.`} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
-                                                    <Typography variant="body2" fontWeight="bold">{formatCurrency(((it as any)?.item_value || 0) * f.quantity)}</Typography>
+                                                    <Typography variant="body2" fontWeight="bold">{formatCurrency(((it as any)?.item_value || 0) * parseQty(f.quantity))}</Typography>
                                                 </Stack>
                                             </Box>
                                         </ListItem>
@@ -700,6 +750,10 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                             )}
                                         />
                                     </Stack>
+
+                                    {/* Item Manager for Debris in Create Mode */}
+                                    {renderItemsManager(watch('debris_movil_id'), 'RETIRO')}
+
                                     <Alert severity="warning" sx={{ mt: 2 }}>
                                         La OT se creará con estado de retiro activo. Si completa los 3 recursos, pasará a <b>POR PAGAR</b>.
                                     </Alert>
@@ -729,44 +783,14 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     {activeTab === 1 && renderResourceSection('HIDRAULICO', 'hydraulic_movil_id', 'started_at', 'AGUA POTABLE')}
                     {activeTab === 2 && renderResourceSection('OBRA CIVIL', 'civil_movil_id', 'civil_work_at', 'OBRAS')}
                     {activeTab === 3 && (
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <Box>
-                                <Typography variant="h6" sx={{ mb: 2 }}>Cierre y Retiro</Typography>
-                                <Grid container spacing={2}>
-                                    <Grid size={{ xs: 12, md: 8 }}>
-                                        <Controller
-                                            name="debris_movil_id"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <TextField {...field} select label="Asignar Camión Retiro" fullWidth value={field.value || ''}>
-                                                    <MenuItem value=""><em>Ninguno</em></MenuItem>
-                                                    {debrisMovils.map(m => <MenuItem key={m.movil_id} value={m.movil_id!.toString()}>{m.movil_id}</MenuItem>)}
-                                                </TextField>
-                                            )}
-                                        />
-                                    </Grid>
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <Controller
-                                            name="debris_date"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <DatePicker
-                                                    label="Fecha (Opcional)"
-                                                    value={field.value || null}
-                                                    format="DD-MM-YYYY"
-                                                    onChange={(newValue) => field.onChange(newValue)}
-                                                    slotProps={{ textField: { fullWidth: true, helperText: "Vacío = Hoy" } }}
-                                                />
-                                            )}
-                                        />
-                                    </Grid>
-                                </Grid>
-                                <Alert severity="info" sx={{ mt: 2 }}>
-                                    Asignar un camión de retiro implica que la obra ha concluido o hay escombros por retirar.
-                                    Si la OT tiene todos sus recursos asignados, el sistema asumirá que el trabajo está completo.
-                                </Alert>
-                            </Box>
-                        </LocalizationProvider>
+                        <Box>
+                            <Typography variant="h6" sx={{ mb: 2 }}>Cierre y Retiro</Typography>
+                            {renderResourceSection('CIERRE / RETIRO', 'debris_movil_id', 'debris_date', 'RETIRO')}
+                            <Alert severity="info" sx={{ mt: 2 }}>
+                                Asignar un camión de retiro implica que la obra ha concluido o hay escombros por retirar.
+                                Si la OT tiene todos sus recursos asignados, el sistema asumirá que el trabajo está completo.
+                            </Alert>
+                        </Box>
                     )}
                 </Box>
             </Box>

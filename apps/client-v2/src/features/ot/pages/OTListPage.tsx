@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
 import { esES } from '@mui/x-data-grid/locales';
-import { Alert, Snackbar, Chip, Box, Typography, CircularProgress, Button, Stack, Paper, InputBase, Popover } from '@mui/material';
+import { Alert, Snackbar, Chip, Box, Typography, CircularProgress, Button, Stack, Paper, InputBase, Popover, Tooltip } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import SearchIcon from '@mui/icons-material/Search';
 import DateRangeIcon from '@mui/icons-material/DateRange';
@@ -38,6 +38,7 @@ const STATE_CONFIG: Record<string, { label: string; color: 'default' | 'primary'
     'POR_PAGAR': { label: '💰 Por Pagar', color: 'success' },
     'PAGADA': { label: '✅ Pagada', color: 'primary' },
     'ANULADA': { label: '🚫 Anulada', color: 'error' },
+    'OBSERVADA': { label: '⚠️ Observada', color: 'warning' }, // New State
 };
 
 import { OTFormModal } from '../components/OTFormModal';
@@ -165,19 +166,33 @@ export const OTListPage: React.FC = () => {
                 const daysElapsed = getDaysDiff(params.row.started_at);
                 const isDelayed = stateCode === 'PENDIENTE_OC' && daysElapsed >= 3;
 
-                // Si está atrasado, forzamos color error y agregamos texto
+                // --- LÓGICA DE OBSERVADA ---
+                const isObservada = stateCode === 'OBSERVADA';
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const observationText = (params.row as any).observation;
+
+                // Si está atrasado, forzamos color error
                 const finalColor = isDelayed ? 'error' : config.color;
                 const finalLabel = isDelayed ? `${config.label} (${daysElapsed}d)` : config.label;
 
-                return (
+                const chip = (
                     <Chip
                         label={finalLabel}
-                        color={finalColor}
-                        variant={isDelayed ? "filled" : "outlined"} // Relleno si es urgente
+                        color={finalColor as any}
+                        variant={isDelayed ? "filled" : (isObservada ? "outlined" : "filled")}
                         size="small"
-                        sx={{ fontWeight: isDelayed ? 'bold' : 'normal' }}
+                        sx={isObservada ? { borderColor: '#ed6c02', color: '#e65100', fontWeight: 'bold' } : (isDelayed ? { fontWeight: 'bold' } : {})}
                     />
                 );
+
+                if (isObservada && observationText) {
+                    return (
+                        <Tooltip title={observationText} arrow placement="top">
+                            {chip}
+                        </Tooltip>
+                    );
+                }
+                return chip;
             }
         },
         { field: 'street', headerName: 'Calle', width: 150, editable: true },
