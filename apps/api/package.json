@@ -7,7 +7,7 @@
         "build": "tsc",
         "start": "node dist/server.js",
         "dev": "nodemon src/server.ts",
-        "migrate": "node-pg-migrate up",
+        "migrate": "node-pg-migrate up -m dist/data/migrations",
         "seed": "ts-node src/data/seed.ts",
         "seed:prod": "node dist/data/seed.js",
         "test": "jest"
