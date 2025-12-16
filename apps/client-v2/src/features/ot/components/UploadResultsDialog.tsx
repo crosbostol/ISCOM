@@ -201,6 +201,21 @@ export const UploadResultsDialog: React.FC<UploadResultsDialogProps> = ({ open, 
                     </Box>
                 )}
 
+                {data.warnings && data.warnings.length > 0 && (
+                    <Box sx={{ mt: 2, p: 2, bgcolor: '#fff3e0', borderRadius: 2, border: '1px solid #ffe0b2' }}>
+                        <Typography variant="subtitle1" sx={{ color: '#e65100', fontWeight: 'bold' }} gutterBottom>
+                            ⚠️ Advertencias ({data.warnings.length})
+                        </Typography>
+                        <Box sx={{ maxHeight: 150, overflowY: 'auto' }}>
+                            {data.warnings.map((warn: string, i: number) => (
+                                <Typography key={i} variant="body2" sx={{ mb: 0.5, color: 'rgba(0, 0, 0, 0.87)' }}>
+                                    • {warn}
+                                </Typography>
+                            ))}
+                        </Box>
+                    </Box>
+                )}
+
             </DialogContent>
 
             <DialogActions sx={{ p: 3, justifyContent: 'center' }}>

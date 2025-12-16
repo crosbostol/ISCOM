@@ -8,6 +8,7 @@ import { IItmOtRepository } from '../data/repositories/interfaces/IItmOtReposito
 import { parseChileanDate, parseNumberStreet } from '../utils/csvHelpers';
 import { inferirEstadoOT } from './ot-logic.service';
 import { OTState } from '../api/types/ot.enums';
+import { DEBRIS_RULES, MOVIL_PATTERNS } from '../config/business-rules';
 
 export interface ImportResult {
     summary: {
@@ -23,6 +24,7 @@ export interface ImportResult {
         updated: number;
     };
     errors: any[];
+    warnings: string[];
 }
 
 export class ImportService {
@@ -75,6 +77,7 @@ export class ImportService {
         let createdCount = 0;
         let updatedCount = 0;
         const errors: any[] = [];
+        const warnings: string[] = [];
 
         // PHASE 1: MEMORY GROUPING (The Grouper)
         const groups = new Map<string, { header: any, items: any[] }>();
@@ -129,6 +132,7 @@ export class ImportService {
                 let debrisMovilId: string | null = null;
                 let derivedStartedAt: Date | undefined = undefined;
                 let derivedCivilDate: Date | undefined = undefined;
+                let derivedDebrisDate: Date | undefined = undefined;
 
                 // Check all rows in the group for Movils and Dates
                 for (const row of items) {
@@ -137,7 +141,7 @@ export class ImportService {
                     const rowDate = parseChileanDate(rowDateStr);
 
                     if (code) {
-                        const isCivil = code.includes('OC');
+                        const isCivil = code.includes(MOVIL_PATTERNS.CIVIL) || code.includes(MOVIL_PATTERNS.CIVIL_ALT);
                         // Logic: If code has OC -> It's Civil. Maps to civilMovilId + civilDate.
                         // If code NOT OC (HID or others) -> It's Hydraulic. Maps to hydraulicMovilId + startedAt.
 
@@ -147,7 +151,7 @@ export class ImportService {
                                 if (movil) civilMovilId = movil.movil_id.toString();
                             }
                             if (!derivedCivilDate && rowDate) derivedCivilDate = rowDate;
-                        } else if (code === 'MOV_RET_01') {
+                        } else if (MOVIL_PATTERNS.DEBRIS.some(id => code.includes(id))) {
                             if (!debrisMovilId) {
                                 console.log('[ImportService] Found Debris Code:', code);
                                 const movil = await this.movilRepository.findByExternalCode(code);
@@ -158,13 +162,25 @@ export class ImportService {
                                     console.warn('[ImportService] Debris Movil NOT FOUND for code:', code);
                                 }
                             }
+                            // Capture Debris Date
+                            if (!derivedDebrisDate && rowDate) derivedDebrisDate = rowDate;
                         } else {
                             if (!hydraulicMovilId) {
                                 const movil = await this.movilRepository.findByExternalCode(code);
                                 if (movil) hydraulicMovilId = movil.movil_id.toString();
                             }
-                            if (!derivedStartedAt && rowDate) derivedStartedAt = rowDate;
+
+                            // User Request: started_at only if MOVIL = MOV_HID_*
+                            if (code.startsWith(MOVIL_PATTERNS.HYDRAULIC) && !derivedStartedAt && rowDate) {
+                                derivedStartedAt = rowDate;
+                            }
                         }
+                    } else {
+                        if (!hydraulicMovilId) {
+                            const movil = await this.movilRepository.findByExternalCode(code);
+                            if (movil) hydraulicMovilId = movil.movil_id.toString();
+                        }
+                        if (!derivedStartedAt && rowDate) derivedStartedAt = rowDate;
                     }
                 }
 
@@ -205,6 +221,7 @@ export class ImportService {
                             ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
                             ...(derivedStartedAt && { started_at: derivedStartedAt }),
                             ...(derivedCivilDate && { civil_work_at: derivedCivilDate }),
+                            ...(derivedDebrisDate && { finished_at: derivedDebrisDate }),
                         };
 
                         await this.otRepository.updateWithClient(otId, updatePayload, client);
@@ -215,12 +232,12 @@ export class ImportService {
                         isNewOt = true;
                         // Pass specific IDs to buildOtData
                         // Use derivedStartedAt if available, else fallback to header date.
-                        const finalStartDate = derivedStartedAt || executionDate;
+                        const finalStartDate = derivedStartedAt;
 
                         // Infer initial state for new OT
                         const nuevoEstado = inferirEstadoOT(hydraulicMovilId, civilMovilId, debrisMovilId);
 
-                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, otCode, false, derivedCivilDate, nuevoEstado);
+                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, otCode, false, derivedCivilDate, nuevoEstado, derivedDebrisDate);
                         console.log(`[ImportService] Creating NEW OT Data:`, JSON.stringify(otData, null, 2));
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
@@ -284,6 +301,7 @@ export class ImportService {
                                 ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
                                 ...(derivedStartedAt && { started_at: derivedStartedAt }),
                                 ...(derivedCivilDate && { civil_work_at: derivedCivilDate }),
+                                ...(derivedDebrisDate && { finished_at: derivedDebrisDate }),
                             };
 
                             await this.otRepository.updateWithClient(otId as number, updatePayload, client);
@@ -295,11 +313,11 @@ export class ImportService {
                         // Scenario 2: OT New -> Create with specific IDs
                         isNewOt = true;
                         // Pass specific IDs to buildOtData
-                        const finalStartDate = derivedStartedAt || executionDate;
+                        const finalStartDate = derivedStartedAt;
                         // Infer initial state for new OT
                         const nuevoEstado = inferirEstadoOT(hydraulicMovilId, civilMovilId, debrisMovilId);
 
-                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, null, true, derivedCivilDate, nuevoEstado);
+                        const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, null, true, derivedCivilDate, nuevoEstado, derivedDebrisDate);
                         const newOt = await this.otRepository.createWithClient(otData, client);
                         otId = newOt.id;
                         createdCount++;
@@ -314,19 +332,50 @@ export class ImportService {
 
                 for (const itemRow of items) {
                     const movilCode = itemRow['MÓVIL']?.trim();
-                    const isRetiro = movilCode === 'MOV_RET_01';
-
-                    // [B] PERSISTENCIA ITEM (Solo si NO es retiro)
-                    // Si es retiro, no procesamos items (no se cobran unitariamente aquí)
-                    if (isRetiro) continue;
+                    const isDebris = movilCode && MOVIL_PATTERNS.DEBRIS.some(id => movilCode.includes(id));
 
                     const rawDesc = itemRow['REPARACIÓN'];
-                    // [A] VALIDACIÓN: Para cualquier otro, la descripción es obligatoria
+                    // [B] DEBRIS LOGIC
+                    if (isDebris) {
+                        // Case A: Empty Description -> OK (Skip item, just charge the trip/OT)
+                        if (!rawDesc || rawDesc.trim() === '') continue;
+
+                        const dimDescription = rawDesc.trim().replace(/\s+/g, ' ');
+
+                        // Case B: Allowed Item -> OK (Process it)
+                        // Note: DEBRIS_RULES.allowedItems is readonly, need to cast or use some()
+                        const isAllowed = DEBRIS_RULES.allowedItems.some(allowed => allowed === dimDescription);
+
+                        if (!isAllowed) {
+                            // Case C: Invalid -> Warning & Skip
+                            const warnMsg = `Fila (Móvil ${movilCode}): Ítem '${dimDescription}' no permitido para retiro. Se creó la OT sin este ítem.`;
+                            warnings.push(warnMsg);
+                            continue;
+                        }
+
+                        // Case D: Zero Quantity Check
+                        const rawQty = itemRow['CANTIDAD']?.replace(',', '.') || '0';
+                        const qty = parseFloat(rawQty);
+
+                        if (isNaN(qty) || qty <= 0) {
+                            // Valid Item but Zero Quantity -> Warning & Skip
+                            const warnMsg = `Fila (Móvil ${movilCode}): Ítem '${dimDescription}' tiene cantidad 0 o inválida. Se creó la OT sin este ítem.`;
+                            warnings.push(warnMsg);
+                            continue;
+                        }
+                        // If Allowed AND Quantity > 0, proceed to standard logic below.
+                    }
+
+                    // [B] PERSISTENCIA ITEM (Standard Logic)
+                    // If it was Debris AND Allowed, it falls through here.
+                    // If it was NOT Debris, it falls through here.
+
+                    // [A] VALIDACIÓN: Para cualquier otro (inc Clásicos y Debris Permitidos), la descripción es obligatoria
                     if (!rawDesc || rawDesc.trim() === '') {
                         // Throw error/warning or skip? User said "Throw Exception" -> invalid row.
                         // But we are in a group processing. If we throw here, we rollback the whole group (OT).
                         // "Si faltan, lanzar error (Throw Exception) para rechazar la fila o el archivo."
-                        console.warn(`[ImportService] Warning: Row associated with OT has no description and is not Debris. Skipping item, but this might be invalid.`);
+                        console.warn(`[ImportService] Warning: Row associated with OT has no description and is not Debris (or empty Debris). Skipping item, but this might be invalid.`);
                         continue;
                     }
 
@@ -397,11 +446,12 @@ export class ImportService {
                 created: createdCount,
                 updated: updatedCount
             },
-            errors
+            errors,
+            warnings
         };
     }
 
-    private buildOtData(row: any, date: Date | null | undefined, hydraulicMovilId: string | null, civilMovilId: string | null, debrisMovilId: string | null, externalId: string | null, isAdditional: boolean, civilDate?: Date, otState?: string) {
+    private buildOtData(row: any, date: Date | null | undefined, hydraulicMovilId: string | null, civilMovilId: string | null, debrisMovilId: string | null, externalId: string | null, isAdditional: boolean, civilDate?: Date, otState?: string, debrisDate?: Date) {
         return {
             external_ot_id: externalId,
             is_additional: isAdditional,
@@ -410,6 +460,7 @@ export class ImportService {
             commune: row['COMUNA']?.trim().toUpperCase(),
             started_at: date || undefined,
             civil_work_at: civilDate || undefined,
+            finished_at: debrisDate || undefined,
             hydraulic_movil_id: hydraulicMovilId || null,
             civil_movil_id: civilMovilId || null,
             debris_movil_id: debrisMovilId || null,

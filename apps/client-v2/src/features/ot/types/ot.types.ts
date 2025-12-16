@@ -14,4 +14,5 @@ export interface ImportSummary {
         updated: number;
     };
     errors: any[];
+    warnings?: string[];
 }
