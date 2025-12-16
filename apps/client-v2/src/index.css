@@ -90,3 +90,9 @@ input:-webkit-autofill:active {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #1F6EB1;
 }
+
+/* Hide native Edge/IE password reveal button to avoid duality with MUI */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}

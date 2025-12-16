@@ -7,7 +7,7 @@ exports.up = pgm => {
     pgm.createTable('inventory', {
         inventory_id: { type: 'varchar(20)', notNull: true, primaryKey: true },
         updated_at: { type: 'timestamp', default: pgm.func('current_timestamp') }
-    });
+    }, { ifNotExists: true });
 
     // 2. Product
     pgm.createTable('product', {
@@ -15,7 +15,7 @@ exports.up = pgm => {
         product_name: { type: 'varchar(50)', notNull: true },
         product_category: { type: 'varchar(50)', notNull: true },
         product_unit: { type: 'varchar(50)', notNull: true }
-    });
+    }, { ifNotExists: true });
 
     // 3. Inv_Pro
     pgm.createTable('inv_pro', {
@@ -32,12 +32,19 @@ exports.up = pgm => {
             onDelete: 'CASCADE'
         },
         quantity: { type: 'numeric', notNull: true, default: 0 }
-    });
-    pgm.addConstraint('inv_pro', 'inv_pro_pkey', {
-        primaryKey: ['product_id', 'inventory_id']
-    });
+    }, { ifNotExists: true });
 
-    // 4. Update Trigger Function
+    // Idempotent constraint: Check if exists before adding (using PL/pgSQL)
+    pgm.sql(`
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'inv_pro_pkey') THEN
+                ALTER TABLE public.inv_pro ADD CONSTRAINT inv_pro_pkey PRIMARY KEY (product_id, inventory_id);
+            END IF;
+        END $$;
+    `);
+
+    // 4. Update Trigger Function (replace: true handles idempotency)
     pgm.createFunction(
         'update_inv_pro',
         [],
@@ -57,7 +64,7 @@ exports.up = pgm => {
     `
     );
 
-    // 5. Pro_OT (Requires OT table to exist, assumed dependent on previous migrations)
+    // 5. Pro_OT
     pgm.createTable('pro_ot', {
         product_id: {
             type: 'integer',
@@ -78,8 +85,10 @@ exports.up = pgm => {
             references: '"ot"',
             onDelete: 'CASCADE'
         }
-    });
+    }, { ifNotExists: true });
 
+    // Trigger: Drop if exists then create
+    pgm.sql('DROP TRIGGER IF EXISTS update_inv_pro_trigger ON public.pro_ot;');
     pgm.createTrigger('pro_ot', 'update_inv_pro_trigger', {
         when: 'AFTER',
         operation: 'INSERT',
@@ -98,7 +107,7 @@ exports.up = pgm => {
         },
         name: { type: 'varchar(100)', notNull: true },
         rut: { type: 'varchar(15)' }
-    });
+    }, { ifNotExists: true });
 
     // 7. Image
     pgm.createTable('image', {
@@ -110,16 +119,16 @@ exports.up = pgm => {
             references: '"ot"',
             onDelete: 'CASCADE'
         }
-    });
+    }, { ifNotExists: true });
 };
 
 exports.down = pgm => {
-    pgm.dropTable('image');
-    pgm.dropTable('conductor');
-    pgm.dropTrigger('pro_ot', 'update_inv_pro_trigger');
-    pgm.dropTable('pro_ot');
-    pgm.dropFunction('update_inv_pro', []);
-    pgm.dropTable('inv_pro');
-    pgm.dropTable('product');
-    pgm.dropTable('inventory');
+    pgm.dropTable('image', { ifExists: true });
+    pgm.dropTable('conductor', { ifExists: true });
+    pgm.dropTrigger('pro_ot', 'update_inv_pro_trigger', { ifExists: true });
+    pgm.dropTable('pro_ot', { ifExists: true });
+    pgm.dropFunction('update_inv_pro', [], { ifExists: true });
+    pgm.dropTable('inv_pro', { ifExists: true });
+    pgm.dropTable('product', { ifExists: true });
+    pgm.dropTable('inventory', { ifExists: true });
 };
