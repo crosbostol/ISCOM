@@ -47,7 +47,11 @@ const OTSchema = z.object({
     debris_date: z.any().optional().nullable(),
     items: z.array(z.object({
         item_id: z.coerce.number().min(1, "Seleccione un ítem"),
-        quantity: z.coerce.number().min(1, "Cantidad > 0")
+        // Allow strings with commas, transform to number
+        quantity: z.preprocess(
+            (val) => (typeof val === 'string' ? val.replace(',', '.') : val),
+            z.coerce.number().min(0.001, "Cantidad > 0")
+        )
     }))
 }).superRefine((data, ctx) => {
     // Logic: If movil selected (hyd/civ), items required. Debris does NOT require items.
@@ -240,10 +244,12 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     const handleTabChange = (_: any, newValue: number) => setActiveTab(newValue);
 
     const handleAddItem = () => {
-        if (!pendingItem || !pendingQty || Number(pendingQty) <= 0) return;
+        // Parse quantity handling comma
+        const parsedQty = parseFloat(pendingQty.replace(',', '.'));
+        if (!pendingItem || !pendingQty || isNaN(parsedQty) || parsedQty <= 0) return;
         append({
             item_id: pendingItem.item_id,
-            quantity: Number(pendingQty)
+            quantity: parsedQty // Store as number in the array
         });
         setPendingItem(null);
         setPendingQty('');
@@ -419,13 +425,17 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                     />
                                     <TextField
                                         label="Cant."
-                                        type="number"
                                         value={pendingQty}
-                                        onChange={(e) => setPendingQty(e.target.value)}
+                                        onChange={(e) => {
+                                            // Allow only numbers, commas, and dots
+                                            const val = e.target.value.replace(/[^0-9,.]/g, '');
+                                            setPendingQty(val);
+                                        }}
                                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddItem(); } }}
                                         sx={{ width: 100 }}
+                                        inputProps={{ inputMode: 'decimal' }} // Better mobile keyboard
                                     />
-                                    <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} disabled={!pendingItem || !pendingQty || Number(pendingQty) <= 0} sx={{ height: 56 }}>
+                                    <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} disabled={!pendingItem || !pendingQty} sx={{ height: 56 }}>
                                         Agregar
                                     </Button>
                                 </Stack>
@@ -460,13 +470,20 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                                                 render={({ field: qtyField }) => (
                                                                     <TextField
                                                                         {...qtyField}
-                                                                        type="number"
                                                                         size="small"
                                                                         variant="outlined"
                                                                         label="Cant."
                                                                         sx={{ width: 80 }}
-                                                                        inputProps={{ min: 1 }}
-                                                                        onChange={(e) => qtyField.onChange(Number(e.target.value))}
+                                                                        // Use simple text handling for list items too, or rely on Controller?
+                                                                        // Controller manages number state, but TextField needs text.
+                                                                        // Easier: Keep value as is, onChange parse.
+                                                                        value={qtyField.value}
+                                                                        onChange={(e) => {
+                                                                            const val = e.target.value.replace(/[^0-9,.]/g, '');
+                                                                            // We can pass the string to the field, Zod preprocess handles it.
+                                                                            qtyField.onChange(val);
+                                                                        }}
+                                                                        inputProps={{ inputMode: 'decimal' }}
                                                                     />
                                                                 )}
                                                             />
@@ -512,13 +529,16 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                                             render={({ field: qtyField }) => (
                                                                 <TextField
                                                                     {...qtyField}
-                                                                    type="number"
                                                                     size="small"
                                                                     variant="outlined"
                                                                     label="Cant."
                                                                     sx={{ width: 80 }}
-                                                                    inputProps={{ min: 1 }}
-                                                                    onChange={(e) => qtyField.onChange(Number(e.target.value))}
+                                                                    value={qtyField.value}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value.replace(/[^0-9,.]/g, '');
+                                                                        qtyField.onChange(val);
+                                                                    }}
+                                                                    inputProps={{ inputMode: 'decimal' }}
                                                                 />
                                                             )}
                                                         />
