@@ -24,19 +24,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        // Init: Check if token exists
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const initAuth = async () => {
+            const token = localStorage.getItem('token');
 
-        if (token) {
-            setIsAuthenticated(true);
-            if (storedUser) {
-                try {
-                    setUser(JSON.parse(storedUser));
-                } catch (e) { console.error("Error parsing user data", e) }
+            if (!token) {
+                setIsAuthenticated(false);
+                setUser(null);
+                setIsLoading(false);
+                return;
             }
-        }
-        setIsLoading(false);
+
+            try {
+                const response = await api.get('/auth/profile');
+                setUser(response.data);
+                setIsAuthenticated(true);
+                // Optional: Refresh local storage user data
+                localStorage.setItem('user', JSON.stringify(response.data));
+            } catch (error) {
+                console.error('Token validation failed:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setIsAuthenticated(false);
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        initAuth();
     }, []);
 
     const login = async (username: string, pass: string) => {
@@ -62,6 +77,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         window.location.href = '/login';
     };
+
+    if (isLoading) {
+        return (
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh',
+                backgroundColor: '#121212', // Dark background to match theme
+                color: '#4db6ac' // Teal color
+            }}>
+                <div className="spinner" style={{
+                    border: '4px solid rgba(77, 182, 172, 0.1)',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    borderLeftColor: '#4db6ac',
+                    animation: 'spin 1s linear infinite'
+                }}></div>
+                <style>{`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        );
+    }
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>

@@ -21,10 +21,11 @@ export class AuthService {
             throw new Error('Invalid Credentials');
         }
 
+        const signOptions: jwt.SignOptions = { expiresIn: (process.env.JWT_EXPIRES_IN || '12h') as any };
         const token = jwt.sign(
             { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET as string,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '12h' } as jwt.SignOptions
+            signOptions
         );
 
         const { password_hash, ...userWithoutPassword } = user;

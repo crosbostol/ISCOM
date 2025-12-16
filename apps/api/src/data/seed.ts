@@ -13,15 +13,23 @@ const seed = async () => {
 
             if (checkUser.rows.length === 0) {
                 console.log('Creating admin user...');
-                const passwordHash = await bcrypt.hash('admin2025', 10);
+
+                const initPassword = process.env.ADMIN_INIT_PASSWORD;
+                if (!initPassword) {
+                    console.warn('[WARN] ADMIN_INIT_PASSWORD not set. Using insecure fallback.');
+                }
+                const passwordToHash = initPassword || 'admin2025';
+
+                const passwordHash = await bcrypt.hash(passwordToHash, 10);
 
                 await client.query(
                     'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)',
                     ['admin', passwordHash, 'ADMIN']
                 );
-                console.log('Admin user created successfully.');
+                console.log('[SEED] Admin user created successfully.');
             } else {
-                console.log('Admin user already exists.');
+                console.log('[SEED] Admin user already exists. Skipping creation.');
+                process.exit(0);
             }
         } finally {
             client.release();

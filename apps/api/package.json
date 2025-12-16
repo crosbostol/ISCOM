@@ -4,13 +4,13 @@
     "description": "RESTful API with Node.js, Express, and PostgreSQL",
     "main": "index.js",
     "scripts": {
-        "back": " nodemon src/index.js",
-        "test": "jest",
         "build": "tsc",
         "start": "node dist/server.js",
         "dev": "nodemon src/server.ts",
-        "migrate": "npm run build && node dist/data/run-migration.js",
-        "seed": "ts-node src/data/seed.ts"
+        "migrate": "node-pg-migrate up",
+        "seed": "ts-node src/data/seed.ts",
+        "seed:prod": "node dist/data/seed.js",
+        "test": "jest"
     },
     "keywords": [],
     "author": "",
