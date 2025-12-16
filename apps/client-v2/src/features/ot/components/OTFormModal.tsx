@@ -875,7 +875,17 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                     'Nueva Orden de Trabajo'
                 )}
             </DialogTitle>
-            <DialogContent dividers sx={{ overflowY: 'hidden' }}>
+            <DialogContent dividers sx={{
+                '&::-webkit-scrollbar': { width: '6px' },
+                '&::-webkit-scrollbar-track': { background: 'transparent' },
+                '&::-webkit-scrollbar-thumb': {
+                    background: (theme) => theme.palette.mode === 'dark' ? '#009688' : '#B0BEC5',
+                    borderRadius: '3px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                    background: (theme) => theme.palette.mode === 'dark' ? '#00796B' : '#78909C',
+                }
+            }}>
                 {submitError && <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert>}
 
                 <form id="ot-form" onSubmit={handleSubmit(onSubmit)}>
