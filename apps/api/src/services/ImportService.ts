@@ -6,7 +6,7 @@ import { IMovilRepository } from '../data/repositories/interfaces/IMovilReposito
 import { IItemRepository } from '../data/repositories/interfaces/IItemRepository';
 import { IItmOtRepository } from '../data/repositories/interfaces/IItmOtRepository';
 import { parseChileanDate, parseNumberStreet } from '../utils/csvHelpers';
-import { inferirEstadoOT } from './ot-logic.service';
+import { inferirEstadoOT, generateObservationText } from './ot-logic.service';
 import { OTState } from '../api/types/ot.enums';
 import { DEBRIS_RULES, MOVIL_PATTERNS } from '../config/business-rules';
 
@@ -215,19 +215,24 @@ export class ImportService {
                         );
 
                         // [C.1] GENERAR OBSERVACIÓN (Si aplica)
-                        let observationText = '';
-                        if (nuevoEstado === OTState.OBSERVADA) {
-                            if (!finalHydraulic && !finalCivil) {
-                                observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin antecedentes previos (Hid/Civ).';
-                            } else if (finalHydraulic && !finalCivil) {
-                                observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin Obra Civil registrada.';
-                            }
-                        }
+                        const observationText = generateObservationText(nuevoEstado, finalHydraulic, finalCivil) || '';
 
                         // [D] PERSISTENCIA
                         const updatePayload: any = {
                             ot_state: nuevoEstado,
-                            ...(observationText && { observation: observationText }), // Update observation if new issue found
+                            ...(
+                                nuevoEstado === OTState.OBSERVADA && observationText
+                                    ? { observation: observationText }
+                                    : (
+                                        nuevoEstado !== OTState.OBSERVADA
+                                            && existingOt.ot_state === OTState.OBSERVADA
+                                            && existingOt.observation
+                                            && typeof existingOt.observation === 'string'
+                                            && existingOt.observation.startsWith('[SISTEMA]')
+                                            ? { observation: null }
+                                            : {}
+                                    )
+                            ),
                             ...(hydraulicMovilId && { hydraulic_movil_id: hydraulicMovilId }),
                             ...(civilMovilId && { civil_movil_id: civilMovilId }),
                             ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
@@ -250,14 +255,7 @@ export class ImportService {
                         const nuevoEstado = inferirEstadoOT(hydraulicMovilId, civilMovilId, debrisMovilId, derivedDebrisDate);
 
                         // [C.1] GENERAR OBSERVACIÓN (Si aplica)
-                        let observationText = null;
-                        if (nuevoEstado === OTState.OBSERVADA) {
-                            if (!hydraulicMovilId && !civilMovilId) {
-                                observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin antecedentes previos (Hid/Civ).';
-                            } else if (hydraulicMovilId && !civilMovilId) {
-                                observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin Obra Civil registrada.';
-                            }
-                        }
+                        const observationText = generateObservationText(nuevoEstado, hydraulicMovilId, civilMovilId) || '';
 
                         const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, otCode, false, derivedCivilDate, nuevoEstado, derivedDebrisDate, observationText);
                         console.log(`[ImportService] Creating NEW OT Data:`, JSON.stringify(otData, null, 2));
@@ -275,7 +273,7 @@ export class ImportService {
 
                         // New Heuristic Query: "Identity" = Location + Time Window (+/- 15 days)
                         const heuristicQuery = `
-                                SELECT id, hydraulic_movil_id, civil_movil_id, debris_movil_id, ot_state 
+                                SELECT id, hydraulic_movil_id, civil_movil_id, debris_movil_id, ot_state, observation 
                                 FROM ot 
                                 WHERE commune = $1 
                                 AND street = $2 
@@ -318,18 +316,23 @@ export class ImportService {
                             );
 
                             // [C.1] GENERAR OBSERVACIÓN (Si aplica)
-                            let observationText = '';
-                            if (nuevoEstado === OTState.OBSERVADA) {
-                                if (!finalHydraulic && !finalCivil) {
-                                    observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin antecedentes previos (Hid/Civ).';
-                                } else if (finalHydraulic && !finalCivil) {
-                                    observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin Obra Civil registrada.';
-                                }
-                            }
+                            const observationText = generateObservationText(nuevoEstado, finalHydraulic, finalCivil) || '';
 
                             const updatePayload: any = {
                                 ot_state: nuevoEstado,
-                                ...(observationText && { observation: observationText }),
+                                ...(
+                                    nuevoEstado === OTState.OBSERVADA && observationText
+                                        ? { observation: observationText }
+                                        : (
+                                            nuevoEstado !== OTState.OBSERVADA
+                                                && match.ot_state === OTState.OBSERVADA
+                                                && match.observation
+                                                && typeof match.observation === 'string'
+                                                && match.observation.startsWith('[SISTEMA]')
+                                                ? { observation: null }
+                                                : {}
+                                        )
+                                ),
                                 ...(hydraulicMovilId && { hydraulic_movil_id: hydraulicMovilId }),
                                 ...(civilMovilId && { civil_movil_id: civilMovilId }),
                                 ...(debrisMovilId && { debris_movil_id: debrisMovilId }),
@@ -352,14 +355,7 @@ export class ImportService {
                         const nuevoEstado = inferirEstadoOT(hydraulicMovilId, civilMovilId, debrisMovilId, derivedDebrisDate);
 
                         // [C.1] GENERAR OBSERVACIÓN (Si aplica)
-                        let observationText = null;
-                        if (nuevoEstado === OTState.OBSERVADA) {
-                            if (!hydraulicMovilId && !civilMovilId) {
-                                observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin antecedentes previos (Hid/Civ).';
-                            } else if (hydraulicMovilId && !civilMovilId) {
-                                observationText = '[SISTEMA] Inconsistencia: Retiro finalizado sin Obra Civil registrada.';
-                            }
-                        }
+                        const observationText = generateObservationText(nuevoEstado, hydraulicMovilId, civilMovilId) || '';
 
                         const otData = this.buildOtData(header, finalStartDate, hydraulicMovilId, civilMovilId, debrisMovilId, null, true, derivedCivilDate, nuevoEstado, derivedDebrisDate, observationText);
                         const newOt = await this.otRepository.createWithClient(otData, client);
@@ -388,7 +384,7 @@ export class ImportService {
 
                         // Case B: Allowed Item -> OK (Process it)
                         // Note: DEBRIS_RULES.allowedItems is readonly, need to cast or use some()
-                        const isAllowed = DEBRIS_RULES.allowedItems.some(allowed => allowed === dimDescription);
+                        const isAllowed = DEBRIS_RULES.allowedItems.some(allowed => allowed === dimDescription.toUpperCase());
 
                         if (!isAllowed) {
                             // Case C: Invalid -> Warning & Skip

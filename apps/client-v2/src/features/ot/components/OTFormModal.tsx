@@ -33,6 +33,16 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
 };
 
+// Helper for safe quantity parsing (handles "1,5" strings from input)
+const parseQty = (val: any): number => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+        const parsed = parseFloat(val.replace(',', '.'));
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
+};
+
 // --- SCHEMA DEFINITION ---
 const OTSchema = z.object({
     external_ot_id: z.string().optional().nullable(),
@@ -245,6 +255,8 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     const handleTabChange = (_: any, newValue: number) => setActiveTab(newValue);
 
     const handleAddItem = () => {
+        // Ensure pendingQty is a string before using replace
+        if (typeof pendingQty !== 'string') return;
         // Parse quantity handling comma
         const parsedQty = parseFloat(pendingQty.replace(',', '.'));
         if (!pendingItem || !pendingQty || isNaN(parsedQty) || parsedQty <= 0) return;
@@ -364,6 +376,9 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                 if (i.item_type === 'CLOSING_ITEM' && filter !== 'RETIRO') return true;
                                 // 3. Shared Items Logic: Show in CIVIL ('OBRAS') and DEBRIS ('RETIRO')
                                 if ((filter === 'OBRAS' || filter === 'RETIRO') && isSharedItem(i.description || '')) return true;
+                                // 4. Uncategorized (Show everywhere to be safe, or just fallbacks) match List filter
+                                const isUncategorized = (i as any).item_type !== 'AGUA POTABLE' && (i as any).item_type !== 'OBRAS' && !(i as any).item_type;
+                                if (isUncategorized) return true;
 
                                 return false;
                             }) || []}
@@ -460,7 +475,8 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
 
                             if (!matchesFilter && !isClosing && !isShared && !isUncategorized) return null;
 
-                            const total = ((currentItem as any).item_value || 0) * field.quantity;
+                            const qty = parseQty(field.quantity);
+                            const total = ((currentItem as any).item_value || 0) * qty;
 
                             return (
                                 <ListItem
@@ -592,7 +608,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
             });
             const total = cardItems.reduce((acc, curr) => {
                 const i = items?.find(it => Number(it.item_id) === Number(curr.item_id));
-                return acc + ((i as any)?.item_value || 0) * curr.quantity;
+                return acc + ((i as any)?.item_value || 0) * parseQty(curr.quantity);
             }, 0);
 
             return (
@@ -633,7 +649,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                                 <Typography variant="body2">{it?.description}</Typography>
                                                 <Stack direction="row" justifyContent="space-between">
                                                     <Chip label={`${f.quantity} un.`} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
-                                                    <Typography variant="body2" fontWeight="bold">{formatCurrency(((it as any)?.item_value || 0) * f.quantity)}</Typography>
+                                                    <Typography variant="body2" fontWeight="bold">{formatCurrency(((it as any)?.item_value || 0) * parseQty(f.quantity))}</Typography>
                                                 </Stack>
                                             </Box>
                                         </ListItem>

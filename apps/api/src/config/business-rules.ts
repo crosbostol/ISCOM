@@ -1,6 +1,4 @@
 export const DEBRIS_RULES = {
-    // Identificadores de móviles que activan esta lógica (case sensitive or not? usually upper in CSV)
-    mobileIdentifiers: ['RYR', 'RET', 'MOVIL_RYR'],
 
     // Whitelist: Únicos ítems permitidos para guardar en estos móviles
     allowedItems: [

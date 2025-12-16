@@ -19,7 +19,7 @@ export const inferirEstadoOT = (
         // --- NUEVA REGLA: DETECCIÓN DE SALTO DE PROCESO ---
         // Si se hizo trabajo hidráulico (hoyo), DEBE haber registro civil (tapar) 
         // antes de considerar válido el retiro (limpiar).
-        if (tieneAntecedentes && !civilId) {
+        if (hidraulicoId && !civilId) {
             return OTState.OBSERVADA; // Faltan antecedentes Civiles (tiene Hid pero no Civ)
         }
 
@@ -39,4 +39,19 @@ export const inferirEstadoOT = (
     if (hidraulicoId) return OTState.PENDIENTE_OBRA_CIVIL;
 
     return OTState.CREADA;
+};
+
+export const generateObservationText = (
+    estado: OTState,
+    hidraulicoId: string | null | undefined,
+    civilId: string | null | undefined
+): string | null => {
+    if (estado === OTState.OBSERVADA) {
+        if (!hidraulicoId && !civilId) {
+            return '[SISTEMA] Inconsistencia: Retiro finalizado sin antecedentes previos (Hid/Civ).';
+        } else if (hidraulicoId && !civilId) {
+            return '[SISTEMA] Inconsistencia: Retiro finalizado sin Obra Civil registrada.';
+        }
+    }
+    return null;
 };
