@@ -363,7 +363,7 @@ export class ImportService {
                         // Case A: Empty Description -> OK (Skip item, just charge the trip/OT)
                         if (!rawDesc || rawDesc.trim() === '') continue;
 
-                        const dimDescription = rawDesc.trim().replace(/\s+/g, ' ');
+                        const dimDescription = rawDesc.trim().toUpperCase().replace(/\s+/g, ' ');
 
                         // Case B: Allowed Item -> OK (Process it)
                         // Note: DEBRIS_RULES.allowedItems is readonly, need to cast or use some()
@@ -402,7 +402,7 @@ export class ImportService {
                         continue;
                     }
 
-                    const dimDescription = rawDesc.trim().replace(/\s+/g, ' ');
+                    const dimDescription = rawDesc.trim().toUpperCase().replace(/\s+/g, ' ');
 
                     // Resolve Item ID - We do this inside to ensure we have the ID for the key/insert
                     // Optimization: We could cache IDs but for now we follow existing pattern (or cache locally in map)

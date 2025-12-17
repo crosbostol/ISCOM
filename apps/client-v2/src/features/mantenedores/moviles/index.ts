@@ -1,0 +1,1 @@
+export { MovilesPage } from './MovilesPage';

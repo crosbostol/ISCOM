@@ -2,6 +2,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/pages/LoginPage';
 import { OTListPage } from './features/ot/pages/OTListPage';
+import { ConductorsPage } from './features/mantenedores/conductores';
+import { MovilesPage } from './features/mantenedores/moviles';
+import { ItemsPage } from './features/mantenedores/items';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -19,6 +22,18 @@ export const router = createBrowserRouter([
             {
                 path: "/ots",
                 element: <OTListPage />,
+            },
+            {
+                path: "/mantenedores/conductores",
+                element: <ConductorsPage />,
+            },
+            {
+                path: "/mantenedores/moviles",
+                element: <MovilesPage />,
+            },
+            {
+                path: "/mantenedores/items",
+                element: <ItemsPage />,
             },
         ]
     },
