@@ -184,9 +184,9 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     const [pendingQty, setPendingQty] = useState<string>('');
     const itemInputRef = useRef<HTMLInputElement>(null);
 
-    const hydraulicMovils = useMemo(() => movils?.filter(m => m.movil_type === 'HIDRAULICO' && m.movil_id != null) || [], [movils]);
-    const civilMovils = useMemo(() => movils?.filter(m => m.movil_type === 'OBRA CIVIL' && m.movil_id != null) || [], [movils]);
-    const debrisMovils = useMemo(() => movils?.filter(m => m.movil_type === 'RETIRO' && m.movil_id != null) || [], [movils]);
+    const hydraulicMovils = useMemo(() => movils?.filter(m => m.movil_type?.trim().toUpperCase() === 'HIDRAULICO' && m.movil_id != null) || [], [movils]);
+    const civilMovils = useMemo(() => movils?.filter(m => m.movil_type?.trim().toUpperCase() === 'OBRA CIVIL' && m.movil_id != null) || [], [movils]);
+    const debrisMovils = useMemo(() => movils?.filter(m => m.movil_type?.trim().toUpperCase() === 'RETIRO' && m.movil_id != null) || [], [movils]);
 
     // --- Effects ---
     useEffect(() => {

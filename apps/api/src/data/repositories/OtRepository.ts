@@ -121,8 +121,8 @@ export class OtRepository implements IOtRepository {
             FROM OT o 
             LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id 
             LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id 
-            LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id 
-            LEFT JOIN CONDUCTOR c2 On m2.movil_id = c2.movil_id
+            LEFT JOIN CONDUCTOR c ON m1.conductor_id = c.id
+            LEFT JOIN CONDUCTOR c2 On m2.conductor_id = c2.id
             ORDER BY 
                 CASE 
                     WHEN o.ot_state = 'PENDIENTE_OC' 
@@ -153,8 +153,8 @@ export class OtRepository implements IOtRepository {
             FROM OT o 
             LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id 
             LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id 
-            LEFT JOIN CONDUCTOR c ON m1.movil_id = c.movil_id 
-            LEFT JOIN CONDUCTOR c2 On m2.movil_id = c2.movil_id 
+            LEFT JOIN CONDUCTOR c ON m1.conductor_id = c.id
+            LEFT JOIN CONDUCTOR c2 On m2.conductor_id = c2.id 
             WHERE o.ot_state = $1
         `;
         const result = await this.db.query(query, [state]);

@@ -8,29 +8,29 @@ const seed = async () => {
 
         const client = await pool.connect();
         try {
-            // Check if admin user exists
-            const checkUser = await client.query('SELECT * FROM users WHERE username = $1', ['admin']);
+            console.log('Ensuring admin user exists...');
 
-            if (checkUser.rows.length === 0) {
-                console.log('Creating admin user...');
+            const initPassword = process.env.ADMIN_INIT_PASSWORD;
+            // Fallback to admin2026 as per recent user request, or standard default
+            const passwordToHash = initPassword || 'admin2026';
 
-                const initPassword = process.env.ADMIN_INIT_PASSWORD;
-                if (!initPassword) {
-                    console.warn('[WARN] ADMIN_INIT_PASSWORD not set. Using insecure fallback.');
-                }
-                const passwordToHash = initPassword || 'admin2025';
+            console.log(`Setting admin password... (Target: ${passwordToHash.replace(/./g, '*')})`);
 
-                const passwordHash = await bcrypt.hash(passwordToHash, 10);
+            const passwordHash = await bcrypt.hash(passwordToHash, 10);
 
-                await client.query(
-                    'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)',
-                    ['admin', passwordHash, 'ADMIN']
-                );
-                console.log('[SEED] Admin user created successfully.');
-            } else {
-                console.log('[SEED] Admin user already exists. Skipping creation.');
-                process.exit(0);
-            }
+            // Upsert Logic: Conflict on 'username' -> Update password
+            const query = `
+                INSERT INTO users (username, password_hash, role) 
+                VALUES ($1, $2, $3)
+                ON CONFLICT (username) 
+                DO UPDATE SET password_hash = $2, role = $3
+                RETURNING id, username;
+            `;
+
+            const result = await client.query(query, ['admin', passwordHash, 'ADMIN']);
+
+            console.log(`[SEED] Admin user handled successfully. ID: ${result.rows[0].id}`);
+
         } finally {
             client.release();
         }

@@ -3,6 +3,9 @@ import multer from 'multer';
 import { getOtTable, uploadOtCsv, createOt, updateOt, getMovils, getItems, getOtById } from '../controllers/ot.controller';
 import { requireApiKey } from '../middlewares/security';
 import authRoutes from './auth.routes';
+import conductorRoutes from './conductor.routes';
+import movilRoutes from './movil.routes';
+import itemRoutes from './item.routes';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -10,6 +13,9 @@ const upload = multer({ dest: 'uploads/' });
 
 // Public Routes
 router.use('/auth', authRoutes);
+router.use('/moviles', movilRoutes);
+router.use('/conductors', conductorRoutes);
+router.use('/items', itemRoutes);
 
 // Health Check
 router.get('/health', (req, res) => {

@@ -1,5 +1,6 @@
-import React from 'react';
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, IconButton, useTheme, ButtonBase, alpha } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, IconButton, useTheme, ButtonBase, alpha, Collapse } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
 import WorkIcon from '@mui/icons-material/Work';
 import BuildIcon from '@mui/icons-material/Build';
 import AssessmentIcon from '@mui/icons-material/Assessment';
@@ -9,6 +10,12 @@ import { useColorMode } from '../theme/AppTheme';
 
 import { useAuth } from '../context/AuthContext';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import CategoryIcon from '@mui/icons-material/Category';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import BadgeIcon from '@mui/icons-material/Badge';
 
 const DRAWER_WIDTH = 260;
 
@@ -20,9 +27,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const theme = useTheme();
     const colorMode = useColorMode();
     const { logout } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [openMantenedores, setOpenMantenedores] = useState(false);
+
+    const handleClickMantenedores = () => setOpenMantenedores(!openMantenedores);
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
 
             {/* Sidebar */}
             <Drawer
@@ -53,7 +65,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 <Box sx={{ overflow: 'auto', flexGrow: 1 }}>
                     <List>
                         <ListItemButton
-                            selected
+                            selected={location.pathname === '/ots' || location.pathname === '/'}
+                            onClick={() => navigate('/ots')}
                             sx={{
                                 '&.Mui-selected': {
                                     bgcolor: 'rgba(0, 150, 136, 0.15)',
@@ -84,6 +97,53 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                 <ListItemText primary={text} />
                             </ListItemButton>
                         ))}
+
+                        {/* PADRE: MANTENEDORES */}
+                        <ListItemButton
+                            onClick={handleClickMantenedores}
+                            sx={{
+                                py: 1.5,
+                                color: 'text.secondary',
+                                '&:hover': { color: 'text.primary', bgcolor: 'action.hover' }
+                            }}
+                        >
+                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                <AdminPanelSettingsIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Mantenedores" />
+                            {openMantenedores ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+
+                        {/* HIJOS: LISTA COLAPSABLE */}
+                        <Collapse in={openMantenedores} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding>
+
+                                {/* ÍTEMS */}
+                                <ListItemButton sx={{ pl: 4, py: 1, color: 'text.secondary', '&:hover': { color: 'primary.main' } }} onClick={() => navigate('/mantenedores/items')}>
+                                    <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
+                                        <CategoryIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Ítems" primaryTypographyProps={{ fontSize: '0.9rem' }} />
+                                </ListItemButton>
+
+                                {/* CONDUCTORES */}
+                                <ListItemButton sx={{ pl: 4, py: 1, color: 'text.secondary', '&:hover': { color: 'primary.main' } }} onClick={() => navigate('/mantenedores/conductores')}>
+                                    <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
+                                        <BadgeIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Conductores" primaryTypographyProps={{ fontSize: '0.9rem' }} />
+                                </ListItemButton>
+
+                                {/* MÓVILES */}
+                                <ListItemButton sx={{ pl: 4, py: 1, color: 'text.secondary', '&:hover': { color: 'primary.main' } }} onClick={() => navigate('/mantenedores/moviles')}>
+                                    <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
+                                        <LocalShippingIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Móviles" primaryTypographyProps={{ fontSize: '0.9rem' }} />
+                                </ListItemButton>
+
+                            </List>
+                        </Collapse>
                     </List>
                 </Box>
 
@@ -160,7 +220,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             </Drawer>
 
             {/* Main Content */}
-            <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` } }}>
+            <Box component="main" sx={{
+                flexGrow: 1,
+                p: 3,
+                width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+                height: '100vh', // Force fixed height to viewport
+                overflow: 'hidden', // Prevent page scroll, force internal scroll
+                display: 'flex', // Enable flex children (the page content)
+                flexDirection: 'column'
+            }}>
                 {children}
             </Box>
         </Box>

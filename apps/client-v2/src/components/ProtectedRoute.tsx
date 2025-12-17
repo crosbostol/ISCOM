@@ -2,6 +2,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
+import { DashboardLayout } from './DashboardLayout';
 
 export const ProtectedRoute = () => {
     const { isAuthenticated, isLoading } = useAuth();
@@ -18,5 +19,9 @@ export const ProtectedRoute = () => {
         return <Navigate to="/login" replace />;
     }
 
-    return <Outlet />;
+    return (
+        <DashboardLayout>
+            <Outlet />
+        </DashboardLayout>
+    );
 };
