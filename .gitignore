@@ -108,3 +108,11 @@ dist
 
 # .csv files
 *.csv
+
+# .sql files
+*.sql
+
+# .txt files
+*.txt
+
+
