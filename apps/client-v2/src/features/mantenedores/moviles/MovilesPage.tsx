@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, IconButton, Paper, Tooltip, Dialog, DialogTitle, DialogActions, Chip } from '@mui/material';
+import { Box, Button, Typography, IconButton, Paper, Tooltip, Dialog, DialogTitle, DialogActions, Chip, Stack, InputBase } from '@mui/material';
 import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
+import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,6 +19,13 @@ export const MovilesPage: React.FC = () => {
     const [selectedMovil, setSelectedMovil] = useState<Movil | null>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [movilToDelete, setMovilToDelete] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredMoviles = moviles.filter(movil =>
+        movil.movil_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (movil.external_code && movil.external_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        movil.movil_type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const handleOpenCreate = () => {
         setSelectedMovil(null);
@@ -115,62 +123,76 @@ export const MovilesPage: React.FC = () => {
     ];
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" component="h1" gutterBottom>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* HEADER */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+                <Typography variant="h5" component="h1" fontWeight="bold" color="text.primary">
                     Móviles
                 </Typography>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={handleOpenCreate}
-                    sx={{ bgcolor: '#009688', '&:hover': { bgcolor: '#00796B' } }}
+                    sx={{ bgcolor: '#009688', '&:hover': { bgcolor: '#00796B' }, textTransform: 'none' }}
                 >
                     Nuevo Móvil
                 </Button>
-            </Box>
+            </Stack>
 
-            <Paper sx={{ flexGrow: 1, p: 0, overflow: 'hidden' }}>
+            {/* FILTRO / BUSCADOR */}
+            <Paper sx={{ p: 2, mb: 3, borderRadius: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: (theme) => theme.palette.mode === 'light' ? '#F5F5F5' : 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: 1,
+                    px: 2,
+                    py: 0.5,
+                    flexGrow: 1
+                }}>
+                    <SearchIcon color="action" />
+                    <InputBase
+                        placeholder="Buscar por patente, código o tipo..."
+                        sx={{ ml: 1, flex: 1 }}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </Box>
+            </Paper>
+
+            {/* TABLA */}
+            <Paper sx={{
+                flexGrow: 1,
+                width: '100%',
+                borderRadius: 2,
+                boxShadow: 1,
+                overflow: 'hidden',
+                bgcolor: 'background.paper'
+            }}>
                 <DataGrid
-                    rows={moviles}
+                    rows={filteredMoviles}
                     columns={columns}
                     getRowId={(row) => row.movil_id}
                     loading={isLoading}
                     disableRowSelectionOnClick
-                    density="comfortable"
+                    density="compact"
                     initialState={{
                         pagination: {
-                            paginationModel: { pageSize: 25 },
+                            paginationModel: { pageSize: 15 },
                         },
                     }}
-                    pageSizeOptions={[25, 50, 100]}
+                    pageSizeOptions={[15, 25, 50]}
                     sx={{
                         border: 'none',
-                        // --- SCROLLBAR STYLING ---
-                        '& ::-webkit-scrollbar': {
-                            width: 8,
-                            height: 8,
-                        },
-                        '& ::-webkit-scrollbar-track': {
-                            backgroundColor: (theme) => theme.palette.mode === 'light' ? '#f5f5f5' : 'rgba(255, 255, 255, 0.05)',
-                        },
-                        '& ::-webkit-scrollbar-thumb': {
-                            borderRadius: 4,
-                            backgroundColor: (theme) => theme.palette.mode === 'light' ? '#bdbdbd' : 'rgba(255, 255, 255, 0.3)',
-                            '&:hover': {
-                                backgroundColor: (theme) => theme.palette.mode === 'light' ? '#9e9e9e' : 'rgba(255, 255, 255, 0.5)',
-                            }
-                        },
-                        // --- END SCROLLBAR ---
                         '& .MuiDataGrid-columnHeaders': {
                             bgcolor: (theme) => theme.palette.mode === 'light'
                                 ? 'rgba(0, 150, 136, 0.08)'
                                 : 'rgba(77, 182, 172, 0.15)',
                             color: 'text.primary',
                         },
-                        '& .MuiDataGrid-row:hover': {
-                            bgcolor: 'action.hover',
-                        }
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                     }}
                 />
             </Paper>

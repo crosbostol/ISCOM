@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, IconButton, Paper, Tooltip, Dialog, DialogTitle, DialogActions } from '@mui/material';
+import { Box, Button, Typography, IconButton, Paper, Tooltip, Dialog, DialogTitle, DialogActions, Stack, InputBase } from '@mui/material';
 import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
+import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ConductorModal } from './ConductorModal';
 import { useConductors, useCreateConductor, useUpdateConductor, useDeleteConductor } from '../../../hooks/useConductors';
 import type { Conductor } from '../../../hooks/useConductors';
+import { formatRut } from '../../../utils/rutValidation';
 
 export const ConductorsPage: React.FC = () => {
     const { data: conductors = [], isLoading } = useConductors();
@@ -18,6 +20,12 @@ export const ConductorsPage: React.FC = () => {
     const [selectedConductor, setSelectedConductor] = useState<Conductor | null>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [conductorToDelete, setConductorToDelete] = useState<number | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredConductors = conductors.filter(conductor =>
+        conductor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        conductor.rut.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const handleOpenCreate = () => {
         setSelectedConductor(null);
@@ -69,7 +77,12 @@ export const ConductorsPage: React.FC = () => {
     const columns: GridColDef[] = [
         { field: 'id', headerName: 'ID', width: 70 },
         { field: 'name', headerName: 'Nombre', flex: 1 },
-        { field: 'rut', headerName: 'RUT', width: 150 },
+        {
+            field: 'rut',
+            headerName: 'RUT',
+            width: 150,
+            valueFormatter: (params) => formatRut(params.value as string)
+        },
         {
             field: 'actions',
             headerName: 'Acciones',
@@ -93,62 +106,76 @@ export const ConductorsPage: React.FC = () => {
     ];
 
     return (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" component="h1" gutterBottom>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* HEADER */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+                <Typography variant="h5" component="h1" fontWeight="bold" color="text.primary">
                     Conductores
                 </Typography>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={handleOpenCreate}
-                    sx={{ bgcolor: '#009688', '&:hover': { bgcolor: '#00796B' } }}
+                    sx={{ bgcolor: '#009688', '&:hover': { bgcolor: '#00796B' }, textTransform: 'none' }}
                 >
                     Nuevo Conductor
                 </Button>
-            </Box>
+            </Stack>
 
-            <Paper sx={{ flexGrow: 1, p: 0, overflow: 'hidden' }}>
+            {/* FILTRO / BUSCADOR */}
+            <Paper sx={{ p: 2, mb: 3, borderRadius: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    bgcolor: (theme) => theme.palette.mode === 'light' ? '#F5F5F5' : 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: 1,
+                    px: 2,
+                    py: 0.5,
+                    flexGrow: 1
+                }}>
+                    <SearchIcon color="action" />
+                    <InputBase
+                        placeholder="Buscar por nombre o RUT..."
+                        sx={{ ml: 1, flex: 1 }}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </Box>
+            </Paper>
+
+            {/* TABLA */}
+            <Paper sx={{
+                flexGrow: 1,
+                width: '100%',
+                borderRadius: 2,
+                boxShadow: 1,
+                overflow: 'hidden',
+                bgcolor: 'background.paper'
+            }}>
                 <DataGrid
-                    rows={conductors}
+                    rows={filteredConductors}
                     columns={columns}
                     getRowId={(row) => row.id}
                     loading={isLoading}
                     disableRowSelectionOnClick
-                    density="comfortable"
+                    density="compact"
                     initialState={{
                         pagination: {
-                            paginationModel: { pageSize: 25 },
+                            paginationModel: { pageSize: 15 },
                         },
                     }}
-                    pageSizeOptions={[25, 50, 100]}
+                    pageSizeOptions={[15, 25, 50]}
                     sx={{
                         border: 'none',
-                        // --- SCROLLBAR STYLING ---
-                        '& ::-webkit-scrollbar': {
-                            width: 8,
-                            height: 8,
-                        },
-                        '& ::-webkit-scrollbar-track': {
-                            backgroundColor: (theme) => theme.palette.mode === 'light' ? '#f5f5f5' : 'rgba(255, 255, 255, 0.05)',
-                        },
-                        '& ::-webkit-scrollbar-thumb': {
-                            borderRadius: 4,
-                            backgroundColor: (theme) => theme.palette.mode === 'light' ? '#bdbdbd' : 'rgba(255, 255, 255, 0.3)',
-                            '&:hover': {
-                                backgroundColor: (theme) => theme.palette.mode === 'light' ? '#9e9e9e' : 'rgba(255, 255, 255, 0.5)',
-                            }
-                        },
-                        // --- END SCROLLBAR ---
                         '& .MuiDataGrid-columnHeaders': {
                             bgcolor: (theme) => theme.palette.mode === 'light'
                                 ? 'rgba(0, 150, 136, 0.08)'
                                 : 'rgba(77, 182, 172, 0.15)',
                             color: 'text.primary',
                         },
-                        '& .MuiDataGrid-row:hover': {
-                            bgcolor: 'action.hover',
-                        }
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                     }}
                 />
             </Paper>
