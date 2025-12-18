@@ -81,7 +81,7 @@ export const ConductorsPage: React.FC = () => {
             field: 'rut',
             headerName: 'RUT',
             width: 150,
-            valueFormatter: (params) => formatRut(params.value as string)
+            valueFormatter: (value: string | null | undefined) => formatRut(value)
         },
         {
             field: 'actions',
