@@ -5,6 +5,7 @@ import { OTListPage } from './features/ot/pages/OTListPage';
 import { ConductorsPage } from './features/mantenedores/conductores';
 import { MovilesPage } from './features/mantenedores/moviles';
 import { ItemsPage } from './features/mantenedores/items';
+import { PaymentStatusPage } from './features/reportes/pages/PaymentStatusPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
             {
                 path: "/mantenedores/items",
                 element: <ItemsPage />,
+            },
+            {
+                path: "/reportes/estado-pago",
+                element: <PaymentStatusPage />,
             },
         ]
     },

@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import pool from '../../config/database';
 import { IOtRepository } from './interfaces/IOtRepository';
 import { OrdenTrabajoDTO } from '../dto/OrdenTrabajoDTO';
+import { OtFilter } from '../dto/OtFilter';
 
 export class OtRepository implements IOtRepository {
     private db: Pool;
@@ -100,8 +101,21 @@ export class OtRepository implements IOtRepository {
         return result.rows[0];
     }
 
-    async getOtTable(limit?: number, offset?: number): Promise<any[]> {
+    async getOtTable(limit?: number, offset?: number, filters?: OtFilter): Promise<any[]> {
+        const params: any[] = [];
+        let whereClause = '';
+
+        if (filters) {
+            whereClause = this.buildWhereClause(filters, params);
+        }
+
         const paginationClause = (limit && offset !== undefined) ? `LIMIT ${limit} OFFSET ${offset}` : '';
+
+        // Note: buildWhereClause manages param indices starting from 1. 
+        // If limit/offset were parameters, we'd need to offset them. 
+        // But here pagination is injected as string literals (legacy behavior retained for limit/offset, though risky for injection if not sanitized in controller. 
+        // Controller parsesInt so it's safe-ish).
+
         const query = `
             SELECT 
                 o.id,
@@ -117,12 +131,31 @@ export class OtRepository implements IOtRepository {
                 o.civil_movil_id, 
                 c2.name as N_civil,
                 o.civil_work_at, 
-                o.ot_state 
+                o.ot_state,
+                COALESCE(SUM(i.item_value * io.quantity), 0) AS total_value
             FROM OT o 
             LEFT JOIN MOVIL m1 ON o.hydraulic_movil_id = m1.movil_id 
             LEFT JOIN MOVIL m2 ON o.civil_movil_id = m2.movil_id 
             LEFT JOIN CONDUCTOR c ON m1.conductor_id = c.id
             LEFT JOIN CONDUCTOR c2 On m2.conductor_id = c2.id
+            LEFT JOIN itm_ot io ON o.id = io.ot_id
+            LEFT JOIN item i ON io.item_id = i.item_id
+            ${whereClause}
+            GROUP BY 
+                o.id,
+                o.external_ot_id,
+                o.is_additional,
+                o.started_at, 
+                o.finished_at, 
+                o.street, 
+                o.number_street,
+                o.commune, 
+                o.hydraulic_movil_id, 
+                c.name, 
+                o.civil_movil_id, 
+                c2.name,
+                o.civil_work_at, 
+                o.ot_state
             ORDER BY 
                 CASE 
                     WHEN o.ot_state = 'PENDIENTE_OC' 
@@ -133,8 +166,100 @@ export class OtRepository implements IOtRepository {
                 o.started_at ASC NULLS LAST
             ${paginationClause}
         `;
-        const result = await this.db.query(query);
+        const result = await this.db.query(query, params);
         return result.rows;
+    }
+
+    async getReportData(filters: OtFilter): Promise<any[]> {
+        const params: any[] = [];
+        const whereClause = this.buildWhereClause(filters, params);
+
+        // Alias 'o' must match the query below
+        const query = `
+            SELECT 
+                o.street,
+                o.number_street,
+                o.commune,
+                i.description AS item_description,
+                i.item_type,
+                o.external_ot_id,
+                io.quantity,
+                o.is_additional,
+                m.external_code AS movil_code,
+                o.finished_at,
+                i.item_value
+            FROM public.ot o
+            JOIN public.itm_ot io ON o.id = io.ot_id
+            JOIN public.item i ON io.item_id = i.item_id
+            LEFT JOIN public.movil m ON m.movil_id = COALESCE(o.hydraulic_movil_id, o.civil_movil_id)
+            ${whereClause}
+            ORDER BY o.finished_at, o.id
+        `;
+
+        const result = await this.db.query(query, params);
+        return result.rows;
+    }
+
+    async getBacklogReportData(dateThreshold: string): Promise<any[]> {
+        const query = `
+            SELECT 
+                o.street,
+                o.number_street,
+                o.commune,
+                i.description AS item_description,
+                i.item_type,
+                o.external_ot_id,
+                io.quantity,
+                o.is_additional,
+                m.external_code AS movil_code,
+                o.finished_at,
+                i.item_value
+            FROM public.ot o
+            JOIN public.itm_ot io ON o.id = io.ot_id
+            JOIN public.item i ON io.item_id = i.item_id
+            LEFT JOIN public.movil m ON m.movil_id = COALESCE(o.hydraulic_movil_id, o.civil_movil_id)
+            WHERE o.finished_at < $1
+              AND o.ot_state = 'POR_PAGAR'
+            ORDER BY o.finished_at ASC, o.id ASC
+        `;
+        const result = await this.db.query(query, [dateThreshold]);
+        return result.rows;
+    }
+
+    private buildWhereClause(filters: OtFilter, params: any[]): string {
+        const clauses: string[] = ["o.dismissed = false"]; // Always exclude dismissed
+        let paramIndex = params.length + 1;
+
+        if (filters.status) {
+            clauses.push(`o.ot_state = $${paramIndex++}`);
+            params.push(filters.status);
+        }
+
+        // Dual Date Logic: Default to 'started_at' logic unless 'finished_at' is explicitly requested
+        const dateField = (filters.dateField === 'finished_at') ? 'finished_at' : 'started_at';
+        const dbDateField = `o.${dateField}`;
+
+        if (filters.startDate) {
+            clauses.push(`${dbDateField} >= $${paramIndex++}::date`);
+            params.push(filters.startDate);
+        }
+        if (filters.endDate) {
+            clauses.push(`${dbDateField} <= $${paramIndex++}::date`);
+            params.push(filters.endDate);
+        }
+
+        if (filters.search) {
+            const searchPattern = `%${filters.search}%`;
+            clauses.push(`(
+                o.external_ot_id ILIKE $${paramIndex} OR
+                o.street ILIKE $${paramIndex} OR
+                o.commune ILIKE $${paramIndex}
+            )`);
+            params.push(searchPattern);
+            paramIndex++;
+        }
+
+        return `WHERE ${clauses.join(' AND ')}`;
     }
 
     async getOtTableByState(state: string): Promise<any[]> {
