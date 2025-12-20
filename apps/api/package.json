@@ -10,7 +10,8 @@
         "migrate": "node-pg-migrate up -m src/data/migrations",
         "seed": "ts-node src/data/seed.ts",
         "seed:prod": "node dist/data/seed.js",
-        "test": "jest"
+        "test": "jest",
+        "db:dump-schema": "dotenv -- cross-var pg_dump -s -x -O --no-comments $DATABASE_URL > db/structure.sql"
     },
     "keywords": [],
     "author": "",
@@ -48,7 +49,9 @@
         "@types/pg": "^8.15.6",
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
+        "cross-var": "^1.1.0",
         "dotenv": "^17.2.3",
+        "dotenv-cli": "^11.0.0",
         "jest": "^30.2.0",
         "nodemon": "^2.0.21",
         "ts-jest": "^29.4.6",
