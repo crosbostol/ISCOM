@@ -2,10 +2,12 @@ import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { GridActionsCellItem } from '@mui/x-data-grid';
 import { Chip, Typography, Box, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import { useState } from 'react';
 import type { OrdenTrabajoDTO } from '../../../api/generated/models/OrdenTrabajoDTO';
 import type { MovilDTO } from '../../../api/generated/models/MovilDTO';
 import type { Conductor } from '../../../api/generated/models/Conductor';
 import { getDaysDiff, getOTStateConfig, isOTDelayed, STATE_CONFIG } from '../utils/otStatusUtils';
+import { MovilAssignmentChip } from './MovilAssignmentChip';
 
 export const getColumns = (
     handleEditResources: (ot: OrdenTrabajoDTO) => void,
@@ -15,17 +17,54 @@ export const getColumns = (
         {
             field: 'id',
             headerName: 'ID',
-            width: 90,
+            width: 140,
             renderCell: (params: GridRenderCellParams<OrdenTrabajoDTO>) => {
+                const [copied, setCopied] = useState(false);
                 const { external_ot_id, id } = params.row;
+                const textToCopy = external_ot_id || `ADICIONAL-${id}`;
+
+                const handleCopy = async (e: React.MouseEvent) => {
+                    e.stopPropagation(); // Prevent row selection
+                    try {
+                        await navigator.clipboard.writeText(textToCopy);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000); // Reset after 2s
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                    }
+                };
+
                 const content = external_ot_id
                     ? <Typography variant="body2" sx={{ lineHeight: 'normal' }}>{external_ot_id}</Typography>
                     : <Chip label={`ADICIONAL (${id})`} color="secondary" size="small" variant="outlined" />;
 
                 return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
-                        {content}
-                    </Box>
+                    <Tooltip
+                        title={copied ? "¡Copiado!" : "Click para copiar"}
+                        arrow
+                        placement="top"
+                    >
+                        <Box
+                            onClick={handleCopy}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                height: '100%',
+                                width: '100%',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                '&:hover': {
+                                    backgroundColor: 'action.hover',
+                                    borderRadius: 1,
+                                },
+                                '&:active': {
+                                    backgroundColor: 'action.selected',
+                                }
+                            }}
+                        >
+                            {content}
+                        </Box>
+                    </Tooltip>
                 );
             }
         },
@@ -79,66 +118,28 @@ export const getColumns = (
         {
             field: 'hydraulic_movil_id',
             headerName: 'Móvil Hid.',
-            flex: 1,
-            minWidth: 150,
-            renderCell: (params: GridRenderCellParams<OrdenTrabajoDTO>) => {
-                if (!params.value) return '-';
-                const movil = movilesMap.get(params.value.toString());
-
-                let tooltipText = '';
-                if (movil) {
-                    const conductor = movil.conductor_id ? conductorsMap.get(movil.conductor_id) : undefined;
-                    tooltipText = conductor ? `Conductor: ${conductor.name}` : 'Sin Conductor asignado';
-                }
-
-                const chip = movil ? (
-                    <Chip
-                        label={movil.movil_id}
-                        size="small"
-                        color={movil.movil_type === 'HIDRAULICO' ? 'primary' : 'default'}
-                        variant="outlined"
-                    />
-                ) : <Typography variant="body2">{params.value}</Typography>;
-
-                return (
-                    <Tooltip title={tooltipText} arrow>
-                        <Box>{chip}</Box>
-                    </Tooltip>
-                );
-            }
+            width: 100,
+            renderCell: (params: GridRenderCellParams<OrdenTrabajoDTO>) => (
+                <MovilAssignmentChip
+                    movilId={params.value}
+                    movilesMap={movilesMap}
+                    conductorsMap={conductorsMap}
+                    expectedType="HIDRAULICO"
+                />
+            )
         },
         {
             field: 'civil_movil_id',
             headerName: 'Móvil Civil',
-            flex: 1,
-            minWidth: 150,
-            renderCell: (params: GridRenderCellParams<OrdenTrabajoDTO>) => {
-                if (!params.value) return '-';
-                const movil = movilesMap.get(params.value.toString());
-                const isWrongType = movil && movil.movil_type !== 'OBRA CIVIL';
-
-                let tooltipText = '';
-                if (movil) {
-                    const conductor = movil.conductor_id ? conductorsMap.get(movil.conductor_id) : undefined;
-                    tooltipText = conductor ? `Conductor: ${conductor.name}` : 'Sin Conductor asignado';
-                    if (isWrongType) tooltipText += ' (Tipo Incorrecto)';
-                }
-
-                const chip = movil ? (
-                    <Chip
-                        label={movil.movil_id}
-                        size="small"
-                        color={isWrongType ? 'warning' : 'success'}
-                        variant="outlined"
-                    />
-                ) : <Typography variant="body2">{params.value}</Typography>;
-
-                return (
-                    <Tooltip title={tooltipText} arrow>
-                        <Box>{chip}</Box>
-                    </Tooltip>
-                );
-            }
+            width: 100,
+            renderCell: (params: GridRenderCellParams<OrdenTrabajoDTO>) => (
+                <MovilAssignmentChip
+                    movilId={params.value}
+                    movilesMap={movilesMap}
+                    conductorsMap={conductorsMap}
+                    expectedType="OBRA CIVIL"
+                />
+            )
         },
         {
             field: 'started_at',

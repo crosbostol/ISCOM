@@ -22,7 +22,7 @@ export const otSchema = z.object({
 
     // Debris/Closure (Optional)
     debris_movil_id: z.string().optional().nullable(),
-    debris_date: z.any().optional().nullable(),
+    finished_at: z.any().optional().nullable(),
 
     // Items
     items: z.array(z.object({
@@ -88,6 +88,8 @@ export const getStepFields = (step: number): string[] => {
             return ['hydraulic_movil_id', 'started_at'];
         case 2:
             return ['civil_movil_id', 'civil_work_at'];
+        case 3:
+            return ['debris_movil_id', 'finished_at'];
         default:
             return [];
     }

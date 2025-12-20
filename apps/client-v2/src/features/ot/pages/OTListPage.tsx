@@ -76,6 +76,7 @@ export const OTListPage: React.FC = () => {
         return map;
     }, [conductors]);
 
+    // TODO: Implement server-side filtering for performance scalability
     const filteredOts = useMemo(() => {
         if (!ots) return [];
         return ots.filter((ot) => {
