@@ -269,7 +269,7 @@ export class ReportService {
 
         // --- RENDER MÓVILES TABLE ---
         const movilHeaderRow = summarySheet.getRow(currentRow);
-        movilHeaderRow.values = ['Móvil', '', 'Cantidad OTs', '', 'Total Neto'];
+
 
         summarySheet.columns = [
             { key: 'col1', width: 25 },

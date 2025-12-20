@@ -36,14 +36,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const handleClickMantenedores = () => setOpenMantenedores(!openMantenedores);
     const handleClickReportes = () => setOpenReportes(!openReportes);
 
-    // Helper for active style
+    // Helper for active style - fully dynamic with theme.palette
     const activeStyle = {
-        bgcolor: 'rgba(0, 150, 136, 0.15)',
-        color: theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688',
+        bgcolor: alpha(theme.palette.primary.main, 0.12),
+        color: 'primary.main',
         '&:hover': {
-            bgcolor: 'rgba(0, 150, 136, 0.25)',
+            bgcolor: alpha(theme.palette.primary.main, 0.20),
         },
-        borderLeft: `4px solid ${theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688'}`
+        borderLeft: `4px solid ${theme.palette.primary.main}`
     };
 
     const inactiveStyle = {
@@ -132,7 +132,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                     sx={{
                                         pl: 4, py: 1,
                                         ...(location.pathname === '/reportes/estado-pago' ? activeStyle : inactiveStyle),
-                                        borderLeft: location.pathname === '/reportes/estado-pago' ? `4px solid ${theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688'}` : '4px solid transparent'
+                                        borderLeft: location.pathname === '/reportes/estado-pago' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
                                     }}
                                     onClick={() => navigate('/reportes/estado-pago')}
                                 >
@@ -168,7 +168,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                     sx={{
                                         pl: 4, py: 1,
                                         ...(location.pathname === '/mantenedores/items' ? activeStyle : inactiveStyle),
-                                        borderLeft: location.pathname === '/mantenedores/items' ? `4px solid ${theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688'}` : '4px solid transparent'
+                                        borderLeft: location.pathname === '/mantenedores/items' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
                                     }}
                                     onClick={() => navigate('/mantenedores/items')}
                                 >
@@ -183,7 +183,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                     sx={{
                                         pl: 4, py: 1,
                                         ...(location.pathname === '/mantenedores/conductores' ? activeStyle : inactiveStyle),
-                                        borderLeft: location.pathname === '/mantenedores/conductores' ? `4px solid ${theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688'}` : '4px solid transparent'
+                                        borderLeft: location.pathname === '/mantenedores/conductores' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
                                     }}
                                     onClick={() => navigate('/mantenedores/conductores')}
                                 >
@@ -198,7 +198,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                     sx={{
                                         pl: 4, py: 1,
                                         ...(location.pathname === '/mantenedores/moviles' ? activeStyle : inactiveStyle),
-                                        borderLeft: location.pathname === '/mantenedores/moviles' ? `4px solid ${theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688'}` : '4px solid transparent'
+                                        borderLeft: location.pathname === '/mantenedores/moviles' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
                                     }}
                                     onClick={() => navigate('/mantenedores/moviles')}
                                 >

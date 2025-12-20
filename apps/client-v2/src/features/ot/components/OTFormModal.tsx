@@ -3,15 +3,15 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, IconButton, Typography,
     MenuItem, Box, Alert,
-    Autocomplete, Stack, List, ListItem, Chip, Tabs, Tab, FormControlLabel, Checkbox
+    Autocomplete, Stack, List, ListItem, Chip, Tabs, Tab, FormControlLabel, Checkbox, Tooltip
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
+import WarningIcon from '@mui/icons-material/Warning';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -21,12 +21,19 @@ import dayjs from 'dayjs';
 import { usePostOt } from '../../../api/generated/hooks/usePostOt';
 import { usePutOtId } from '../../../api/generated/hooks/usePutOtId';
 import { useGetOtId } from '../../../api/generated/hooks/useGetOtId';
-import { useGetMovils } from '../../../api/generated/hooks/useGetMovils';
 import { useGetItems } from '../../../api/generated/hooks/useGetItems';
 import { useQueryClient } from '@tanstack/react-query';
 import { getOttableQueryKey } from '../../../api/generated/hooks/useGetOttable';
 import { getOtIdQueryKey } from '../../../api/generated/hooks/useGetOtId';
 import { isSharedItem } from '../../../constants/businessRules';
+
+// Schema & Types
+import { otSchema, type OTFormValues, getStepFields } from '../schemas/otSchema';
+import type { MovilDTO } from '../../../api/generated/models/MovilDTO';
+import type { Conductor } from '../../../api/generated/models/Conductor';
+
+// Components
+import { LiquidStepper } from './LiquidStepper';
 
 // Helper for currency formatting
 const formatCurrency = (value: number) => {
@@ -43,57 +50,16 @@ const parseQty = (val: any): number => {
     return 0;
 };
 
-import { LiquidStepper } from './LiquidStepper';
-
-// --- SCHEMA DEFINITION ---
-const OTSchema = z.object({
-    external_ot_id: z.string().optional().nullable(),
-    street: z.string().min(1, "La calle es obligatoria"),
-    number_street: z.string().optional().nullable(),
-    commune: z.string().min(1, "La comuna es obligatoria"),
-    observation: z.string().optional(),
-    hydraulic_movil_id: z.string().optional().nullable(),
-    started_at: z.any().optional().nullable(),
-    civil_movil_id: z.string().optional().nullable(),
-    civil_work_at: z.any().optional().nullable(),
-    debris_movil_id: z.string().optional().nullable(),
-    debris_date: z.any().optional().nullable(),
-    items: z.array(z.object({
-        item_id: z.coerce.number().min(1, "Seleccione un ítem"),
-        // Allow strings with commas, transform to number
-        quantity: z.preprocess(
-            (val) => (typeof val === 'string' ? val.replace(',', '.') : val),
-            z.coerce.number().min(0.001, "Cantidad > 0")
-        )
-    }))
-}).superRefine((data, ctx) => {
-    // Logic: If movil selected (hyd/civ), items required. Debris does NOT require items.
-    const hasHydraulic = !!data.hydraulic_movil_id;
-    const hasCivil = !!data.civil_movil_id;
-
-
-    // Validation removed as per user request (Optional date, defaults to today)
-    // if (hasDebris && !data.debris_date) { ... }
-
-    if ((hasHydraulic || hasCivil) && (!data.items || data.items.length === 0)) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Debe agregar al menos un ítem si asigna un móvil Hidráulico o Civil.",
-            path: ["items"]
-        });
-    }
-});
-
-type OTFormValues = z.infer<typeof OTSchema>;
-
 interface OTFormModalProps {
     open: boolean;
     onClose: () => void;
-    otId?: number | null; // Optional ID for Edit Mode
+    otId?: number | null;
     onNotify: (message: string, severity: 'success' | 'error') => void;
+    movilesList: MovilDTO[];
+    conductoresList?: Conductor[];
 }
 
-export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, onNotify }) => {
+export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, onNotify, movilesList, conductoresList = [] }) => {
     const queryClient = useQueryClient();
     const isEdit = !!otId;
 
@@ -137,8 +103,10 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
 
     // Fetch Data if Edit Mode
     const { data: otData } = useGetOtId(otId as number);
-    const { data: movils } = useGetMovils();
     const { data: items } = useGetItems();
+
+    // Use props for lists
+    const movils = movilesList;
 
     // Form
     const {
@@ -150,7 +118,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
         setValue,
         formState: { errors }
     } = useForm<OTFormValues>({
-        resolver: zodResolver(OTSchema as any),
+        resolver: zodResolver(otSchema) as any,
         defaultValues: {
             external_ot_id: '',
             street: '',
@@ -195,20 +163,21 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
             if (isEdit && otData) {
                 // Populate Form
                 reset({
-                    external_ot_id: otData.external_ot_id,
+                    external_ot_id: otData.external_ot_id || '',
                     street: otData.street,
-                    number_street: otData.number_street,
+                    number_street: otData.number_street ?? undefined,
                     commune: otData.commune,
                     observation: (otData as any).observation || '',
-                    hydraulic_movil_id: otData.hydraulic_movil_id?.toString() || null,
+                    hydraulic_movil_id: otData.hydraulic_movil_id?.toString() ?? undefined,
                     started_at: otData.started_at ? dayjs(otData.started_at) : null,
-                    civil_movil_id: otData.civil_movil_id?.toString() || null,
+                    civil_movil_id: otData.civil_movil_id?.toString() ?? undefined,
                     civil_work_at: (otData as any).civil_work_at ? dayjs((otData as any).civil_work_at) : null,
-                    debris_movil_id: (otData as any).debris_movil_id?.toString() || null,
+                    debris_movil_id: (otData as any).debris_movil_id?.toString() ?? undefined,
                     debris_date: (otData as any).finished_at ? dayjs((otData as any).finished_at) : null,
                     items: (otData as any).items?.map((i: any) => ({
                         item_id: Number(i.item_id),
-                        quantity: Number(i.quantity)
+                        quantity: Number(i.quantity),
+                        assigned_movil_id: i.assigned_movil_id
                     })) || []
                 });
                 setActiveTab(0);
@@ -242,12 +211,12 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
     // --- Handlers ---
     const handleNext = async (e?: React.MouseEvent) => {
         if (e) e.preventDefault();
-        let isValid = false;
-        if (activeStep === 0) {
-            isValid = await trigger(['external_ot_id', 'street', 'number_street', 'commune']);
-        } else {
-            isValid = true;
-        }
+
+        // Get fields to validate for current step
+        const fieldsToValidate = getStepFields(activeStep);
+        const isValid = fieldsToValidate.length > 0
+            ? await trigger(fieldsToValidate as any)
+            : true;
 
         if (isValid) setActiveStep((prev) => prev + 1);
     };
@@ -256,7 +225,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
 
     const handleTabChange = (_: any, newValue: number) => setActiveTab(newValue);
 
-    const handleAddItem = () => {
+    const handleAddItem = (assignedMovilId?: string | null) => {
         // Ensure pendingQty is a string before using replace
         if (typeof pendingQty !== 'string') return;
         // Parse quantity handling comma
@@ -264,7 +233,8 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
         if (!pendingItem || !pendingQty || isNaN(parsedQty) || parsedQty <= 0) return;
         append({
             item_id: pendingItem.item_id,
-            quantity: parsedQty // Store as number in the array
+            quantity: parsedQty, // Store as number in the array
+            assigned_movil_id: assignedMovilId || null
         });
         setPendingItem(null);
         setPendingQty('');
@@ -292,7 +262,8 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
             finished_at: data.debris_date ? dayjs(data.debris_date).format('YYYY-MM-DDTHH:mm:ss') : null,
             items: data.items?.map(i => ({
                 item_id: i.item_id.toString(),
-                quantity: i.quantity
+                quantity: i.quantity,
+                assigned_movil_id: i.assigned_movil_id
             })) || []
         };
 
@@ -417,7 +388,7 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                             sx={{ width: 100 }}
                             inputProps={{ inputMode: 'decimal' }}
                         />
-                        <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} disabled={!pendingItem || !pendingQty} sx={{ height: 56 }}>
+                        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => handleAddItem(movilId)} disabled={!pendingItem || !pendingQty} sx={{ height: 56 }}>
                             Agregar
                         </Button>
                     </Stack>
@@ -486,17 +457,24 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                                 );
                             }
 
-                            // Filter Logic for List Display
-                            // 1. Match current filter?
-                            const matchesFilter = (currentItem as any).item_type === filter;
-                            // 2. Is it a Closing Item?
-                            const isClosing = (currentItem as any).item_type === 'CLOSING_ITEM' && filter !== 'RETIRO';
-                            // 3. Shared Items
-                            const isShared = (filter === 'OBRAS' || filter === 'RETIRO') && isSharedItem((currentItem as any).description || '');
-                            // 4. Uncategorized (Show everywhere to be safe, or just fallbacks)
-                            const isUncategorized = (currentItem as any).item_type !== 'AGUA POTABLE' && (currentItem as any).item_type !== 'OBRAS' && !(currentItem as any).item_type;
+                            // STRICT Filters based on Assigned Movil
+                            // If the item has an explicit assignment, ONLY show it if it matches the current section's movil
+                            if (field.assigned_movil_id && field.assigned_movil_id !== movilId) return null;
 
-                            if (!matchesFilter && !isClosing && !isShared && !isUncategorized) return null;
+                            // Fallback (should normally be covered by above, but for safety):
+                            // If no assignment exists (legacy?), use old logic
+                            if (!field.assigned_movil_id) {
+                                // 1. Match current filter?
+                                const matchesFilter = (currentItem as any).item_type === filter;
+                                // 2. Is it a Closing Item?
+                                const isClosing = (currentItem as any).item_type === 'CLOSING_ITEM' && filter !== 'RETIRO';
+                                // 3. Shared Items
+                                const isShared = (filter === 'OBRAS' || filter === 'RETIRO') && isSharedItem((currentItem as any).description || '');
+                                // 4. Uncategorized (Show everywhere to be safe, or just fallbacks)
+                                const isUncategorized = (currentItem as any).item_type !== 'AGUA POTABLE' && (currentItem as any).item_type !== 'OBRAS' && !(currentItem as any).item_type;
+
+                                if (!matchesFilter && !isClosing && !isShared && !isUncategorized) return null;
+                            }
 
                             const qty = parseQty(field.quantity);
                             const total = ((currentItem as any).item_value || 0) * qty;
@@ -566,26 +544,67 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                         <Controller
                             name={fieldName}
                             control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    select
-                                    label={`Seleccionar Móvil`}
-                                    fullWidth
-                                    value={field.value || ''}
-                                    helperText={!field.value ? "Seleccione un móvil para agregar partidas" : ""}
-                                    onChange={(e) => {
-                                        field.onChange(e.target.value);
-                                    }}
-                                >
-                                    <MenuItem value=""><em>Ninguno</em></MenuItem>
-                                    {relevantMovils.map(m => (
-                                        <MenuItem key={m.movil_id!} value={m.movil_id!.toString()}>
-                                            {m.movil_id}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            )}
+                            render={({ field }) => {
+                                const selectedMovil = relevantMovils.find(m => m.movil_id === field.value);
+                                const isInMaintenance = selectedMovil?.movil_state === 'EN_TALLER' || selectedMovil?.movil_state === 'EN MANTENCION';
+                                const conductor = selectedMovil?.conductor_id
+                                    ? conductoresList?.find(c => c.id === selectedMovil.conductor_id)
+                                    : null;
+
+                                return (
+                                    <Box>
+                                        <TextField
+                                            {...field}
+                                            select
+                                            label={`Seleccionar Móvil`}
+                                            fullWidth
+                                            value={field.value || ''}
+                                            helperText={!field.value ? "Seleccione un móvil para agregar partidas" : ""}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                        >
+                                            <MenuItem value=""><em>Ninguno</em></MenuItem>
+                                            {relevantMovils.map(m => {
+                                                const movilConductor = m.conductor_id ? conductoresList?.find(c => c.id === m.conductor_id) : null;
+                                                const isMaintenance = m.movil_state === 'EN_TALLER' || m.movil_state === 'EN MANTENCION';
+
+                                                return (
+                                                    <MenuItem key={m.movil_id!} value={m.movil_id!.toString()}>
+                                                        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
+                                                            <Typography>{m.movil_id}</Typography>
+                                                            {isMaintenance && (
+                                                                <Chip
+                                                                    icon={<WarningIcon />}
+                                                                    label="Mantención"
+                                                                    size="small"
+                                                                    color="warning"
+                                                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                                                />
+                                                            )}
+                                                            {movilConductor && (
+                                                                <Chip
+                                                                    label={movilConductor.name}
+                                                                    size="small"
+                                                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                                                />
+                                                            )}
+                                                        </Stack>
+                                                    </MenuItem>
+                                                );
+                                            })}
+                                        </TextField>
+                                        {isInMaintenance && (
+                                            <Alert severity="warning" sx={{ mt: 1 }}>
+                                                <Stack direction="row" spacing={1} alignItems="center">
+                                                    <WarningIcon fontSize="small" />
+                                                    <Typography variant="body2">
+                                                        El móvil seleccionado está en mantención. {conductor && `Asignado a: ${conductor.name}`}
+                                                    </Typography>
+                                                </Stack>
+                                            </Alert>
+                                        )}
+                                    </Box>
+                                );
+                            }}
                         />
                     </Grid>
                     <Grid size={{ xs: 12, md: 4 }}>
@@ -625,9 +644,22 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
 
         const renderSummaryCard = (title: string, movilId: string | null | undefined, dateVal: any, filter: string, badgeIndex: number) => {
             if (!movilId) return null;
+
+            // Lookup Conductor info
+            const movil = movilesList.find(m => m.movil_id === movilId);
+            const conductor = movil?.conductor_id ? conductoresList.find(c => c.id === movil.conductor_id) : null;
+
             const cardItems = fields.filter(f => {
+                // Strict assignment check
+                if (f.assigned_movil_id) {
+                    return f.assigned_movil_id === movilId;
+                }
+
+                // Fallback Logic (Legacy)
                 const i = items?.find(it => Number(it.item_id) === Number(f.item_id));
-                return i?.item_type === filter;
+                const matchesFilter = i?.item_type === filter;
+                const isShared = (filter === 'OBRAS' || filter === 'RETIRO') && isSharedItem(i?.description || '');
+                return matchesFilter || isShared;
             });
             const total = cardItems.reduce((acc, curr) => {
                 const i = items?.find(it => Number(it.item_id) === Number(curr.item_id));
@@ -641,7 +673,14 @@ export const OTFormModal: React.FC<OTFormModalProps> = ({ open, onClose, otId, o
                             <Typography variant="caption" color="text.secondary">{title}</Typography>
                             <Chip label={badgeIndex} size="small" variant="outlined" color={filter === 'AGUA POTABLE' ? 'info' : 'secondary'} />
                         </Stack>
-                        <Typography variant="h6" fontWeight="bold">Móvil {movilId}</Typography>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                            <Typography variant="h6" fontWeight="bold">Móvil {movilId}</Typography>
+                            {conductor && (
+                                <Tooltip title={`RUT: ${conductor.rut}`}>
+                                    <Chip label={conductor.name} size="small" icon={<CheckIcon />} sx={{ height: 20, fontSize: '0.7rem' }} />
+                                </Tooltip>
+                            )}
+                        </Stack>
                         <Typography variant="body2" color="text.secondary" gutterBottom>Fecha: {dateVal ? dayjs(dateVal).format('DD-MM-YYYY') : '---'}</Typography>
 
                         <Box sx={{

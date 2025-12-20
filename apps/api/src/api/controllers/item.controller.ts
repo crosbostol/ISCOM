@@ -12,6 +12,66 @@ const createItemSchema = z.object({
 
 const updateItemSchema = createItemSchema.partial();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ItemDTO:
+ *       type: object
+ *       required:
+ *         - item_id
+ *         - description
+ *         - item_value
+ *       properties:
+ *         item_id:
+ *           type: integer
+ *           description: The auto-generated id of the item
+ *         description:
+ *           type: string
+ *           description: The description of the item
+ *         item_value:
+ *           type: number
+ *           description: The unit price of the item
+ *         item_type:
+ *           type: string
+ *           description: Type/Category of the item
+ *         item_unit:
+ *           type: string
+ *           description: Unit of measurement (e.g., m3, gl, un)
+ *     CreateItemDTO:
+ *       type: object
+ *       required:
+ *         - description
+ *         - item_value
+ *       properties:
+ *         description:
+ *           type: string
+ *         item_value:
+ *           type: number
+ *         item_type:
+ *           type: string
+ *         item_unit:
+ *           type: string
+ *     UpdateItemDTO:
+ *       type: object
+ *       properties:
+ *         description:
+ *           type: string
+ *         item_value:
+ *           type: number
+ *         item_type:
+ *           type: string
+ *         item_unit:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Items
+ *   description: The items managing API
+ */
+
 export class ItemController {
     private service: ItemService;
 
@@ -19,6 +79,22 @@ export class ItemController {
         this.service = new ItemService();
     }
 
+    /**
+     * @swagger
+     * /items:
+     *   get:
+     *     summary: Returns the list of all items
+     *     tags: [Items]
+     *     responses:
+     *       200:
+     *         description: The list of items
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/ItemDTO'
+     */
     getAll = async (req: Request, res: Response) => {
         try {
             const items = await this.service.getAll();
@@ -28,6 +104,29 @@ export class ItemController {
         }
     };
 
+    /**
+     * @swagger
+     * /items/{id}:
+     *   get:
+     *     summary: Get item by id
+     *     tags: [Items]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: integer
+     *         required: true
+     *         description: The item id
+     *     responses:
+     *       200:
+     *         description: The item description by id
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ItemDTO'
+     *       404:
+     *         description: The item was not found
+     */
     getById = async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id);
@@ -41,6 +140,30 @@ export class ItemController {
         }
     };
 
+    /**
+     * @swagger
+     * /items:
+     *   post:
+     *     summary: Create a new item
+     *     tags: [Items]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/CreateItemDTO'
+     *     responses:
+     *       201:
+     *         description: The item was successfully created
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ItemDTO'
+     *       400:
+     *         description: Validation error
+     *       500:
+     *         description: Internal Server Error
+     */
     create = async (req: Request, res: Response) => {
         try {
             const validated = createItemSchema.parse(req.body);
@@ -55,6 +178,37 @@ export class ItemController {
         }
     };
 
+    /**
+     * @swagger
+     * /items/{id}:
+     *   put:
+     *     summary: Update the item by the id
+     *     tags: [Items]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: integer
+     *         required: true
+     *         description: The item id
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/UpdateItemDTO'
+     *     responses:
+     *       200:
+     *         description: The item was updated
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/ItemDTO'
+     *       404:
+     *         description: The item was not found
+     *       500:
+     *         description: Internal Server Error
+     */
     update = async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id);
@@ -73,6 +227,25 @@ export class ItemController {
         }
     };
 
+    /**
+     * @swagger
+     * /items/{id}:
+     *   delete:
+     *     summary: Remove the item by id
+     *     tags: [Items]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: integer
+     *         required: true
+     *         description: The item id
+     *     responses:
+     *       204:
+     *         description: The item was deleted
+     *       404:
+     *         description: The item was not found
+     */
     delete = async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id);

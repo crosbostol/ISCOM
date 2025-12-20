@@ -29,25 +29,44 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { api } from '../../../api/axios';
 
-import { useGetOttable } from '../../../api/generated/hooks/useGetOttable';
-import type { GetOttable200 } from '../../../api/generated/models/GetOttable';
+import { useGetOttable, getOttableQueryKey } from '../../../api/generated/hooks/useGetOttable';
+import { getReportsEdpExport } from '../../../api/generated';
+import type { OrdenTrabajoDTO } from '../../../api/generated/models/OrdenTrabajoDTO';
+import { downloadBlob } from '../../../utils/downloadUtils';
 
 dayjs.extend(isBetween);
 
-type OT = GetOttable200[number];
+// Extend generated type for missing fields in frontend generation
+interface OT extends OrdenTrabajoDTO {
+    total_value?: number;
+}
+
+// Helpers
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
+};
 
 export const PaymentStatusPage: React.FC = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
 
-    // 1. aura animation
+    // Glow animation using theme colors
     const pulseGlow = keyframes`
-        0% { box-shadow: 0 0 5px rgba(77, 182, 172, 0.2); border-color: rgba(77, 182, 172, 0.3); }
-        50% { box-shadow: 0 0 20px rgba(77, 182, 172, 0.4); border-color: rgba(77, 182, 172, 0.6); }
-        100% { box-shadow: 0 0 5px rgba(77, 182, 172, 0.2); border-color: rgba(77, 182, 172, 0.3); }
+        0% { 
+            box-shadow: 0 0 5px ${alpha(theme.palette.primary.main, 0.2)}; 
+            border-color: ${alpha(theme.palette.primary.main, 0.3)}; 
+        }
+        50% { 
+            box-shadow: 0 0 20px ${alpha(theme.palette.primary.main, 0.4)}; 
+            border-color: ${alpha(theme.palette.primary.main, 0.6)}; 
+        }
+        100% { 
+            box-shadow: 0 0 5px ${alpha(theme.palette.primary.main, 0.2)}; 
+            border-color: ${alpha(theme.palette.primary.main, 0.3)}; 
+        }
     `;
+
     // -- State --
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('month'));
     const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
@@ -60,7 +79,7 @@ export const PaymentStatusPage: React.FC = () => {
     // Clear cache on unmount to ensure table is empty when returning
     useEffect(() => {
         return () => {
-            queryClient.removeQueries({ queryKey: ['/ottable'] });
+            queryClient.removeQueries({ queryKey: getOttableQueryKey() });
         };
     }, [queryClient]);
 
@@ -74,24 +93,21 @@ export const PaymentStatusPage: React.FC = () => {
     const { data: ots, isLoading, refetch } = useGetOttable(params, {
         query: {
             enabled: false,
-            // Include params in queryKey to differentiate cache
-            queryKey: ['/ottable', params]
+            // Use proper query key generation
+            queryKey: getOttableQueryKey(params)
         }
     });
 
     // -- Filtering Logic --
-    const filteredOts = useMemo(() => {
+    const filteredOts = useMemo<OT[]>(() => {
         if (!ots) return [];
-        return ots;
-        // Note: Server-side filtering is now responsible for the date range.
-        // We trust the backend returned the correct data.
+        return ots as OT[];
     }, [ots]);
 
     // -- Summary Calculation --
     const summary = useMemo(() => {
         const count = filteredOts.length;
-        const totalNet = filteredOts.reduce((acc, ot) => acc + (Number((ot as any).total_value) || 0), 0);
-
+        const totalNet = filteredOts.reduce((acc, ot) => acc + (Number(ot.total_value) || 0), 0);
         return { count, totalNet };
     }, [filteredOts]);
 
@@ -105,30 +121,26 @@ export const PaymentStatusPage: React.FC = () => {
     };
 
     const handleConfirmGenerate = async () => {
+        if (!startDate || !endDate) return;
+
         setGenerating(true);
         try {
-            const start = startDate?.format('YYYY-MM-DD');
-            const end = endDate?.format('YYYY-MM-DD');
+            const start = startDate.format('YYYY-MM-DD');
+            const end = endDate.format('YYYY-MM-DD');
 
-            const response = await api.get('/reports/edp-export', {
-                params: { startDate: start, endDate: end },
-                responseType: 'blob'
-            });
+            const blob = await getReportsEdpExport(
+                { startDate: start, endDate: end },
+                { responseType: 'blob' }
+            );
 
-            // Trigger Download
+            // Trigger Utils Download
             const now = dayjs();
             const filename = `EDP_${now.year()}_${now.format('MM')}_ISCOM.xlsx`;
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            downloadBlob(blob as unknown as Blob, filename);
+
         } catch (error) {
             console.error('Error downloading report:', error);
-            // Optionally set error state or show alert
         } finally {
             setGenerating(false);
             setConfirmationOpen(false);
@@ -157,9 +169,8 @@ export const PaymentStatusPage: React.FC = () => {
             headerName: 'Subtotal',
             width: 140,
             type: 'number',
-            valueGetter: (_value, row: OT) => Number((row as any).total_value) || 0,
-            valueFormatter: (value: number) =>
-                new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value)
+            valueGetter: (_value, row: OT) => Number(row.total_value) || 0,
+            valueFormatter: (value: number) => formatCurrency(value)
         }
     ];
 
@@ -168,16 +179,15 @@ export const PaymentStatusPage: React.FC = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            // Deep Ocean logic for Dark Mode, standard grayish for Light Mode
-            bgcolor: isDark ? '#0B1929' : 'background.default',
+            bgcolor: 'background.default',
             p: 3
         }}>
             {/* Header */}
             <Box mb={3}>
-                <Typography variant="h5" fontWeight="bold" color={isDark ? 'white' : 'text.primary'}>
+                <Typography variant="h5" fontWeight="bold" color="text.primary">
                     Generar Estado de Pago
                 </Typography>
-                <Typography variant="caption" color={isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary'}>
+                <Typography variant="caption" color="text.secondary">
                     Seleccione un rango de fechas para visualizar las OTs y generar el documento consolidado.
                 </Typography>
             </Box>
@@ -187,10 +197,9 @@ export const PaymentStatusPage: React.FC = () => {
                 p: 2,
                 mb: 3,
                 borderRadius: 2,
-                // HUD Style in Dark Mode
-                bgcolor: isDark ? '#132F4C' : 'background.paper',
-                border: isDark ? '1px solid rgba(0, 150, 136, 0.3)' : '1px solid #e0e0e0',
-                boxShadow: isDark ? '0 0 15px rgba(0, 0, 0, 0.3)' : 1,
+                bgcolor: 'background.paper',
+                border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.3 : 0.2)}`,
+                boxShadow: isDark ? `0 0 15px ${alpha(theme.palette.common.black, 0.3)}` : 1,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
@@ -225,19 +234,14 @@ export const PaymentStatusPage: React.FC = () => {
                         height: 40,
                         px: 3,
                         fontWeight: 'bold',
-                        textTransform: 'none', // Mantiene la legibilidad
-                        // Mantenemos el color Teal tanto en Light como en Dark para identidad de marca
+                        textTransform: 'none',
                         color: 'primary.main',
-                        borderColor: isDark ? alpha(theme.palette.primary.main, 0.5) : 'primary.main',
-
+                        borderColor: alpha(theme.palette.primary.main, isDark ? 0.5 : 0.8),
                         transition: 'all 0.2s ease-in-out',
-
                         '&:hover': {
-                            // REGLA DE ORO: No cambiamos a blanco, usamos tinte Teal al 8%
                             bgcolor: alpha(theme.palette.primary.main, 0.08),
                             borderColor: 'primary.main',
                             color: 'primary.main',
-                            // Añade un resplandor muy sutil en Dark Mode
                             boxShadow: isDark ? `0 0 8px ${alpha(theme.palette.primary.main, 0.4)}` : 'none',
                         }
                     }}
@@ -252,8 +256,8 @@ export const PaymentStatusPage: React.FC = () => {
                 width: '100%',
                 borderRadius: 2,
                 overflow: 'hidden',
-                bgcolor: isDark ? '#132F4C' : 'background.paper',
-                boxShadow: isDark ? '0 4px 6px rgba(0,0,0,0.3)' : 1,
+                bgcolor: 'background.paper',
+                boxShadow: isDark ? `0 4px 6px ${alpha(theme.palette.common.black, 0.3)}` : 1,
             }}>
                 <DataGrid
                     rows={filteredOts}
@@ -265,14 +269,14 @@ export const PaymentStatusPage: React.FC = () => {
                     density="comfortable"
                     sx={{
                         border: 'none',
-                        color: isDark ? 'rgba(255,255,255,0.9)' : 'text.primary',
+                        color: 'text.primary',
                         '& .MuiDataGrid-columnHeaders': {
-                            bgcolor: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 150, 136, 0.08)',
-                            color: isDark ? '#4DB6AC' : 'text.primary',
+                            bgcolor: isDark ? alpha(theme.palette.common.black, 0.2) : alpha(theme.palette.primary.main, 0.08),
+                            color: isDark ? theme.palette.primary.light : 'text.primary',
                             fontWeight: 'bold'
                         },
                         '& .MuiDataGrid-footerContainer': {
-                            bgcolor: isDark ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+                            bgcolor: isDark ? alpha(theme.palette.common.black, 0.2) : 'transparent',
                         }
                     }}
                     slots={{
@@ -282,7 +286,7 @@ export const PaymentStatusPage: React.FC = () => {
                                     Total OTs: <b>{summary.count}</b>
                                 </Typography>
                                 <Typography variant="h6" color="primary.main" fontWeight="bold">
-                                    Total: {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(summary.totalNet)}
+                                    Total: {formatCurrency(summary.totalNet)}
                                 </Typography>
 
                                 {/* Footer Action Button */}
@@ -293,36 +297,24 @@ export const PaymentStatusPage: React.FC = () => {
                                             size="large"
                                             startIcon={generating ? <CircularProgress size={20} color="inherit" /> : <CloudDownloadIcon />}
                                             onClick={handleGenerateClick}
-                                            // La lógica de deshabilitado se mantiene
                                             disabled={filteredOts.length === 0 || generating}
                                             sx={{
                                                 ml: 2,
                                                 minWidth: 180,
-                                                height: 48, // Un poco más alto que el de cargar para marcar jerarquía
+                                                height: 48,
                                                 fontWeight: 'bold',
                                                 textTransform: 'none',
                                                 borderRadius: 2,
-
-                                                // Color base Teal
                                                 bgcolor: 'primary.main',
-                                                color: isDark ? '#0B1929' : 'white', // Texto oscuro en fondo brillante para Dark Mode
-
+                                                color: isDark ? 'common.black' : 'common.white',
                                                 transition: 'all 0.3s ease',
-
                                                 '&:hover': {
-                                                    // Un tono un poco más oscuro y saturado
-                                                    bgcolor: '#00796B',
-                                                    // Efecto de resplandor (Glow) más potente por ser el botón principal
-                                                    boxShadow: (theme) => `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`,
-                                                    transform: 'translateY(-1px)', // Pequeño levantamiento visual
+                                                    bgcolor: theme.palette.primary.dark,
+                                                    boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+                                                    transform: 'translateY(-1px)',
                                                 },
-
-                                                // Estilo cuando está deshabilitado (Cero filas o cargando)
                                                 '&.Mui-disabled': {
-                                                    bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.12)',
-                                                    color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.26)',
-                                                    borderColor: 'transparent',
-                                                    boxShadow: 'none',
+                                                    bgcolor: alpha(theme.palette.action.disabledBackground, isDark ? 0.3 : 1),
                                                 }
                                             }}
                                         >
@@ -342,75 +334,112 @@ export const PaymentStatusPage: React.FC = () => {
                 onClose={() => !generating && setConfirmationOpen(false)}
                 PaperProps={{
                     sx: {
-                        bgcolor: '#132F4C',
+                        bgcolor: theme.palette.background.paper,
                         backgroundImage: 'none',
                         borderRadius: 3,
-                        border: '1px solid',
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
                         animation: `${pulseGlow} 3s infinite ease-in-out`,
                         minWidth: 400
                     }
                 }}
             >
                 <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <SummarizeIcon sx={{ color: '#4DB6AC' }} />
+                    <SummarizeIcon sx={{ color: theme.palette.primary.main }} />
                     <Box>
-                        <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', lineHeight: 1.2 }}>
+                        <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 'bold', lineHeight: 1.2 }}>
                             Confirmar Generación
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#4DB6AC', fontWeight: 'bold', letterSpacing: 1 }}>
-                            PROTOCOL_FINANCE_v1.0
+                        <Typography variant="caption" sx={{ color: theme.palette.primary.main, fontWeight: 'bold', letterSpacing: 1 }}>
+                            EDP_{dayjs().year()}_{dayjs().format('MM')}_ISCOM
                         </Typography>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent>
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', mb: 3 }}>
+                    <Typography variant="body2" sx={{ color: isDark ? alpha(theme.palette.common.white, 0.7) : 'text.secondary', mb: 3 }}>
                         Se procederá a consolidar las OTs terminadas en el periodo seleccionado para la emisión del Estado de Pago.
                     </Typography>
 
-                    {/* Info Card Estilizada */}
+                    {/* Info Card con Estilo HUD / Glassmorphism */}
                     <Box sx={{
                         p: 2.5,
-                        bgcolor: 'rgba(0,0,0,0.2)',
+                        // Fondo Midnight Translucent
+                        bgcolor: isDark ? alpha(theme.palette.common.black, 0.4) : alpha(theme.palette.common.black, 0.03),
                         borderRadius: 2,
-                        border: '1px solid rgba(255,255,255,0.05)',
+                        // Borde con toque Teal
+                        border: `1px solid ${isDark ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.common.black, 0.1)}`,
                         position: 'relative',
                         overflow: 'hidden',
-                        '&::before': { // Decoración técnica lateral
+                        backdropFilter: 'blur(6px)', // Efecto de cristal esmerilado
+                        '&::before': {
                             content: '""',
                             position: 'absolute',
                             left: 0, top: 0, bottom: 0,
                             width: '4px',
-                            bgcolor: '#4DB6AC'
+                            bgcolor: theme.palette.primary.main,
+                            // EL GLOW: Resplandor neón en la barra lateral
+                            boxShadow: isDark ? `0 0 15px ${theme.palette.primary.main}` : 'none',
                         }
                     }}>
                         <Stack spacing={2}>
+                            {/* Cantidad de OTs */}
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <ReceiptLongIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.5)' }} />
-                                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>Cantidad de OTs</Typography>
+                                    <ReceiptLongIcon sx={{ fontSize: 18, color: isDark ? alpha(theme.palette.common.white, 0.5) : 'text.secondary' }} />
+                                    <Typography variant="body2" sx={{ color: isDark ? alpha(theme.palette.common.white, 0.6) : 'text.secondary' }}>
+                                        Cantidad de OTs
+                                    </Typography>
                                 </Box>
-                                <Typography sx={{ color: 'white', fontWeight: 'bold', fontFamily: 'monospace', fontSize: '1.1rem' }}>
+                                <Typography sx={{
+                                    color: isDark ? theme.palette.common.white : 'text.primary',
+                                    fontWeight: 'bold',
+                                    fontFamily: 'monospace',
+                                    fontSize: '1.1rem'
+                                }}>
                                     {summary.count}
                                 </Typography>
                             </Stack>
 
+                            {/* Rango de Fechas */}
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <DateRangeIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.5)' }} />
-                                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>Rango de Fechas</Typography>
+                                    <DateRangeIcon sx={{ fontSize: 18, color: isDark ? alpha(theme.palette.common.white, 0.5) : 'text.secondary' }} />
+                                    <Typography variant="body2" sx={{ color: isDark ? alpha(theme.palette.common.white, 0.6) : 'text.secondary' }}>
+                                        Rango de Fechas
+                                    </Typography>
                                 </Box>
-                                <Typography sx={{ color: 'white', fontWeight: 'medium', fontSize: '0.9rem' }}>
+                                <Typography sx={{
+                                    color: isDark ? theme.palette.common.white : 'text.primary',
+                                    fontWeight: 'medium',
+                                    fontSize: '0.9rem'
+                                }}>
                                     {startDate?.format('DD/MM/YYYY')} - {endDate?.format('DD/MM/YYYY')}
                                 </Typography>
                             </Stack>
 
-                            <Box sx={{ my: 1, borderTop: '1px dashed rgba(255,255,255,0.1)' }} />
+                            {/* Línea Divisora Técnica */}
+                            <Box sx={{
+                                my: 1,
+                                borderTop: `1px dashed ${isDark ? alpha(theme.palette.common.white, 0.1) : alpha(theme.palette.divider, 0.3)}`
+                            }} />
 
+                            {/* Total Neto con Resalte Máximo */}
                             <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                <Typography variant="subtitle1" sx={{ color: '#4DB6AC', fontWeight: 'bold' }}>TOTAL NETO</Typography>
-                                <Typography variant="h5" sx={{ color: '#4DB6AC', fontWeight: '900', fontFamily: 'monospace' }}>
-                                    {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(summary.totalNet)}
+                                <Typography variant="subtitle1" sx={{
+                                    color: theme.palette.primary.main,
+                                    fontWeight: 'bold',
+                                    letterSpacing: 1
+                                }}>
+                                    TOTAL NETO
+                                </Typography>
+                                <Typography variant="h5" sx={{
+                                    color: theme.palette.primary.main,
+                                    fontWeight: '900',
+                                    fontFamily: 'monospace',
+                                    // Sutil sombra de texto para que los números "brillen"
+                                    textShadow: isDark ? `0 0 10px ${alpha(theme.palette.primary.main, 0.3)}` : 'none'
+                                }}>
+                                    {formatCurrency(summary.totalNet)}
                                 </Typography>
                             </Stack>
                         </Stack>
@@ -421,7 +450,11 @@ export const PaymentStatusPage: React.FC = () => {
                     <Button
                         onClick={() => setConfirmationOpen(false)}
                         disabled={generating}
-                        sx={{ color: 'rgba(255,255,255,0.5)', textTransform: 'none', '&:hover': { color: 'white' } }}
+                        sx={{
+                            color: 'text.secondary',
+                            textTransform: 'none',
+                            '&:hover': { color: 'text.primary' }
+                        }}
                     >
                         Abortar
                     </Button>
@@ -431,12 +464,12 @@ export const PaymentStatusPage: React.FC = () => {
                         disabled={generating}
                         autoFocus
                         sx={{
-                            bgcolor: '#009688',
+                            bgcolor: theme.palette.primary.main,
                             fontWeight: 'bold',
                             px: 3,
                             '&:hover': {
-                                bgcolor: '#00796B',
-                                boxShadow: '0 0 15px rgba(0, 150, 136, 0.4)'
+                                bgcolor: theme.palette.primary.dark,
+                                boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.4)}`
                             }
                         }}
                     >

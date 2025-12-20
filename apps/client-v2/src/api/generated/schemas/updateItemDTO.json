@@ -1,0 +1,1 @@
+{"type":"object","properties":{"description":{"type":"string"},"item_value":{"type":"number"},"item_type":{"type":"string"},"item_unit":{"type":"string"}},"x-readme-ref-name":"UpdateItemDTO"}

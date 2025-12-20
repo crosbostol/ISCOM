@@ -1,7 +1,6 @@
-
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Stack, Typography } from '@mui/material';
 import { DashboardLayout } from './DashboardLayout';
 
 export const ProtectedRoute = () => {
@@ -9,8 +8,21 @@ export const ProtectedRoute = () => {
 
     if (isLoading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <CircularProgress />
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                    bgcolor: 'background.default',
+                }}
+            >
+                <Stack spacing={2} alignItems="center">
+                    <CircularProgress color="primary" size={48} />
+                    <Typography variant="caption" color="text.secondary">
+                        Verificando Credenciales...
+                    </Typography>
+                </Stack>
             </Box>
         );
     }

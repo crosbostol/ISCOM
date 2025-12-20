@@ -7,6 +7,52 @@ const conductorSchema = z.object({
     rut: z.string().min(1, 'RUT is required')
 });
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Conductor:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *         - rut
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: The auto-generated id of the conductor
+ *         name:
+ *           type: string
+ *           description: The name of the conductor
+ *         rut:
+ *           type: string
+ *           description: The RUT of the conductor (CHILE)
+ *     CreateConductorDTO:
+ *       type: object
+ *       required:
+ *         - name
+ *         - rut
+ *       properties:
+ *         name:
+ *           type: string
+ *         rut:
+ *           type: string
+ *     UpdateConductorDTO:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         rut:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Conductors
+ *   description: The conductors managing API
+ */
+
 export class ConductorController {
     private service: ConductorService;
 
@@ -14,6 +60,22 @@ export class ConductorController {
         this.service = new ConductorService();
     }
 
+    /**
+     * @swagger
+     * /conductors:
+     *   get:
+     *     summary: Returns the list of all the conductors
+     *     tags: [Conductors]
+     *     responses:
+     *       200:
+     *         description: The list of the conductors
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/Conductor'
+     */
     getAll = async (req: Request, res: Response) => {
         try {
             const conductors = await this.service.getAll();
@@ -23,6 +85,29 @@ export class ConductorController {
         }
     };
 
+    /**
+     * @swagger
+     * /conductors/{id}:
+     *   get:
+     *     summary: Get the conductor by id
+     *     tags: [Conductors]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: integer
+     *         required: true
+     *         description: The conductor id
+     *     responses:
+     *       200:
+     *         description: The conductor description by id
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Conductor'
+     *       404:
+     *         description: The conductor was not found
+     */
     getById = async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id);
@@ -37,6 +122,30 @@ export class ConductorController {
         }
     };
 
+    /**
+     * @swagger
+     * /conductors:
+     *   post:
+     *     summary: Create a new conductor
+     *     tags: [Conductors]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/CreateConductorDTO'
+     *     responses:
+     *       201:
+     *         description: The conductor was successfully created
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Conductor'
+     *       409:
+     *         description: RUT already exists
+     *       500:
+     *         description: Internal Server Error
+     */
     create = async (req: Request, res: Response) => {
         try {
             const validated = conductorSchema.parse(req.body);
@@ -53,6 +162,37 @@ export class ConductorController {
         }
     };
 
+    /**
+     * @swagger
+     * /conductors/{id}:
+     *   put:
+     *     summary: Update the conductor by the id
+     *     tags: [Conductors]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: integer
+     *         required: true
+     *         description: The conductor id
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/UpdateConductorDTO'
+     *     responses:
+     *       200:
+     *         description: The conductor was updated
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Conductor'
+     *       404:
+     *         description: The conductor was not found
+     *       500:
+     *         description: Internal Server Error
+     */
     update = async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id);
@@ -74,6 +214,25 @@ export class ConductorController {
         }
     };
 
+    /**
+     * @swagger
+     * /conductors/{id}:
+     *   delete:
+     *     summary: Remove the conductor by id
+     *     tags: [Conductors]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: integer
+     *         required: true
+     *         description: The conductor id
+     *     responses:
+     *       204:
+     *         description: The conductor was deleted
+     *       404:
+     *         description: The conductor was not found
+     */
     delete = async (req: Request, res: Response) => {
         try {
             const id = parseInt(req.params.id);

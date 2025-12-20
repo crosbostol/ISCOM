@@ -113,7 +113,6 @@ router.get('/ottable', getOtTable);
 router.post('/ot', createOt);
 router.put('/ot/:id', updateOt);
 router.get('/ot/:id', getOtById);
-router.get('/movils', getMovils);
-router.get('/items', getItems);
+
 
 export default router;

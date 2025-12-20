@@ -110,7 +110,8 @@ export class OtService {
                     ot_id: ot.id,
                     item_id: item.item_id,
                     quantity: item.quantity,
-                    is_additional: false
+                    is_additional: false,
+                    assigned_movil_id: item.assigned_movil_id
                 });
             }
         }
@@ -158,7 +159,8 @@ export class OtService {
                         ot_id: id,
                         item_id: item.item_id,
                         quantity: item.quantity,
-                        is_additional: false
+                        is_additional: false,
+                        assigned_movil_id: item.assigned_movil_id
                     });
                 }
             }

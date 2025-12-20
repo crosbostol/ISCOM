@@ -18,6 +18,80 @@ const updateMovilSchema = z.object({
     conductor_id: z.number().nullable().optional()
 });
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     MovilDTO:
+ *       type: object
+ *       required:
+ *         - movil_id
+ *         - movil_type
+ *         - movil_state
+ *       properties:
+ *         movil_id:
+ *           type: string
+ *           description: Identifier (Patente) of the movil
+ *         external_code:
+ *           type: string
+ *           description: External system code
+ *         inventory_id:
+ *           type: string
+ *           description: Internal inventory ID
+ *         movil_observations:
+ *           type: string
+ *           description: Observations or notes
+ *         movil_type:
+ *           type: string
+ *           description: Type of movil (e.g., CIVIL, HIDRAULICA, RETIRO)
+ *         movil_state:
+ *           type: string
+ *           description: Operational state
+ *         conductor_id:
+ *           type: integer
+ *           nullable: true
+ *           description: Assigned conductor ID
+ *     CreateMovilDTO:
+ *       type: object
+ *       required:
+ *         - movil_id
+ *         - movil_type
+ *         - movil_state
+ *       properties:
+ *         movil_id:
+ *           type: string
+ *         external_code:
+ *           type: string
+ *         movil_type:
+ *           type: string
+ *         movil_state:
+ *           type: string
+ *         conductor_id:
+ *           type: integer
+ *           nullable: true
+ *     UpdateMovilDTO:
+ *       type: object
+ *       properties:
+ *         movil_id:
+ *           type: string
+ *         external_code:
+ *           type: string
+ *         movil_type:
+ *           type: string
+ *         movil_state:
+ *           type: string
+ *         conductor_id:
+ *           type: integer
+ *           nullable: true
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Movils
+ *   description: The movils managing API
+ */
+
 export class MovilController {
     private service: MovilService;
 
@@ -25,6 +99,22 @@ export class MovilController {
         this.service = new MovilService();
     }
 
+    /**
+     * @swagger
+     * /moviles:
+     *   get:
+     *     summary: Returns the list of all movils
+     *     tags: [Movils]
+     *     responses:
+     *       200:
+     *         description: The list of movils
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/MovilDTO'
+     */
     getAll = async (req: Request, res: Response) => {
         try {
             const moviles = await this.service.getAll();
@@ -34,6 +124,29 @@ export class MovilController {
         }
     };
 
+    /**
+     * @swagger
+     * /moviles/{id}:
+     *   get:
+     *     summary: Get movil by id
+     *     tags: [Movils]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: The movil id (Patente)
+     *     responses:
+     *       200:
+     *         description: The movil details
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/MovilDTO'
+     *       404:
+     *         description: The movil was not found
+     */
     getById = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
@@ -45,6 +158,32 @@ export class MovilController {
         }
     };
 
+    /**
+     * @swagger
+     * /moviles:
+     *   post:
+     *     summary: Create a new movil
+     *     tags: [Movils]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/CreateMovilDTO'
+     *     responses:
+     *       201:
+     *         description: The movil was successfully created
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/MovilDTO'
+     *       409:
+     *         description: Movil ID already exists
+     *       400:
+     *         description: Validation error
+     *       500:
+     *         description: Internal Server Error
+     */
     create = async (req: Request, res: Response) => {
         try {
             const validated = createMovilSchema.parse(req.body);
@@ -64,6 +203,37 @@ export class MovilController {
         }
     };
 
+    /**
+     * @swagger
+     * /moviles/{id}:
+     *   put:
+     *     summary: Update the movil by id
+     *     tags: [Movils]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: The movil id (Patente)
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/UpdateMovilDTO'
+     *     responses:
+     *       200:
+     *         description: The movil was updated
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/MovilDTO'
+     *       404:
+     *         description: The movil was not found
+     *       500:
+     *         description: Internal Server Error
+     */
     update = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
@@ -80,6 +250,25 @@ export class MovilController {
         }
     };
 
+    /**
+     * @swagger
+     * /moviles/{id}:
+     *   delete:
+     *     summary: Remove the movil by id
+     *     tags: [Movils]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: The movil id (Patente)
+     *     responses:
+     *       204:
+     *         description: The movil was deleted
+     *       404:
+     *         description: The movil was not found
+     */
     delete = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;

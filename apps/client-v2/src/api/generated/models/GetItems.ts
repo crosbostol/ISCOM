@@ -3,24 +3,12 @@
 * Do not edit manually.
 */
 
+import type { ItemDTO } from "./ItemDTO.ts";
 
 /**
  * @description List of items
 */
-export type GetItems200 = {
-    /**
-     * @type integer | undefined
-    */
-    item_id?: number;
-    /**
-     * @type string | undefined
-    */
-    description?: string;
-    /**
-     * @type string | undefined
-    */
-    item_type?: string;
-}[];
+export type GetItems200 = ItemDTO[];
 
 /**
  * @description Server error
