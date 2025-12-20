@@ -1,8 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Box, CircularProgress, Typography, Stack } from '@mui/material';
 import { api } from '../api/axios';
 
-interface User {
+// Export User interface for use in other components
+export interface User {
     id: number;
     username: string;
     role: string;
@@ -26,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const initAuth = async () => {
             const token = localStorage.getItem('token');
+            const storedUser = localStorage.getItem('user');
 
             if (!token) {
                 setIsAuthenticated(false);
@@ -34,11 +36,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 return;
             }
 
+            // Optimistic loading: Set user from localStorage immediately
+            if (storedUser) {
+                try {
+                    const parsedUser = JSON.parse(storedUser);
+                    setUser(parsedUser);
+                    setIsAuthenticated(true);
+                } catch (err) {
+                    console.warn('Failed to parse stored user:', err);
+                }
+            }
+
+            // Validate token with API
             try {
                 const response = await api.get('/auth/profile');
                 setUser(response.data);
                 setIsAuthenticated(true);
-                // Optional: Refresh local storage user data
+                // Refresh local storage user data
                 localStorage.setItem('user', JSON.stringify(response.data));
             } catch (error) {
                 console.error('Token validation failed:', error);
@@ -75,34 +89,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('user');
         setIsAuthenticated(false);
         setUser(null);
-        window.location.href = '/login';
+        // Let Router handle redirection - no forced page reload
     };
 
     if (isLoading) {
         return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                backgroundColor: '#121212', // Dark background to match theme
-                color: '#4db6ac' // Teal color
-            }}>
-                <div className="spinner" style={{
-                    border: '4px solid rgba(77, 182, 172, 0.1)',
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    borderLeftColor: '#4db6ac',
-                    animation: 'spin 1s linear infinite'
-                }}></div>
-                <style>{`
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `}</style>
-            </div>
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh',
+                    bgcolor: 'background.default',
+                }}
+            >
+                <Stack spacing={2} alignItems="center">
+                    <CircularProgress color="primary" size={48} />
+                    <Typography variant="caption" color="text.secondary">
+                        Iniciando Sistema...
+                    </Typography>
+                </Stack>
+            </Box>
         );
     }
 

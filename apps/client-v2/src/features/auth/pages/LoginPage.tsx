@@ -10,7 +10,8 @@ import {
     Alert,
     keyframes,
     alpha,
-    CircularProgress
+    CircularProgress,
+    useTheme
 } from '@mui/material';
 import {
     Visibility,
@@ -21,8 +22,19 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
-// --- 1. DEFINICIÓN DE ANIMACIONES Y ESTILOS ---
+// --- 1. DEFINICIÓN DE SCHEMA ---
+const loginSchema = z.object({
+    username: z.string().min(1, 'Usuario requerido'),
+    password: z.string().min(1, 'Contraseña requerida')
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+// --- 2. DEFINICIÓN DE ANIMACIONES ---
 const rotate = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -34,35 +46,34 @@ const float = keyframes`
   100% { transform: translateY(0px); }
 `;
 
-// Colores del tema (Ajustados a tu paleta Dark Mode / Teal)
-const primaryColor = '#009688';
-const deepBg = '#0B1929';
-const cardBg = '#132F4C';
-
 export const LoginPage: React.FC = () => {
-    // --- 2. TU LÓGICA ORIGINAL (INTACTA) ---
+    const theme = useTheme();
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    // Colores dinámicos del tema
+    const primaryColor = theme.palette.primary.main;
+    const deepBg = theme.palette.background.default;
+    const cardBg = theme.palette.background.paper;
+
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [loginError, setLoginError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setLoading(true);
+    const { control, handleSubmit, formState: { isSubmitting } } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            username: '',
+            password: ''
+        }
+    });
 
+    const onSubmit = async (data: LoginFormData) => {
+        setLoginError(null);
         try {
-            await login(username, password);
+            await login(data.username, data.password);
             navigate('/');
         } catch (err: any) {
-            // Mantenemos tu manejo de errores
-            setError(err.response?.data?.message || 'Error al iniciar sesión');
-        } finally {
-            setLoading(false);
+            setLoginError(err.response?.data?.message || 'Error al iniciar sesión');
         }
     };
 
@@ -71,7 +82,6 @@ export const LoginPage: React.FC = () => {
         event.preventDefault();
     };
 
-    // --- 3. EL NUEVO DISEÑO VISUAL (RENDER) ---
     return (
         <Box
             sx={{
@@ -81,8 +91,9 @@ export const LoginPage: React.FC = () => {
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                // Fondo Gradiente Profundo
-                background: `radial-gradient(circle at 50% 50%, #1a4064 0%, ${deepBg} 100%)`,
+                // Fondo Gradiente Profundo usando colores del tema
+                background: `radial-gradient(circle at 50% 50%, ${alpha(deepBg, 0.8)} 0%, ${deepBg} 100%)`,
+                bgcolor: deepBg // Fallback
             }}
         >
             {/* ELEMENTOS DECORATIVOS DE FONDO (Burbujas Flotantes) */}
@@ -153,7 +164,7 @@ export const LoginPage: React.FC = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        color: 'white',
+                        color: theme.palette.text.primary,
                     }}
                 >
                     {/* LOGO E IDENTIDAD */}
@@ -169,105 +180,110 @@ export const LoginPage: React.FC = () => {
                             mb: 2,
                             color: primaryColor
                         }}>
-                            {/* Puedes reemplazar esto por <img src="/logo.png" /> */}
                             <WaterDropIcon sx={{ fontSize: 30 }} />
                         </Box>
                         <Typography variant="h5" fontWeight="bold" sx={{ letterSpacing: 2 }}>
                             ISCOM
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', letterSpacing: 1 }}>
+                        <Typography variant="caption" sx={{ color: theme.palette.text.secondary, letterSpacing: 1 }}>
                             GESTIÓN DE OBRAS
                         </Typography>
                     </Box>
 
-                    {/* MANEJO DE ERRORES (Mantenido de tu código original, estilizado) */}
-                    {error && (
+                    {/* MANEJO DE ERRORES */}
+                    {loginError && (
                         <Alert
                             severity="error"
-                            variant="filled" // Para que resalte sobre el fondo oscuro
-                            sx={{ width: '100%', mb: 2, bgcolor: alpha('#d32f2f', 0.8) }}
+                            variant="filled"
+                            sx={{ width: '100%', mb: 2, bgcolor: theme.palette.error.main }}
                         >
-                            {error}
+                            {loginError}
                         </Alert>
                     )}
 
-                    {/* FORMULARIO CONECTADO A TU LÓGICA */}
-                    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="username"
-                            label="Usuario"
+                    {/* FORMULARIO */}
+                    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ width: '100%' }}>
+                        <Controller
                             name="username"
-                            autoComplete="username"
-                            autoFocus
-                            // Conexión con tus estados
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            // Estilos Dark/Modern
-                            variant="outlined"
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <PersonOutlineIcon sx={{ color: 'text.secondary' }} />
-                                    </InputAdornment>
-                                ),
-                                sx: {
-                                    color: 'white',
-                                    borderRadius: 2,
-                                    bgcolor: alpha('#000', 0.2),
-                                    '& fieldset': { borderColor: alpha('#fff', 0.2) },
-                                    '&:hover fieldset': { borderColor: alpha('#fff', 0.5) },
-                                    '&.Mui-focused fieldset': { borderColor: primaryColor }
-                                }
-                            }}
-                            InputLabelProps={{ sx: { color: 'text.secondary' } }}
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <TextField
+                                    {...field}
+                                    margin="normal"
+                                    fullWidth
+                                    id="username"
+                                    label="Usuario"
+                                    autoComplete="username"
+                                    autoFocus
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                    variant="outlined"
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <PersonOutlineIcon sx={{ color: theme.palette.text.secondary }} />
+                                            </InputAdornment>
+                                        ),
+                                        sx: {
+                                            color: theme.palette.text.primary,
+                                            borderRadius: 2,
+                                            bgcolor: alpha(theme.palette.text.primary, 0.05),
+                                            '& fieldset': { borderColor: alpha(theme.palette.text.primary, 0.2) },
+                                            '&:hover fieldset': { borderColor: alpha(theme.palette.text.primary, 0.5) },
+                                            '&.Mui-focused fieldset': { borderColor: primaryColor }
+                                        }
+                                    }}
+                                    InputLabelProps={{ sx: { color: theme.palette.text.secondary } }}
+                                />
+                            )}
                         />
 
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
+                        <Controller
                             name="password"
-                            label="Contraseña"
-                            type={showPassword ? 'text' : 'password'}
-                            id="password"
-                            autoComplete="current-password"
-                            // Conexión con tus estados
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            // Estilos Dark/Modern
-                            variant="outlined"
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <LockOutlinedIcon sx={{ color: 'text.secondary' }} />
-                                    </InputAdornment>
-                                ),
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle password visibility"
-                                            onClick={handleClickShowPassword}
-                                            onMouseDown={handleMouseDownPassword}
-                                            edge="end"
-                                            sx={{ color: 'text.secondary' }}
-                                        >
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                                sx: {
-                                    color: 'white',
-                                    borderRadius: 2,
-                                    bgcolor: alpha('#000', 0.2),
-                                    '& fieldset': { borderColor: alpha('#fff', 0.2) },
-                                    '&:hover fieldset': { borderColor: alpha('#fff', 0.5) },
-                                    '&.Mui-focused fieldset': { borderColor: primaryColor }
-                                }
-                            }}
-                            InputLabelProps={{ sx: { color: 'text.secondary' } }}
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <TextField
+                                    {...field}
+                                    margin="normal"
+                                    fullWidth
+                                    label="Contraseña"
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    autoComplete="current-password"
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                    variant="outlined"
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <LockOutlinedIcon sx={{ color: theme.palette.text.secondary }} />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    aria-label="toggle password visibility"
+                                                    onClick={handleClickShowPassword}
+                                                    onMouseDown={handleMouseDownPassword}
+                                                    edge="end"
+                                                    sx={{ color: theme.palette.text.secondary }}
+                                                >
+                                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                        sx: {
+                                            color: theme.palette.text.primary,
+                                            borderRadius: 2,
+                                            bgcolor: alpha(theme.palette.text.primary, 0.05),
+                                            '& fieldset': { borderColor: alpha(theme.palette.text.primary, 0.2) },
+                                            '&:hover fieldset': { borderColor: alpha(theme.palette.text.primary, 0.5) },
+                                            '&.Mui-focused fieldset': { borderColor: primaryColor }
+                                        }
+                                    }}
+                                    InputLabelProps={{ sx: { color: theme.palette.text.secondary } }}
+                                />
+                            )}
                         />
 
                         <Button
@@ -275,7 +291,7 @@ export const LoginPage: React.FC = () => {
                             fullWidth
                             variant="contained"
                             size="large"
-                            disabled={loading}
+                            disabled={isSubmitting}
                             sx={{
                                 mt: 4,
                                 mb: 2,
@@ -287,23 +303,23 @@ export const LoginPage: React.FC = () => {
                                 textTransform: 'none',
                                 boxShadow: `0 0 20px ${alpha(primaryColor, 0.4)}`,
                                 '&:hover': {
-                                    bgcolor: '#00796B',
+                                    bgcolor: alpha(primaryColor, 0.9), // Use Theme logic for hover state
                                     boxShadow: `0 0 30px ${alpha(primaryColor, 0.6)}`,
                                 },
                                 '&:disabled': {
                                     bgcolor: alpha(primaryColor, 0.3),
-                                    color: alpha('#fff', 0.3)
+                                    color: alpha(theme.palette.text.primary, 0.3)
                                 }
                             }}
                         >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : 'INGRESAR'}
+                            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'INGRESAR'}
                         </Button>
                     </Box>
                 </Paper>
             </Box>
 
             {/* FOOTER TEXT */}
-            <Typography variant="caption" sx={{ position: 'absolute', bottom: 20, color: 'text.secondary', opacity: 0.5 }}>
+            <Typography variant="caption" sx={{ position: 'absolute', bottom: 20, color: theme.palette.text.secondary, opacity: 0.5 }}>
                 © 2025 ISCOM Ingeniería y Construcción
             </Typography>
         </Box>

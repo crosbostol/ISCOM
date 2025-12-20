@@ -2,9 +2,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/pages/LoginPage';
 import { OTListPage } from './features/ot/pages/OTListPage';
-import { ConductorsPage } from './features/mantenedores/conductores';
-import { MovilesPage } from './features/mantenedores/moviles';
-import { ItemsPage } from './features/mantenedores/items';
+import { ConductorsPage } from './features/conductors/pages/ConductorsPage';
+import { MovilesPage } from './features/moviles/pages/MovilesPage';
+import { ItemsPage } from './features/items/pages/ItemsPage';
+import { PaymentStatusPage } from './features/reportes/pages/PaymentStatusPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
             {
                 path: "/mantenedores/items",
                 element: <ItemsPage />,
+            },
+            {
+                path: "/reportes/estado-pago",
+                element: <PaymentStatusPage />,
             },
         ]
     },
