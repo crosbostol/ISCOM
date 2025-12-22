@@ -6,10 +6,10 @@
 import fetch from "../../axios";
 import type { RequestConfig, ResponseErrorConfig } from "../../axios";
 import type { QueryKey, QueryClient, UseSuspenseQueryOptions, UseSuspenseQueryResult } from "@tanstack/react-query";
-import type { GetOttableQueryResponse, GetOttable500 } from "../models/GetOttable.ts";
+import type { GetOttableQueryResponse, GetOttableQueryParams, GetOttable500 } from "../models/GetOttable.ts";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 
-export const getOttableSuspenseQueryKey = () => [{ url: '/ottable' }] as const
+export const getOttableSuspenseQueryKey = (params?: GetOttableQueryParams) => [{ url: '/ottable' }, ...(params ? [params] : [])] as const
 
 export type GetOttableSuspenseQueryKey = ReturnType<typeof getOttableSuspenseQueryKey>
 
@@ -17,21 +17,21 @@ export type GetOttableSuspenseQueryKey = ReturnType<typeof getOttableSuspenseQue
  * @summary Retrieve a list of OTs for the data grid
  * {@link /ottable}
  */
-export async function getOttableSuspense(config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
+export async function getOttableSuspense(params?: GetOttableQueryParams, config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
   const { client: request = fetch, ...requestConfig } = config  
   
-  const res = await request<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, unknown>({ method : "GET", url : `/ottable`, ... requestConfig })  
+  const res = await request<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, unknown>({ method : "GET", url : `/ottable`, params, ... requestConfig })  
   return res.data
 }
 
-export function getOttableSuspenseQueryOptions(config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
-  const queryKey = getOttableSuspenseQueryKey()
+export function getOttableSuspenseQueryOptions(params?: GetOttableQueryParams, config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
+  const queryKey = getOttableSuspenseQueryKey(params)
   return queryOptions<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, GetOttableQueryResponse, typeof queryKey>({
  
    queryKey,
    queryFn: async ({ signal }) => {
       config.signal = signal
-      return getOttableSuspense(config)
+      return getOttableSuspense(params, config)
    },
   })
 }
@@ -40,7 +40,7 @@ export function getOttableSuspenseQueryOptions(config: Partial<RequestConfig> & 
  * @summary Retrieve a list of OTs for the data grid
  * {@link /ottable}
  */
-export function useGetOttableSuspense<TData = GetOttableQueryResponse, TQueryKey extends QueryKey = GetOttableSuspenseQueryKey>(options: 
+export function useGetOttableSuspense<TData = GetOttableQueryResponse, TQueryKey extends QueryKey = GetOttableSuspenseQueryKey>(params?: GetOttableQueryParams, options: 
 {
   query?: Partial<UseSuspenseQueryOptions<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, TData, TQueryKey>> & { client?: QueryClient },
   client?: Partial<RequestConfig> & { client?: typeof fetch }
@@ -48,10 +48,10 @@ export function useGetOttableSuspense<TData = GetOttableQueryResponse, TQueryKey
  = {}) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {}
   const { client: queryClient, ...queryOptions } = queryConfig
-  const queryKey = queryOptions?.queryKey ?? getOttableSuspenseQueryKey()
+  const queryKey = queryOptions?.queryKey ?? getOttableSuspenseQueryKey(params)
 
   const query = useSuspenseQuery({
-   ...getOttableSuspenseQueryOptions(config),
+   ...getOttableSuspenseQueryOptions(params, config),
    queryKey,
    ...queryOptions
   } as unknown as UseSuspenseQueryOptions, queryClient) as UseSuspenseQueryResult<TData, ResponseErrorConfig<GetOttable500>> & { queryKey: TQueryKey }

@@ -4,6 +4,7 @@ import { IMovilRepository } from '../data/repositories/interfaces/IMovilReposito
 import { IItemRepository } from '../data/repositories/interfaces/IItemRepository';
 import { IItmOtRepository } from '../data/repositories/interfaces/IItmOtRepository';
 import { OrdenTrabajoDTO } from '../data/dto/OrdenTrabajoDTO';
+import { OtFilter } from '../data/dto/OtFilter';
 
 
 export class OtService {
@@ -109,7 +110,8 @@ export class OtService {
                     ot_id: ot.id,
                     item_id: item.item_id,
                     quantity: item.quantity,
-                    is_additional: false
+                    is_additional: false,
+                    assigned_movil_id: item.assigned_movil_id
                 });
             }
         }
@@ -157,7 +159,8 @@ export class OtService {
                         ot_id: id,
                         item_id: item.item_id,
                         quantity: item.quantity,
-                        is_additional: false
+                        is_additional: false,
+                        assigned_movil_id: item.assigned_movil_id
                     });
                 }
             }
@@ -170,8 +173,12 @@ export class OtService {
         return this.otRepository.findById(id);
     }
 
-    async getOtTable(limit?: number, offset?: number): Promise<any[]> {
-        return this.otRepository.getOtTable(limit, offset);
+    async getOtTable(limit?: number, offset?: number, filters?: OtFilter): Promise<any[]> {
+        return this.otRepository.getOtTable(limit, offset, filters);
+    }
+
+    async getGranularReportData(filters: OtFilter): Promise<any[]> {
+        return this.otRepository.getReportData(filters);
     }
 
     async getMovils(): Promise<any[]> {

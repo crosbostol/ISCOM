@@ -3,26 +3,23 @@
 * Do not edit manually.
 */
 
+import { ordenTrabajoDTOSchema } from "./ordenTrabajoDTOSchema.ts";
 import { z } from "zod/v4";
+
+export const getOttableQueryParamsSchema = z.object({
+    "page": z.optional(z.coerce.number().int().describe("Page number")),
+"limit": z.optional(z.coerce.number().int().describe("Items per page")),
+"status": z.optional(z.string().describe("Filter by OT status")),
+"startDate": z.optional(z.iso.date().describe("Start date filter (YYYY-MM-DD)")),
+"endDate": z.optional(z.iso.date().describe("End date filter (YYYY-MM-DD)")),
+"search": z.optional(z.string().describe("Search term")),
+"dateField": z.optional(z.enum(["started_at", "finished_at"]).describe("Date field to use for range filtering (default started_at)"))
+    }).optional()
 
 /**
  * @description List of OTs retrieved successfully
  */
-export const getOttable200Schema = z.array(z.object({
-    "civil_movil_id": z.optional(z.int()),
-"commune": z.optional(z.string()),
-"external_ot_id": z.optional(z.string()),
-"finished_at": z.optional(z.string().datetime()),
-"hydraulic_movil_id": z.optional(z.int()),
-"id": z.optional(z.int()),
-"is_additional": z.optional(z.boolean()),
-"n_civil": z.optional(z.string()),
-"n_hidraulico": z.optional(z.string()),
-"number_street": z.optional(z.string()),
-"ot_state": z.optional(z.string()),
-"started_at": z.optional(z.string().datetime()),
-"street": z.optional(z.string())
-    }))
+export const getOttable200Schema = z.array(z.lazy(() => ordenTrabajoDTOSchema))
 
 /**
  * @description Server error

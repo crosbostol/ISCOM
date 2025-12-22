@@ -1,0 +1,1 @@
+{"type":"object","required":["name","rut"],"properties":{"name":{"type":"string"},"rut":{"type":"string"}},"x-readme-ref-name":"CreateConductorDTO"}

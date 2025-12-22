@@ -3,64 +3,57 @@
 * Do not edit manually.
 */
 
+import type { OrdenTrabajoDTO } from "./OrdenTrabajoDTO.ts";
+
+export const getOttableQueryParamsDateFieldEnum = {
+    "started_at": "started_at",
+    "finished_at": "finished_at"
+} as const;
+
+export type GetOttableQueryParamsDateFieldEnumKey = (typeof getOttableQueryParamsDateFieldEnum)[keyof typeof getOttableQueryParamsDateFieldEnum];
+
+export type GetOttableQueryParams = {
+    /**
+     * @description Page number
+     * @type integer | undefined
+    */
+    page?: number;
+    /**
+     * @description Items per page
+     * @type integer | undefined
+    */
+    limit?: number;
+    /**
+     * @description Filter by OT status
+     * @type string | undefined
+    */
+    status?: string;
+    /**
+     * @description Start date filter (YYYY-MM-DD)
+     * @type string | undefined, date
+    */
+    startDate?: string;
+    /**
+     * @description End date filter (YYYY-MM-DD)
+     * @type string | undefined, date
+    */
+    endDate?: string;
+    /**
+     * @description Search term
+     * @type string | undefined
+    */
+    search?: string;
+    /**
+     * @description Date field to use for range filtering (default started_at)
+     * @type string | undefined
+    */
+    dateField?: GetOttableQueryParamsDateFieldEnumKey;
+};
 
 /**
  * @description List of OTs retrieved successfully
 */
-export type GetOttable200 = {
-    /**
-     * @type integer | undefined
-    */
-    civil_movil_id?: number;
-    /**
-     * @type string | undefined
-    */
-    commune?: string;
-    /**
-     * @type string | undefined
-    */
-    external_ot_id?: string;
-    /**
-     * @type string | undefined, date-time
-    */
-    finished_at?: string;
-    /**
-     * @type integer | undefined
-    */
-    hydraulic_movil_id?: number;
-    /**
-     * @type integer | undefined
-    */
-    id?: number;
-    /**
-     * @type boolean | undefined
-    */
-    is_additional?: boolean;
-    /**
-     * @type string | undefined
-    */
-    n_civil?: string;
-    /**
-     * @type string | undefined
-    */
-    n_hidraulico?: string;
-    /**
-     * @type string | undefined
-    */
-    number_street?: string;
-    /**
-     * @type string | undefined
-    */
-    ot_state?: string;
-    /**
-     * @type string | undefined, date-time
-    */
-    started_at?: string;
-    /**
-     * @type string | undefined
-    */
-    street?: string;
-}[];
+export type GetOttable200 = OrdenTrabajoDTO[];
 
 /**
  * @description Server error
@@ -71,5 +64,6 @@ export type GetOttableQueryResponse = GetOttable200;
 
 export type GetOttableQuery = {
     Response: GetOttable200;
+    QueryParams: GetOttableQueryParams;
     Errors: GetOttable500;
 };

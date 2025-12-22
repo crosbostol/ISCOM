@@ -3,16 +3,13 @@
 * Do not edit manually.
 */
 
+import { itemDTOSchema } from "./itemDTOSchema.ts";
 import { z } from "zod/v4";
 
 /**
  * @description List of items
  */
-export const getItems200Schema = z.array(z.object({
-    "item_id": z.optional(z.int()),
-"description": z.optional(z.string()),
-"item_type": z.optional(z.string())
-    }))
+export const getItems200Schema = z.array(z.lazy(() => itemDTOSchema))
 
 /**
  * @description Server error

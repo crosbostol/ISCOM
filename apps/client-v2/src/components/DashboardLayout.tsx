@@ -16,6 +16,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import CategoryIcon from '@mui/icons-material/Category';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import BadgeIcon from '@mui/icons-material/Badge';
+import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 
 const DRAWER_WIDTH = 260;
 
@@ -30,8 +31,30 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     const navigate = useNavigate();
     const location = useLocation();
     const [openMantenedores, setOpenMantenedores] = useState(false);
+    const [openReportes, setOpenReportes] = useState(false);
 
     const handleClickMantenedores = () => setOpenMantenedores(!openMantenedores);
+    const handleClickReportes = () => setOpenReportes(!openReportes);
+
+    // Helper for active style - fully dynamic with theme.palette
+    const activeStyle = {
+        bgcolor: alpha(theme.palette.primary.main, 0.12),
+        color: 'primary.main',
+        '&:hover': {
+            bgcolor: alpha(theme.palette.primary.main, 0.20),
+        },
+        borderLeft: `4px solid ${theme.palette.primary.main}`
+    };
+
+    const inactiveStyle = {
+        color: 'text.secondary',
+        '&:hover': { color: 'text.primary', bgcolor: 'action.hover' },
+        borderLeft: '4px solid transparent' // Maintain layout stability
+    };
+
+    // Determine if sections are active
+    const isMantenedoresActive = location.pathname.startsWith('/mantenedores');
+    const isReportesActive = location.pathname.startsWith('/reportes');
 
     return (
         <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
@@ -68,18 +91,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                             selected={location.pathname === '/ots' || location.pathname === '/'}
                             onClick={() => navigate('/ots')}
                             sx={{
-                                '&.Mui-selected': {
-                                    bgcolor: 'rgba(0, 150, 136, 0.15)',
-                                    color: theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(0, 150, 136, 0.25)',
-                                    },
-                                    borderLeft: `4px solid ${theme.palette.mode === 'dark' ? '#4DB6AC' : '#009688'}`
-                                },
-                                '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.05)'
-                                },
-                                py: 1.5
+                                py: 1.5,
+                                ...((location.pathname === '/ots' || location.pathname === '/') ? activeStyle : inactiveStyle)
                             }}
                         >
                             <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
@@ -89,22 +102,54 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                         </ListItemButton>
 
                         {/* Items inactivos */}
-                        {['Recursos', 'Reportes'].map((text, index) => (
-                            <ListItemButton key={text} sx={{ py: 1.5, color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'action.hover' } }}>
-                                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                                    {index === 0 ? <BuildIcon /> : <AssessmentIcon />}
-                                </ListItemIcon>
-                                <ListItemText primary={text} />
-                            </ListItemButton>
-                        ))}
+                        {/* Recursos */}
+                        <ListItemButton sx={{ py: 1.5, color: 'text.secondary', '&:hover': { color: 'text.primary', bgcolor: 'action.hover' } }}>
+                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                <BuildIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Recursos" />
+                        </ListItemButton>
+
+                        {/* PADRE: REPORTES (Ahora Acordeón) */}
+                        <ListItemButton
+                            onClick={handleClickReportes}
+                            sx={{
+                                py: 1.5,
+                                ...((isReportesActive && !openReportes) ? activeStyle : inactiveStyle)
+                            }}
+                        >
+                            <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                <AssessmentIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="Reportes" />
+                            {openReportes ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+
+                        {/* HIJOS: LISTA REPORTES */}
+                        <Collapse in={openReportes} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding>
+                                <ListItemButton
+                                    sx={{
+                                        pl: 4, py: 1,
+                                        ...(location.pathname === '/reportes/estado-pago' ? activeStyle : inactiveStyle),
+                                        borderLeft: location.pathname === '/reportes/estado-pago' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
+                                    }}
+                                    onClick={() => navigate('/reportes/estado-pago')}
+                                >
+                                    <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
+                                        <RequestQuoteIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Generar Estado de Pago" primaryTypographyProps={{ fontSize: '0.9rem' }} />
+                                </ListItemButton>
+                            </List>
+                        </Collapse>
 
                         {/* PADRE: MANTENEDORES */}
                         <ListItemButton
                             onClick={handleClickMantenedores}
                             sx={{
                                 py: 1.5,
-                                color: 'text.secondary',
-                                '&:hover': { color: 'text.primary', bgcolor: 'action.hover' }
+                                ...((isMantenedoresActive && !openMantenedores) ? activeStyle : inactiveStyle)
                             }}
                         >
                             <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
@@ -119,7 +164,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                             <List component="div" disablePadding>
 
                                 {/* ÍTEMS */}
-                                <ListItemButton sx={{ pl: 4, py: 1, color: 'text.secondary', '&:hover': { color: 'primary.main' } }} onClick={() => navigate('/mantenedores/items')}>
+                                <ListItemButton
+                                    sx={{
+                                        pl: 4, py: 1,
+                                        ...(location.pathname === '/mantenedores/items' ? activeStyle : inactiveStyle),
+                                        borderLeft: location.pathname === '/mantenedores/items' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
+                                    }}
+                                    onClick={() => navigate('/mantenedores/items')}
+                                >
                                     <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
                                         <CategoryIcon fontSize="small" />
                                     </ListItemIcon>
@@ -127,7 +179,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                 </ListItemButton>
 
                                 {/* CONDUCTORES */}
-                                <ListItemButton sx={{ pl: 4, py: 1, color: 'text.secondary', '&:hover': { color: 'primary.main' } }} onClick={() => navigate('/mantenedores/conductores')}>
+                                <ListItemButton
+                                    sx={{
+                                        pl: 4, py: 1,
+                                        ...(location.pathname === '/mantenedores/conductores' ? activeStyle : inactiveStyle),
+                                        borderLeft: location.pathname === '/mantenedores/conductores' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
+                                    }}
+                                    onClick={() => navigate('/mantenedores/conductores')}
+                                >
                                     <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
                                         <BadgeIcon fontSize="small" />
                                     </ListItemIcon>
@@ -135,7 +194,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                                 </ListItemButton>
 
                                 {/* MÓVILES */}
-                                <ListItemButton sx={{ pl: 4, py: 1, color: 'text.secondary', '&:hover': { color: 'primary.main' } }} onClick={() => navigate('/mantenedores/moviles')}>
+                                <ListItemButton
+                                    sx={{
+                                        pl: 4, py: 1,
+                                        ...(location.pathname === '/mantenedores/moviles' ? activeStyle : inactiveStyle),
+                                        borderLeft: location.pathname === '/mantenedores/moviles' ? `4px solid ${theme.palette.primary.main}` : '4px solid transparent'
+                                    }}
+                                    onClick={() => navigate('/mantenedores/moviles')}
+                                >
                                     <ListItemIcon sx={{ color: 'inherit', minWidth: 35 }}>
                                         <LocalShippingIcon fontSize="small" />
                                     </ListItemIcon>

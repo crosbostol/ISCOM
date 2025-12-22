@@ -1,4 +1,5 @@
 import { OrdenTrabajoDTO } from '../../dto/OrdenTrabajoDTO';
+import { OtFilter } from '../../dto/OtFilter';
 
 export interface IOtRepository {
     create(ot: OrdenTrabajoDTO): Promise<any>;
@@ -8,7 +9,8 @@ export interface IOtRepository {
     findByAddress(street: string, number: string, commune: string): Promise<OrdenTrabajoDTO[]>;
     update(id: number, ot: Partial<OrdenTrabajoDTO>): Promise<any>;
     softDelete(id: number): Promise<any>;
-    getOtTable(limit?: number, offset?: number): Promise<any[]>;
+    getOtTable(limit?: number, offset?: number, filters?: OtFilter): Promise<any[]>;
+    getReportData(filters: OtFilter): Promise<any[]>;
     getOtTableByState(state: string): Promise<any[]>;
     findByRangeDate(start: string, end: string): Promise<OrdenTrabajoDTO[]>;
     findByState(state: string): Promise<OrdenTrabajoDTO[]>;

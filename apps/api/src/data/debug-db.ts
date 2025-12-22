@@ -1,21 +1,21 @@
 
 import pool from '../config/database';
 
-const run = async () => {
+async function verifyData() {
     try {
-        const client = await pool.connect();
-        const res = await client.query(`
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public'
+        console.log('--- Debugging Data ---');
+        const res = await pool.query(`
+            SELECT id, external_ot_id, ot_state, finished_at, dismissed, started_at 
+            FROM ot 
+            WHERE ot_state LIKE '%PAGAR%'
+            LIMIT 10
         `);
-        console.log('Tables:', res.rows.map(r => r.table_name));
-        client.release();
+        console.log(JSON.stringify(res.rows, null, 2));
+        process.exit(0);
     } catch (err) {
-        console.error('Error:', err);
-    } finally {
-        await pool.end();
+        console.error(err);
+        process.exit(1);
     }
-};
+}
 
-run();
+verifyData();

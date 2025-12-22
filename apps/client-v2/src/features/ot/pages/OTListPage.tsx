@@ -1,105 +1,90 @@
-import { useState, useMemo, useCallback } from 'react';
-import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid';
+import React, { useState, useMemo, useCallback } from 'react';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { esES } from '@mui/x-data-grid/locales';
-import { Alert, Snackbar, Chip, Box, Typography, CircularProgress, Button, Stack, Paper, InputBase, Popover, Tooltip, Backdrop } from '@mui/material';
+import { Alert, Snackbar, Box, Typography, CircularProgress, Button, Stack, Backdrop, Paper, alpha } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import SearchIcon from '@mui/icons-material/Search';
-import DateRangeIcon from '@mui/icons-material/DateRange';
-// import { DashboardLayout } from '../../../components/DashboardLayout'; // Removed as it is now in router
-import { useGetOttable } from '../../../api/generated/hooks/useGetOttable';
-import { UploadOTs } from '../components/UploadOTs';
-import type { GetOttable200 } from '../../../api/generated/models/GetOttable';
+import PostAddIcon from '@mui/icons-material/PostAdd';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
+import { useGetOttable } from '../../../api/generated/hooks/useGetOttable';
+import { usePutOtId } from '../../../api/generated/hooks/usePutOtId';
+import { useGetMoviles } from '../../../api/generated/hooks/useGetMoviles';
+import { useGetConductors } from '../../../api/generated/hooks/useGetConductors';
+
+import { UploadOTs } from '../components/UploadOTs';
+import { OTFormModal } from '../components/OTFormModal';
+import { OTFilterBar } from '../components/OTFilterBar';
+import { getColumns } from '../components/OTTableColumns';
+import { getDaysDiff } from '../utils/otStatusUtils';
+
+import type { OrdenTrabajoDTO } from '../../../api/generated/models/OrdenTrabajoDTO';
+import type { MovilDTO } from '../../../api/generated/models/MovilDTO';
+import type { Conductor } from '../../../api/generated/models/Conductor';
 
 dayjs.extend(isBetween);
 
-
-type OT = GetOttable200[number];
-
-const getDaysDiff = (dateString?: string | null) => {
-    if (!dateString) return 0;
-    const start = new Date(dateString);
-    const now = new Date();
-    // Diferencia en milisegundos dividida por ms en un día
-    const diffTime = now.getTime() - start.getTime();
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-};
-
-// Mapeo de estados a UX
-const STATE_CONFIG: Record<string, { label: string; color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' }> = {
-    'CREADA': { label: '🆕 Creada', color: 'default' },
-    'PENDIENTE_OC': { label: '🚧 Falta Civil', color: 'warning' }, // Match API Value
-    'PENDIENTE_RET': { label: '🧹 Falta Retiro', color: 'info' },   // Match API Value
-    'OBRA_TERMINADA': { label: '🏗️ Obra Lista', color: 'info' },   // Legacy/Fallback
-    'POR_PAGAR': { label: '💰 Por Pagar', color: 'success' },
-    'PAGADA': { label: '✅ Pagada', color: 'primary' },
-    'ANULADA': { label: '🚫 Anulada', color: 'error' },
-    'OBSERVADA': { label: '⚠️ Observada', color: 'warning' }, // New State
-};
-
-import { OTFormModal } from '../components/OTFormModal';
-import EditIcon from '@mui/icons-material/Edit';
-import PostAddIcon from '@mui/icons-material/PostAdd';
-import { GridActionsCellItem } from '@mui/x-data-grid';
-import { usePutOtId } from '../../../api/generated/hooks/usePutOtId';
-
 export const OTListPage: React.FC = () => {
+    // -- State --
     const [uploadOpen, setUploadOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedOtId, setSelectedOtId] = useState<number | null>(null);
-
-    // Dropzone State
     const [droppedFile, setDroppedFile] = useState<File | null>(null);
 
-    // Snackbar State
+    // Filters
+    const [searchText, setSearchText] = useState('');
+    const [filterDateStart, setFilterDateStart] = useState<dayjs.Dayjs | null>(null);
+    const [filterDateEnd, setFilterDateEnd] = useState<dayjs.Dayjs | null>(null);
+
+    // Feedback
     const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({
-        open: false,
-        message: '',
-        severity: 'success'
+        open: false, message: '', severity: 'success'
     });
-
-    // Dropzone Logic
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        const file = acceptedFiles[0];
-        if (file) {
-            setDroppedFile(file);
-            setUploadOpen(true);
-        }
-    }, []);
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: { 'text/csv': ['.csv'] },
-        noClick: true,
-        noKeyboard: true,
-        onDropRejected: () => {
-            setSnackbar({ open: true, message: 'Solo archivos CSV', severity: 'error' });
-        }
-    });
-
-    const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
 
     const handleNotify = (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
         setSnackbar({ open: true, message, severity });
     };
 
-    // Filter State
-    const [searchText, setSearchText] = useState('');
-    const [dateAnchorEl, setDateAnchorEl] = useState<HTMLButtonElement | null>(null);
-    const [filterDateStart, setFilterDateStart] = useState<dayjs.Dayjs | null>(null);
-    const [filterDateEnd, setFilterDateEnd] = useState<dayjs.Dayjs | null>(null);
+    // -- Data --
+    const { data: ots, isLoading: isLoadingOts, isError, error } = useGetOttable();
+    const { data: moviles = [], isLoading: isLoadingMoviles } = useGetMoviles();
+    const { data: conductors = [], isLoading: isLoadingConductors } = useGetConductors();
 
-    // TODO: REFACTOR TO SERVER-SIDE PAGINATION
-    const { data: ots, isLoading, isError, error } = useGetOttable();
+    const { mutateAsync: updateOt } = usePutOtId();
 
+    const isLoading = isLoadingOts || isLoadingMoviles || isLoadingConductors;
+
+    // -- Lookups --
+    const movilesMap = useMemo(() => {
+        const map = new Map<string, MovilDTO>();
+        if (moviles) {
+            moviles.forEach(m => {
+                if (m.movil_id) map.set(m.movil_id, m);
+            });
+        }
+        return map;
+    }, [moviles]);
+
+    const conductorsMap = useMemo(() => {
+        const map = new Map<number, Conductor>();
+        if (conductors) {
+            conductors.forEach(c => {
+                if (c.id) map.set(c.id, c);
+            });
+        }
+        return map;
+    }, [conductors]);
+
+    // TODO: Implement server-side filtering for performance scalability
     const filteredOts = useMemo(() => {
         if (!ots) return [];
         return ots.filter((ot) => {
+            // 1. Data Sanitization (Integrity Check)
+            const hasIdentity = ot.id || ot.external_ot_id || (ot.street && ot.number_street && ot.started_at);
+            if (!hasIdentity) return false; // Filter out garbage data to protect DataGrid
+
+            // 2. Search Logic
             const searchLower = searchText.toLowerCase();
             const matchesText = !searchText || (
                 (ot.external_ot_id?.toLowerCase() || '').includes(searchLower) ||
@@ -111,9 +96,9 @@ export const OTListPage: React.FC = () => {
 
             if (!matchesText) return false;
 
+            // 3. Date Logic
             if (!filterDateStart && !filterDateEnd) return true;
             if (!ot.started_at) return false;
-
             const otDate = dayjs(ot.started_at);
             const start = filterDateStart ? filterDateStart.startOf('day') : null;
             const end = filterDateEnd ? filterDateEnd.endOf('day') : dayjs().endOf('day');
@@ -125,359 +110,116 @@ export const OTListPage: React.FC = () => {
         });
     }, [ots, searchText, filterDateStart, filterDateEnd]);
 
-    const { mutate: updateOt } = usePutOtId();
-
-    const handleCreate = () => {
-        setSelectedOtId(null);
-        setModalOpen(true);
-    };
-
-    const handleEditResources = (ot: OT) => {
-        setSelectedOtId(ot.id!);
-        setModalOpen(true);
-    };
-
-    const processRowUpdate = async (newRow: OT, oldRow: OT) => {
-        // Optimistic update or wait?
-        // Let's fire and forget for simple fields, but ideally handle errors.
-        if (newRow.external_ot_id !== oldRow.external_ot_id ||
-            newRow.street !== oldRow.street ||
-            newRow.number_street !== oldRow.number_street ||
-            newRow.commune !== oldRow.commune
-        ) {
-            updateOt({ id: newRow.id!, data: newRow as any });
+    // -- Update logic --
+    const processRowUpdate = async (newRow: OrdenTrabajoDTO, oldRow: OrdenTrabajoDTO) => {
+        try {
+            if (newRow.external_ot_id !== oldRow.external_ot_id || newRow.street !== oldRow.street ||
+                newRow.number_street !== oldRow.number_street || newRow.commune !== oldRow.commune) {
+                await updateOt({ id: newRow.id!, data: newRow as any });
+            }
+            return newRow;
+        } catch (error) {
+            handleNotify('Error al actualizar OT (Rollback)', 'error');
+            throw error; // Essential for DataGrid to revert UI to oldRow
         }
-        return newRow;
     };
 
-    // Snackbar state
-    const isErrorOpen = isError;
+    // -- Dropzone --
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        const file = acceptedFiles[0];
+        if (file) { setDroppedFile(file); setUploadOpen(true); }
+    }, []);
 
-    const columns: GridColDef[] = [
-        {
-            field: 'id',
-            headerName: 'ID',
-            width: 90,
-            renderCell: (params: GridRenderCellParams<OT>) => {
-                const { external_ot_id, id } = params.row;
-                const content = external_ot_id
-                    ? <Typography variant="body2" sx={{ lineHeight: 'normal' }}>{external_ot_id}</Typography>
-                    : <Chip label={`ADICIONAL (${id})`} color="secondary" size="small" variant="outlined" />;
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop, accept: { 'text/csv': ['.csv'] }, noClick: true, noKeyboard: true,
+        onDropRejected: () => handleNotify('Solo archivos CSV', 'error')
+    });
 
-                return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
-                        {content}
-                    </Box>
-                );
-            }
+    const columns: GridColDef<OrdenTrabajoDTO>[] = useMemo(() => getColumns(
+        (ot) => {
+            setSelectedOtId(ot.id!);
+            setModalOpen(true);
         },
-        {
-            field: 'ot_state',
-            headerName: 'Estado',
-            flex: 1,
-            minWidth: 150,
-            type: 'singleSelect',
-            valueOptions: Object.entries(STATE_CONFIG).map(([value, config]) => ({
-                value,
-                label: config.label
-            })),
-            renderCell: (params: GridRenderCellParams<OT>) => {
-                const stateCode = params.value as string;
-                const config = STATE_CONFIG[stateCode] || { label: stateCode, color: 'default' };
+        movilesMap,
+        conductorsMap
+    ), [movilesMap, conductorsMap]);
 
-                // --- LÓGICA DE ALERTA DE ATRASO ---
-                // Regla: Si está pendiente de civil y pasaron 3+ días -> ROJO
-                const daysElapsed = getDaysDiff(params.row.started_at);
-                const isDelayed = stateCode === 'PENDIENTE_OC' && daysElapsed >= 3;
-
-                // --- LÓGICA DE OBSERVADA ---
-                const isObservada = stateCode === 'OBSERVADA';
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const observationText = (params.row as any).observation;
-
-                // Si está atrasado, forzamos color error
-                const finalColor = isDelayed ? 'error' : config.color;
-                const finalLabel = isDelayed ? `${config.label} (${daysElapsed}d)` : config.label;
-
-                const chip = (
-                    <Chip
-                        label={finalLabel}
-                        color={finalColor as any}
-                        variant={isDelayed ? "filled" : (isObservada ? "outlined" : "filled")}
-                        size="small"
-                        sx={isObservada ? { borderColor: '#ed6c02', color: '#e65100', fontWeight: 'bold' } : (isDelayed ? { fontWeight: 'bold' } : {})}
-                    />
-                );
-
-                if (isObservada && observationText) {
-                    return (
-                        <Tooltip title={observationText} arrow placement="top">
-                            {chip}
-                        </Tooltip>
-                    );
-                }
-                return chip;
-            }
-        },
-        { field: 'street', headerName: 'Calle', flex: 1, minWidth: 200, editable: true },
-        { field: 'number_street', headerName: 'Nro', width: 80, editable: true },
-        { field: 'commune', headerName: 'Comuna', flex: 1, minWidth: 120, editable: true },
-        { field: 'n_hidraulico', headerName: 'Móvil Hid.', flex: 1, minWidth: 150 },
-        { field: 'n_civil', headerName: 'Móvil Civil', flex: 1, minWidth: 150 },
-        {
-            field: 'started_at',
-            headerName: 'Inicio',
-            width: 110,
-            valueFormatter: (value) => {
-                if (!value) return '';
-                const date = new Date(value);
-                if (isNaN(date.getTime())) return value;
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}-${month}-${year}`;
-            }
-        },
-        {
-            field: 'actions',
-            type: 'actions',
-            headerName: 'Recursos',
-            width: 80,
-            getActions: (params) => [
-                <GridActionsCellItem
-                    icon={<EditIcon />}
-                    label="Asignar Recursos"
-                    onClick={() => handleEditResources(params.row)}
-                />
-            ]
-        },
-    ];
-
-    if (isLoading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <CircularProgress />
-            </Box>
-        )
-    }
+    if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
 
     return (
         <Box {...getRootProps()} sx={{ position: 'relative', height: '100%', outline: 'none', display: 'flex', flexDirection: 'column' }}>
             <input {...getInputProps()} />
 
-            <UploadOTs
-                open={uploadOpen}
-                onClose={() => {
-                    setUploadOpen(false);
-                    setDroppedFile(null);
-                }}
-                initialFile={droppedFile}
-            />
-
-            {/* Modal */}
+            <UploadOTs open={uploadOpen} onClose={() => { setUploadOpen(false); setDroppedFile(null); }} initialFile={droppedFile} />
             <OTFormModal
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 otId={selectedOtId}
                 onNotify={handleNotify}
+                movilesList={moviles}
             />
 
-            {/* Global Snackbar */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                sx={{ zIndex: 2000 }}
-            >
-                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }} variant="filled">
-                    {snackbar.message}
-                </Alert>
+            <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>{snackbar.message}</Alert>
+            </Snackbar>
+
+            <Snackbar open={isError} autoHideDuration={6000}>
+                <Alert severity="error" sx={{ width: '100%' }}>Error al cargar OTs: {(error as Error)?.message || 'Unknown error'}</Alert>
             </Snackbar>
 
             {/* HEADER */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5" component="h1" fontWeight="bold" color="text.primary">
-                    Órdenes de Trabajo
-                </Typography>
-                <Button
-                    variant="contained"
-                    onClick={handleCreate}
-                    startIcon={<PostAddIcon />}
-                    sx={{ bgcolor: '#009688', '&:hover': { bgcolor: '#00796B' } }}
-                >
+                <Typography variant="h5" component="h1" fontWeight="bold" color="text.primary">Órdenes de Trabajo</Typography>
+                <Button variant="contained" onClick={() => { setSelectedOtId(null); setModalOpen(true); }} startIcon={<PostAddIcon />} sx={{ bgcolor: 'theme.palette.primary.main', '&:hover': { bgcolor: 'theme.palette.primary.dark' } }}>
                     Nueva OT
                 </Button>
             </Stack>
 
             {/* FILTER BAR */}
-            <Paper sx={{ p: 2, mb: 3, borderRadius: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
-                <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    bgcolor: (theme) => theme.palette.mode === 'light' ? '#f5f5f5' : 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: 1,
-                    px: 2,
-                    py: 0.5,
-                    flexGrow: 1
-                }}>
-                    <SearchIcon color="action" />
-                    <InputBase
-                        placeholder="Buscar..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        sx={{ ml: 1, flex: 1, color: 'text.primary' }}
-                    />
-                </Box>
-
-                <Box>
-                    <Button
-                        variant={filterDateStart || filterDateEnd ? "contained" : "outlined"}
-                        color={filterDateStart || filterDateEnd ? "primary" : "inherit"}
-                        startIcon={<DateRangeIcon />}
-                        onClick={(e) => setDateAnchorEl(e.currentTarget)}
-                        sx={{ borderColor: 'divider', color: filterDateStart || filterDateEnd ? 'white' : 'text.secondary', height: 40 }}
-                    >
-                        {filterDateStart ? `${filterDateStart.format('DD/MM')} - ${filterDateEnd ? filterDateEnd.format('DD/MM') : 'Hoy'}` : 'Fecha'}
-                    </Button>
-                    <Popover
-                        open={Boolean(dateAnchorEl)}
-                        anchorEl={dateAnchorEl}
-                        onClose={() => setDateAnchorEl(null)}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                    >
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2, width: 300 }}>
-                                <Typography variant="subtitle2" fontWeight="bold">Filtrar por Fecha Inicio</Typography>
-                                <DatePicker
-                                    label="Desde"
-                                    value={filterDateStart}
-                                    format="DD-MM-YYYY"
-                                    onChange={(val) => setFilterDateStart(val)}
-                                    slotProps={{ textField: { size: 'small' } }}
-                                />
-                                <DatePicker
-                                    label="Hasta"
-                                    value={filterDateEnd}
-                                    format="DD-MM-YYYY"
-                                    onChange={(val) => setFilterDateEnd(val)}
-                                    slotProps={{ textField: { size: 'small', helperText: !filterDateEnd ? "Se asume: HOY" : "" } }}
-                                />
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <Button size="small" color="inherit" onClick={() => { setFilterDateStart(null); setFilterDateEnd(null); }}>Limpiar</Button>
-                                    <Button size="small" variant="contained" onClick={() => setDateAnchorEl(null)}>Aplicar</Button>
-                                </Stack>
-                            </Box>
-                        </LocalizationProvider>
-                    </Popover>
-                </Box>
-
-
-
-                <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={() => setUploadOpen(true)}>
-                    Cargar CSV
-                </Button>
-            </Paper>
+            <OTFilterBar
+                searchText={searchText} onSearchChange={setSearchText}
+                startDate={filterDateStart} endDate={filterDateEnd}
+                onDateRangeChange={(s, e) => { setFilterDateStart(s); setFilterDateEnd(e); }}
+                onUploadClick={() => setUploadOpen(true)}
+            />
 
             {/* DATA TABLE */}
-            <Paper sx={{
-                flexGrow: 1, // Occupy remaining space
-                width: '100%',
-                borderRadius: 2,
-                boxShadow: 1,
-                overflow: 'hidden',
-                bgcolor: 'background.paper',
-                backgroundImage: 'none'
-            }}>
+            <Paper sx={{ flexGrow: 1, width: '100%', borderRadius: 2, boxShadow: 1, overflow: 'hidden', bgcolor: 'background.paper' }}>
                 <DataGrid
-                    rows={filteredOts}
-                    columns={columns}
-                    localeText={esES.components.MuiDataGrid.defaultProps.localeText}
+                    rows={filteredOts} columns={columns} localeText={esES.components.MuiDataGrid.defaultProps.localeText}
                     processRowUpdate={processRowUpdate}
+                    onProcessRowUpdateError={(error) => console.error(error)} // Suppress console noise on revert
                     loading={isLoading}
-                    getRowId={(row) => row.id || Math.random()}
-                    initialState={{
-                        pagination: {
-                            paginationModel: { pageSize: 15, page: 0 },
-                        },
+                    getRowId={(row) => {
+                        if (row.id) return row.id;
+                        if (row.external_ot_id) return row.external_ot_id;
+                        // Deterministic fallback for rows with missing ID but valid data
+                        return `${row.street}-${row.number_street}-${row.started_at}`;
                     }}
-                    pageSizeOptions={[15, 25, 50]}
-                    disableRowSelectionOnClick
-                    sx={{
-                        border: 'none',
-                        // --- SCROLLBAR STYLING ---
-                        '& ::-webkit-scrollbar': {
-                            width: 8,
-                            height: 8,
-                        },
-                        '& ::-webkit-scrollbar-track': {
-                            backgroundColor: (theme) => theme.palette.mode === 'light' ? '#f5f5f5' : 'rgba(255, 255, 255, 0.05)',
-                        },
-                        '& ::-webkit-scrollbar-thumb': {
-                            borderRadius: 4,
-                            backgroundColor: (theme) => theme.palette.mode === 'light' ? '#bdbdbd' : 'rgba(255, 255, 255, 0.3)',
-                            '&:hover': {
-                                backgroundColor: (theme) => theme.palette.mode === 'light' ? '#9e9e9e' : 'rgba(255, 255, 255, 0.5)',
-                            }
-                        },
-                        // --- END SCROLLBAR ---
-                        '& .MuiDataGrid-columnHeaders': {
-                            bgcolor: (theme) => theme.palette.mode === 'light'
-                                ? 'rgba(0, 150, 136, 0.08)'
-                                : 'rgba(77, 182, 172, 0.15)',
-                            color: 'text.primary',
-                        },
-                        '& .MuiDataGrid-row:hover': {
-                            bgcolor: 'action.hover',
-                        },
-                        '& .row-delayed': {
-                            bgcolor: (theme) => theme.palette.mode === 'light'
-                                ? '#FFEBEE'
-                                : 'rgba(211, 47, 47, 0.2)',
-                            '&:hover': {
-                                bgcolor: (theme) => theme.palette.mode === 'light'
-                                    ? '#FFCDD2'
-                                    : 'rgba(211, 47, 47, 0.3)'
-                            }
-                        },
-                    }}
+                    initialState={{ pagination: { paginationModel: { pageSize: 15, page: 0 } } }}
+                    pageSizeOptions={[15, 25, 50]} disableRowSelectionOnClick
                     getRowClassName={(params) => {
                         const days = getDaysDiff(params.row.started_at);
-                        if (params.row.ot_state === 'PENDIENTE_OC' && days >= 3) {
-                            return 'row-delayed';
-                        }
+                        if (params.row.ot_state === 'PENDIENTE_OC' && days >= 3) return 'row-delayed';
                         return '';
+                    }}
+                    sx={{
+                        border: 'none',
+                        '& .MuiDataGrid-columnHeaders': { bgcolor: (theme) => theme.palette.action.hover, color: 'text.primary' },
+                        '& .MuiDataGrid-row:hover': { bgcolor: 'action.hover' },
+                        '& .row-delayed': {
+                            bgcolor: (theme) => theme.palette.mode === 'light' ? '#FFEBEE' : 'rgba(211, 47, 47, 0.2)',
+                            '&:hover': { bgcolor: (theme) => theme.palette.mode === 'light' ? '#FFCDD2' : 'rgba(211, 47, 47, 0.3)' }
+                        },
                     }}
                 />
             </Paper>
 
-            <Snackbar open={isErrorOpen} autoHideDuration={6000}>
-                <Alert severity="error" sx={{ width: '100%' }}>
-                    Error al cargar OTs: {(error as Error)?.message || 'Unknown error'}
-                </Alert>
-            </Snackbar>
-
             {/* DROP OVERLAY */}
             {isDragActive && (
-                <Backdrop
-                    open={true}
-                    sx={{
-                        position: 'absolute',
-                        zIndex: 10,
-                        color: '#009688',
-                        bgcolor: 'rgba(11, 25, 41, 0.85)',
-                        border: '3px dashed #009688',
-                        borderRadius: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                    }}
-                >
+                <Backdrop open={true} sx={{ position: 'absolute', zIndex: 10, bgcolor: (theme) => alpha(theme.palette.background.default, 0.9), border: '3px dashed', borderColor: 'primary.main', borderRadius: 2, display: 'flex', flexDirection: 'column', color: 'primary.main' }}>
                     <CloudUploadIcon sx={{ fontSize: 80, mb: 2 }} />
-                    <Typography variant="h4" fontWeight="bold">
-                        Suelta el CSV aquí
-                    </Typography>
+                    <Typography variant="h4" fontWeight="bold">Suelta el CSV aquí</Typography>
                 </Backdrop>
             )}
         </Box>
