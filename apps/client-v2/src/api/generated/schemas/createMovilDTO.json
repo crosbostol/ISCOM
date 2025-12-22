@@ -1,0 +1,1 @@
+{"type":"object","required":["movil_id","movil_type","movil_state"],"properties":{"movil_id":{"type":"string"},"external_code":{"type":"string"},"movil_type":{"type":"string"},"movil_state":{"type":"string"},"conductor_id":{"type":"integer","nullable":true}},"x-readme-ref-name":"CreateMovilDTO"}

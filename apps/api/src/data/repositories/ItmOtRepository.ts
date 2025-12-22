@@ -29,9 +29,9 @@ export class ItmOtRepository implements IItmOtRepository {
     }
 
     async create(itmOt: ItmOtDTO): Promise<any> {
-        const { item_id, ot_id, quantity } = itmOt;
-        const sql = 'INSERT INTO itm_ot (item_id, ot_id, quantity) VALUES ($1, $2, $3) RETURNING *';
-        const result = await this.db.query(sql, [item_id, ot_id, quantity]);
+        const { item_id, ot_id, quantity, assigned_movil_id } = itmOt;
+        const sql = 'INSERT INTO itm_ot (item_id, ot_id, quantity, assigned_movil_id) VALUES ($1, $2, $3, $4) RETURNING *';
+        const result = await this.db.query(sql, [item_id, ot_id, quantity, assigned_movil_id]);
         return result.rows[0];
     }
 
@@ -48,9 +48,9 @@ export class ItmOtRepository implements IItmOtRepository {
     }
 
     async createWithClient(itmOt: ItmOtDTO, client: any): Promise<any> {
-        const { item_id, ot_id, quantity } = itmOt;
-        const sql = 'INSERT INTO itm_ot (item_id, ot_id, quantity) VALUES ($1, $2, $3) RETURNING *';
-        const result = await client.query(sql, [item_id, ot_id, quantity]);
+        const { item_id, ot_id, quantity, assigned_movil_id } = itmOt;
+        const sql = 'INSERT INTO itm_ot (item_id, ot_id, quantity, assigned_movil_id) VALUES ($1, $2, $3, $4) RETURNING *';
+        const result = await client.query(sql, [item_id, ot_id, quantity, assigned_movil_id]);
         return result.rows[0];
     }
 

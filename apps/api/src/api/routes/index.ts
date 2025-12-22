@@ -6,7 +6,7 @@ import authRoutes from './auth.routes';
 import conductorRoutes from './conductor.routes';
 import movilRoutes from './movil.routes';
 import itemRoutes from './item.routes';
-import payrollRoutes from './payroll.routes';
+import reportRoutes from './report.routes';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -14,6 +14,8 @@ const upload = multer({ dest: 'uploads/' });
 
 // Public Routes
 router.use('/auth', authRoutes);
+
+
 
 // Health Check
 router.get('/health', (req, res) => {
@@ -27,7 +29,7 @@ router.use(requireApiKey);
 router.use('/moviles', movilRoutes);
 router.use('/conductors', conductorRoutes);
 router.use('/items', itemRoutes);
-router.use('/payroll', payrollRoutes);
+router.use('/reports', reportRoutes);
 
 /**
  * @swagger
@@ -111,7 +113,6 @@ router.get('/ottable', getOtTable);
 router.post('/ot', createOt);
 router.put('/ot/:id', updateOt);
 router.get('/ot/:id', getOtById);
-router.get('/movils', getMovils);
-router.get('/items', getItems);
+
 
 export default router;

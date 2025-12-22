@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import PlaceIcon from '@mui/icons-material/Place'; // Ubicación
 import WaterDropIcon from '@mui/icons-material/WaterDrop'; // Hidráulico
 import EngineeringIcon from '@mui/icons-material/Engineering'; // Civil
+import LocalShippingIcon from '@mui/icons-material/LocalShipping'; // Retiro
 import AssignmentIcon from '@mui/icons-material/Assignment'; // Resumen
 
 // 1. LA TUBERÍA (Conector)
@@ -83,7 +84,8 @@ function ColorlibStepIcon(props: StepIconProps) {
         1: <PlaceIcon />,
         2: <WaterDropIcon />,
         3: <EngineeringIcon />,
-        4: <AssignmentIcon />,
+        4: <LocalShippingIcon />,
+        5: <AssignmentIcon />,
     };
 
     return (

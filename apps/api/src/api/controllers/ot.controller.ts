@@ -36,6 +36,63 @@ export const uploadOtCsv = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * @swagger
+ * /ottable:
+ *   get:
+ *     summary: Retrieve OT table data with filters
+ *     tags: [OTs]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter by OT status
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term
+ *       - in: query
+ *         name: dateField
+ *         schema:
+ *           type: string
+ *           enum: [started_at, finished_at]
+ *         description: Date field to use for range filtering (default started_at)
+ *     responses:
+ *       200:
+ *         description: List of OTs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/OrdenTrabajoDTO'
+ *       500:
+ *         description: Server error
+ */
 export const getOtTable = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || undefined;
@@ -46,7 +103,15 @@ export const getOtTable = async (req: Request, res: Response) => {
             offset = (page - 1) * limit;
         }
 
-        const result = await otService.getOtTable(limit, offset);
+        const filters = {
+            status: req.query.status as string,
+            startDate: req.query.startDate as string,
+            endDate: req.query.endDate as string,
+            search: req.query.search as string,
+            dateField: req.query.dateField as 'started_at' | 'finished_at'
+        };
+
+        const result = await otService.getOtTable(limit, offset, filters);
         res.status(200).send(result);
     } catch (error) {
         res.status(500).send(error);
