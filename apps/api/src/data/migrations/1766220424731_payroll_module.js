@@ -6,6 +6,34 @@
  * 2. payroll_account - Employee payroll accounts
  * 3. payroll_transaction - Payment transactions (debits and credits)
  * 4. banking_info - Bank account information for transfers
+ * 
+ * DESIGN DECISION - Single Person per RUT:
+ * ==========================================
+ * The personnel table uses a UNIQUE constraint on RUT (Chilean national ID).
+ * This enforces that each person appears exactly ONCE in the system, regardless of role.
+ * 
+ * Rationale:
+ * - A person has one RUT for life (unique national identifier)
+ * - Banking information is tied to a person's RUT, not their role
+ * - Payroll accounts are per-person, not per-role
+ * - Simplifies salary payments and tax reporting
+ * 
+ * Current Limitation - Single Role per Person:
+ * =============================================
+ * The current schema stores a single 'role' field per person.
+ * If someone works in multiple capacities (e.g., both Conductor and Peoneta),
+ * you must choose their PRIMARY role.
+ * 
+ * Future Enhancement (if needed):
+ * ===============================
+ * If multi-role support is required, consider:
+ * 1. Create a separate 'personnel_roles' junction table:
+ *    personnel_roles (personnel_id, role, is_primary, created_at)
+ * 2. Keep personnel.role as the primary/default role
+ * 3. Store additional roles in the junction table
+ * 
+ * This would allow tracking multiple roles while maintaining:
+ * - One person = One RUT = One payroll account = One banking info
  */
 
 /* eslint-disable camelcase */
@@ -28,12 +56,13 @@ exports.up = (pgm) => {
         rut: {
             type: 'varchar(15)',
             notNull: true,
-            unique: true
+            unique: true,
+            comment: 'Chilean national ID - unique per person, enforces one record per individual'
         },
         role: {
             type: 'varchar(50)',
             notNull: true,
-            comment: 'Chofer, Peoneta, Ayudante, etc.'
+            comment: 'Primary role: Conductor, Peoneta, Ayudante, etc. (single role per person in current design)'
         },
         conductor_id: {
             type: 'integer',
@@ -59,6 +88,8 @@ exports.up = (pgm) => {
     pgm.createIndex('personnel', 'conductor_id', { ifNotExists: true });
 
     // Populate personnel from existing conductors
+    // NOTE: NOT EXISTS prevents duplicate RUT violations and makes this migration re-runnable
+    // If a conductor's RUT already exists in personnel (e.g., from manual entry), skip them
     pgm.sql(`
         INSERT INTO personnel (name, rut, role, conductor_id, is_active, created_at)
         SELECT 
@@ -220,9 +251,19 @@ exports.up = (pgm) => {
         name: 'idx_banking_info_personnel',
         ifNotExists: true
     });
+
+    // Add CHECK constraint to ensure banking_info.rut matches personnel.rut
+    // This prevents the two RUT values from becoming out of sync
+    pgm.addConstraint('banking_info', 'banking_info_rut_matches_personnel', {
+        check: `rut = (SELECT p.rut FROM personnel p WHERE p.id = personnel_id)`
+    });
 };
 
 exports.down = (pgm) => {
+    // Drop the CHECK constraint first
+    pgm.dropConstraint('banking_info', 'banking_info_rut_matches_personnel', { ifExists: true });
+
+    // Drop tables in reverse order
     pgm.dropTable('banking_info', { ifExists: true, cascade: true });
     pgm.dropTable('payroll_transaction', { ifExists: true, cascade: true });
     pgm.dropTable('payroll_account', { ifExists: true, cascade: true });

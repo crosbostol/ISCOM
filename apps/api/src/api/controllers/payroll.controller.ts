@@ -226,7 +226,9 @@ export class PayrollController {
      *       201:
      *         description: Payroll account created
      *       400:
-     *         description: Validation error or account already exists
+     *         description: Validation error
+     *       409:
+     *         description: Payroll account already exists for this employee
      */
     async createAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
@@ -240,7 +242,7 @@ export class PayrollController {
             if (error instanceof NotFoundError) {
                 res.status(404).json({ error: error.message });
             } else if (error instanceof ConflictError) {
-                res.status(400).json({ error: error.message });
+                res.status(409).json({ error: error.message });
             } else {
                 next(error);
             }
@@ -349,9 +351,11 @@ export class PayrollController {
      *             $ref: '#/components/schemas/BankingInfoDTO'
      *     responses:
      *       201:
-     *         description: Banking info created/updated
+     *         description: Banking info created
      *       400:
      *         description: Validation error (e.g., RUT mismatch)
+     *       409:
+     *         description: Banking info already exists (use PUT to update)
      */
     async createBankingInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
@@ -364,7 +368,7 @@ export class PayrollController {
             } else if (error instanceof ValidationError) {
                 res.status(400).json({ error: error.message });
             } else if (error instanceof ConflictError) {
-                res.status(400).json({ error: error.message });
+                res.status(409).json({ error: error.message });
             } else {
                 next(error);
             }
@@ -482,7 +486,12 @@ export class PayrollController {
      */
     async exportSantanderTransfer(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const excelBuffer = await this.payrollService.generateSantanderTransferExcel();
+            // Pass audit context for security logging
+            const excelBuffer = await this.payrollService.generateSantanderTransferExcel({
+                userId: req.user?.id,
+                ipAddress: req.ip || req.socket.remoteAddress,
+                userAgent: req.get('user-agent')
+            });
 
             // Generate filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);

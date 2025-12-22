@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 /**
- * Middleware to restrict access to MANAGER and ADMIN roles only
+ * Middleware to restrict access to MANAGER roles only
  * Must be used AFTER requireApiKey middleware
  */
 export const requireManagerRole = (req: Request, res: Response, next: NextFunction) => {
@@ -13,7 +13,7 @@ export const requireManagerRole = (req: Request, res: Response, next: NextFuncti
     // Extract user role
     const userRole = req.user.role as string;
 
-    // Allow only MANAGER and ADMIN roles
+    // Allow only MANAGER roles
     if (userRole === 'MANAGER') {
         return next();
     }

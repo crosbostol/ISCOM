@@ -103,6 +103,27 @@ export interface UpdateBankingInfoDTO {
     email?: string;
 }
 
+export interface AuditLog {
+    id: number;
+    user_id: number | null;
+    action_type: string;
+    action_description: string | null;
+    metadata: Record<string, any> | null;
+    ip_address: string | null;
+    user_agent: string | null;
+    created_at: Date;
+}
+
+export interface CreateAuditLogDTO {
+    user_id?: number;
+    action_type: string;
+    action_description?: string;
+    metadata?: Record<string, any>;
+    ip_address?: string;
+    user_agent?: string;
+}
+
+
 // ============================================================
 // REPOSITORY CLASS
 // ============================================================
@@ -352,6 +373,31 @@ export class PayrollRepository {
             const query = 'SELECT * FROM personnel WHERE id = $1';
             const result = await client.query(query, [personnelId]);
             return result.rows.length > 0 ? result.rows[0] : null;
+        } finally {
+            client.release();
+        }
+    }
+
+    // ========== AUDIT LOG METHODS ==========
+
+    async createAuditLog(data: CreateAuditLogDTO): Promise<AuditLog> {
+        const client = await pool.connect();
+        try {
+            const query = `
+                INSERT INTO audit_log 
+                (user_id, action_type, action_description, metadata, ip_address, user_agent)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING *
+            `;
+            const result = await client.query(query, [
+                data.user_id || null,
+                data.action_type,
+                data.action_description || null,
+                data.metadata ? JSON.stringify(data.metadata) : null,
+                data.ip_address || null,
+                data.user_agent || null
+            ]);
+            return result.rows[0];
         } finally {
             client.release();
         }

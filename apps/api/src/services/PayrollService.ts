@@ -106,6 +106,28 @@ export class PayrollService {
 
     // ========== BANKING INFO METHODS ==========
 
+    /**
+     * Validates that account number contains only digits and meets length requirements
+     * Chilean bank account numbers are typically 4-20 digits
+     */
+    private validateAccountNumber(accountNumber: string): void {
+        // Check if contains only digits
+        if (!/^\d+$/.test(accountNumber)) {
+            throw new ValidationError(
+                'Account number must contain only digits after normalization',
+                'INVALID_ACCOUNT_NUMBER_FORMAT'
+            );
+        }
+
+        // Check length (Chilean bank accounts are typically 4-20 digits)
+        if (accountNumber.length < 4 || accountNumber.length > 20) {
+            throw new ValidationError(
+                'Account number must be between 4 and 20 digits',
+                'INVALID_ACCOUNT_NUMBER_LENGTH'
+            );
+        }
+    }
+
     async getBankingInfo(personnelId: number) {
         const bankingInfo = await this.repository.findBankingInfoByEmployeeId(personnelId);
         if (!bankingInfo) {
@@ -136,9 +158,14 @@ export class PayrollService {
         }
 
         // Normalize account number (remove hyphens and spaces)
+        const normalizedAccountNumber = data.account_number.replace(/[\s-]/g, '');
+
+        // Validate normalized account number
+        this.validateAccountNumber(normalizedAccountNumber);
+
         const normalizedData = {
             ...data,
-            account_number: data.account_number.replace(/[\s-]/g, '')
+            account_number: normalizedAccountNumber
         };
 
         return this.repository.createBankingInfo(normalizedData);
@@ -159,9 +186,11 @@ export class PayrollService {
             }
         }
 
-        // Normalize account number if provided
+        // Normalize and validate account number if provided
         if (data.account_number) {
-            data.account_number = data.account_number.replace(/[\s-]/g, '');
+            const normalized = data.account_number.replace(/[\s-]/g, '');
+            this.validateAccountNumber(normalized);
+            data.account_number = normalized;
         }
 
         return this.repository.updateBankingInfo(personnelId, data);
@@ -179,7 +208,11 @@ export class PayrollService {
 
     // ========== EXCEL EXPORT METHOD ==========
 
-    async generateSantanderTransferExcel(): Promise<Buffer> {
+    async generateSantanderTransferExcel(auditContext?: {
+        userId?: number;
+        ipAddress?: string;
+        userAgent?: string;
+    }): Promise<Buffer> {
         // Read source account from environment variable
         const sourceAccount = process.env.SANTANDER_SOURCE_ACCOUNT;
         if (!sourceAccount) {
@@ -198,6 +231,9 @@ export class PayrollService {
                 'NO_ELIGIBLE_EMPLOYEES'
             );
         }
+
+        // Calculate total amount for audit log
+        const totalAmount = employees.reduce((sum, emp) => sum + emp.current_balance, 0);
 
         // Create workbook
         const workbook = new ExcelJS.Workbook();
@@ -241,6 +277,24 @@ export class PayrollService {
 
         // Generate buffer
         const buffer = await workbook.xlsx.writeBuffer();
+
+        // ========== AUDIT LOGGING ==========
+        // Log the export operation for compliance and security
+        await this.repository.createAuditLog({
+            user_id: auditContext?.userId,
+            action_type: 'PAYROLL_EXPORT',
+            action_description: `Exported Santander transfer Excel with ${employees.length} employees, total amount: CLP ${totalAmount.toLocaleString('es-CL')}`,
+            metadata: {
+                export_type: 'santander_transfer',
+                employee_count: employees.length,
+                total_amount: totalAmount,
+                personnel_ids: employees.map(e => e.personnel_id),
+                timestamp: new Date().toISOString()
+            },
+            ip_address: auditContext?.ipAddress,
+            user_agent: auditContext?.userAgent
+        });
+
         return Buffer.from(buffer);
     }
 
