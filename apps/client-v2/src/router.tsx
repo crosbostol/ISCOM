@@ -6,7 +6,10 @@ import { ConductorsPage } from './features/conductors/pages/ConductorsPage';
 import { MovilesPage } from './features/moviles/pages/MovilesPage';
 import { ItemsPage } from './features/items/pages/ItemsPage';
 import { PaymentStatusPage } from './features/reportes/pages/PaymentStatusPage';
+import { PayrollDashboard } from './features/payroll/pages/PayrollDashboard';
+import { EmployeeLedgerPage } from './features/payroll/pages/EmployeeLedgerPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { RoleProtectedRoute } from './components/RoleProtectedRoute';
 
 export const router = createBrowserRouter([
     {
@@ -35,6 +38,22 @@ export const router = createBrowserRouter([
             {
                 path: "/mantenedores/items",
                 element: <ItemsPage />,
+            },
+            {
+                path: "/payroll",
+                element: (
+                    <RoleProtectedRoute allowedRoles={['MANAGER']}>
+                        <PayrollDashboard />
+                    </RoleProtectedRoute>
+                ),
+            },
+            {
+                path: "/payroll/:personnelId",
+                element: (
+                    <RoleProtectedRoute allowedRoles={['MANAGER']}>
+                        <EmployeeLedgerPage />
+                    </RoleProtectedRoute>
+                ),
             },
             {
                 path: "/reportes/estado-pago",
