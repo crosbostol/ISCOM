@@ -63,7 +63,7 @@
     * **Móvil:** Lista de `Cards` + `FAB` (Botón flotante) para acciones rápidas.
     * Los formularios en móvil usan inputs grandes y `Dialog` en modo `fullScreen`.
 * **Estilos:** Usar `sx={{ ... }}` de MUI y variables del `theme`. Evitar hardcoding de colores HEX.
-**Estilos:**
+* **Single Responsibility Principle:** Cada archivo debe tener una sola responsabilidad.
 ---
 
 ## 4. LÓGICA DE NEGOCIO (MEMORIA DEL PROYECTO)
