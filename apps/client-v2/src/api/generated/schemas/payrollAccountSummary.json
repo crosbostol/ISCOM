@@ -1,0 +1,1 @@
+{"type":"object","properties":{"id":{"type":"integer"},"personnel_id":{"type":"integer"},"employee_name":{"type":"string"},"employee_rut":{"type":"string"},"employee_role":{"type":"string"},"base_salary":{"type":"integer"},"current_balance":{"type":"integer"}},"x-readme-ref-name":"PayrollAccountSummary"}
