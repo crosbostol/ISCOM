@@ -171,7 +171,10 @@ export class ImportService {
                             }
 
                             // User Request: started_at only if MOVIL = MOV_HID_*
-                            if (code.startsWith(MOVIL_PATTERNS.HYDRAULIC) && !derivedStartedAt && rowDate) {
+                            // FIX: HYDRAULIC is now an array of patterns
+                            const isHydraulic = MOVIL_PATTERNS.HYDRAULIC.some((prefix: string) => code.startsWith(prefix));
+
+                            if (isHydraulic && !derivedStartedAt && rowDate) {
                                 derivedStartedAt = rowDate;
                             }
                         }
