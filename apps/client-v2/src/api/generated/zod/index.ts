@@ -5,6 +5,7 @@ export { createMovilDTOSchema } from "./createMovilDTOSchema.ts";
 export { deleteConductorsIdPathParamsSchema, deleteConductorsId204Schema, deleteConductorsId404Schema, deleteConductorsIdMutationResponseSchema } from "./deleteConductorsIdSchema.ts";
 export { deleteItemsIdPathParamsSchema, deleteItemsId204Schema, deleteItemsId404Schema, deleteItemsIdMutationResponseSchema } from "./deleteItemsIdSchema.ts";
 export { deleteMovilesIdPathParamsSchema, deleteMovilesId204Schema, deleteMovilesId404Schema, deleteMovilesIdMutationResponseSchema } from "./deleteMovilesIdSchema.ts";
+export { deleteOtIdPathParamsSchema, deleteOtId204Schema, deleteOtId400Schema, deleteOtId404Schema, deleteOtId500Schema, deleteOtIdMutationResponseSchema } from "./deleteOtIdSchema.ts";
 export { getConductorsIdPathParamsSchema, getConductorsId200Schema, getConductorsId404Schema, getConductorsIdQueryResponseSchema } from "./getConductorsIdSchema.ts";
 export { getConductors200Schema, getConductorsQueryResponseSchema } from "./getConductorsSchema.ts";
 export { getItemsIdPathParamsSchema, getItemsId200Schema, getItemsId404Schema, getItemsIdQueryResponseSchema } from "./getItemsIdSchema.ts";

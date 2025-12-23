@@ -364,4 +364,25 @@ export class OtRepository implements IOtRepository {
             `;
         await client.query(query, [id, hydraulicId, civilId, startedAt, civilDate]);
     }
+
+    async hardDelete(id: number): Promise<void> {
+        const client = await this.db.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Step 1: Delete all associated items from itm_ot table
+            await client.query('DELETE FROM itm_ot WHERE ot_id = $1', [id]);
+
+            // Step 2: Delete the OT record
+            await client.query('DELETE FROM ot WHERE id = $1', [id]);
+
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
 }
+

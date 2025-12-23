@@ -5,6 +5,7 @@ export type { CreateMovilDTO } from "./CreateMovilDTO.ts";
 export type { DeleteConductorsIdPathParams, DeleteConductorsId204, DeleteConductorsId404, DeleteConductorsIdMutationResponse, DeleteConductorsIdMutation } from "./DeleteConductorsId.ts";
 export type { DeleteItemsIdPathParams, DeleteItemsId204, DeleteItemsId404, DeleteItemsIdMutationResponse, DeleteItemsIdMutation } from "./DeleteItemsId.ts";
 export type { DeleteMovilesIdPathParams, DeleteMovilesId204, DeleteMovilesId404, DeleteMovilesIdMutationResponse, DeleteMovilesIdMutation } from "./DeleteMovilesId.ts";
+export type { DeleteOtIdPathParams, DeleteOtId204, DeleteOtId400, DeleteOtId404, DeleteOtId500, DeleteOtIdMutationResponse, DeleteOtIdMutation } from "./DeleteOtId.ts";
 export type { GetConductors200, GetConductorsQueryResponse, GetConductorsQuery } from "./GetConductors.ts";
 export type { GetConductorsIdPathParams, GetConductorsId200, GetConductorsId404, GetConductorsIdQueryResponse, GetConductorsIdQuery } from "./GetConductorsId.ts";
 export type { GetItems200, GetItems500, GetItemsQueryResponse, GetItemsQuery } from "./GetItems.ts";

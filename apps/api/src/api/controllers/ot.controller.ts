@@ -292,3 +292,44 @@ export const getItems = async (req: Request, res: Response) => {
         res.status(500).send(error);
     }
 };
+
+/**
+ * @swagger
+ * /ot/{id}:
+ *   delete:
+ *     summary: Delete an OT permanently
+ *     tags: [OTs]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: OT ID to delete
+ *     responses:
+ *       204:
+ *         description: OT deleted successfully
+ *       400:
+ *         description: Cannot delete processed OT
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: OT not found
+ *       500:
+ *         description: Server error
+ */
+export const deleteOt = async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        await otService.delete(id);
+        res.status(204).send();
+    } catch (error: any) {
+        const status = error.status || 500;
+        res.status(status).json({ message: error.message || "Internal Server Error" });
+    }
+};
