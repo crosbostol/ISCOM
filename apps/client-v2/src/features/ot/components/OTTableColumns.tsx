@@ -2,6 +2,7 @@ import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { GridActionsCellItem } from '@mui/x-data-grid';
 import { Chip, Typography, Box, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
 import type { OrdenTrabajoDTO } from '../../../api/generated/models/OrdenTrabajoDTO';
 import type { MovilDTO } from '../../../api/generated/models/MovilDTO';
@@ -11,6 +12,7 @@ import { MovilAssignmentChip } from './MovilAssignmentChip';
 
 export const getColumns = (
     handleEditResources: (ot: OrdenTrabajoDTO) => void,
+    handleDelete: (ot: OrdenTrabajoDTO) => void,
     movilesMap: Map<string, MovilDTO>,
     conductorsMap: Map<number, Conductor>
 ): GridColDef<OrdenTrabajoDTO>[] => [
@@ -158,14 +160,31 @@ export const getColumns = (
         {
             field: 'actions',
             type: 'actions',
-            headerName: 'Recursos',
-            width: 80,
-            getActions: (params) => [
-                <GridActionsCellItem
-                    icon={<EditIcon />}
-                    label="Asignar Recursos"
-                    onClick={() => handleEditResources(params.row)}
-                />
-            ]
+            headerName: 'Acciones',
+            width: 120,
+            getActions: (params) => {
+                const isPagada = params.row.ot_state === 'PAGADA';
+
+                return [
+                    <GridActionsCellItem
+                        icon={<EditIcon />}
+                        label="Asignar Recursos"
+                        onClick={() => handleEditResources(params.row)}
+                    />,
+                    <GridActionsCellItem
+                        icon={<DeleteIcon />}
+                        label={isPagada ? "No se puede eliminar OT procesada" : "Eliminar OT"}
+                        onClick={() => handleDelete(params.row)}
+                        disabled={isPagada}
+                        sx={{
+                            color: isPagada ? 'action.disabled' : 'error.main',
+                            '&:hover': {
+                                color: isPagada ? 'action.disabled' : 'error.dark'
+                            }
+                        }}
+                        showInMenu
+                    />
+                ];
+            }
         },
     ];

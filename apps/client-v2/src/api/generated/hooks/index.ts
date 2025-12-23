@@ -1,6 +1,7 @@
 export type { DeleteConductorsIdMutationKey } from "./useDeleteConductorsId.ts";
 export type { DeleteItemsIdMutationKey } from "./useDeleteItemsId.ts";
 export type { DeleteMovilesIdMutationKey } from "./useDeleteMovilesId.ts";
+export type { DeleteOtIdMutationKey } from "./useDeleteOtId.ts";
 export type { GetConductorsQueryKey } from "./useGetConductors.ts";
 export type { GetConductorsIdQueryKey } from "./useGetConductorsId.ts";
 export type { GetConductorsIdSuspenseQueryKey } from "./useGetConductorsIdSuspense.ts";
@@ -42,6 +43,10 @@ export { deleteMovilesIdMutationKey } from "./useDeleteMovilesId.ts";
 export { deleteMovilesId } from "./useDeleteMovilesId.ts";
 export { deleteMovilesIdMutationOptions } from "./useDeleteMovilesId.ts";
 export { useDeleteMovilesId } from "./useDeleteMovilesId.ts";
+export { deleteOtIdMutationKey } from "./useDeleteOtId.ts";
+export { deleteOtId } from "./useDeleteOtId.ts";
+export { deleteOtIdMutationOptions } from "./useDeleteOtId.ts";
+export { useDeleteOtId } from "./useDeleteOtId.ts";
 export { getConductorsQueryKey } from "./useGetConductors.ts";
 export { getConductors } from "./useGetConductors.ts";
 export { getConductorsQueryOptions } from "./useGetConductors.ts";

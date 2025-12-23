@@ -188,4 +188,25 @@ export class OtService {
     async getItems(): Promise<any[]> {
         return this.itemRepository.findAll();
     }
+
+    async delete(id: number): Promise<void> {
+        // Fetch the OT to check its current state
+        const ot = await this.otRepository.findById(id);
+
+        if (!ot) {
+            const error: any = new Error(`OT con ID ${id} no encontrada.`);
+            error.status = 404;
+            throw error;
+        }
+
+        // Prevent deletion of paid OTs
+        if (ot.ot_state === 'PAGADA') {
+            const error: any = new Error('No se puede eliminar una OT procesada.');
+            error.status = 400;
+            throw error;
+        }
+
+        // Call repository's hard delete
+        await this.otRepository.hardDelete(id);
+    }
 }

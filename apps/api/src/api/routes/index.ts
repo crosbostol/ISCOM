@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getOtTable, uploadOtCsv, createOt, updateOt, getMovils, getItems, getOtById } from '../controllers/ot.controller';
+import { getOtTable, uploadOtCsv, createOt, updateOt, getMovils, getItems, getOtById, deleteOt } from '../controllers/ot.controller';
 import { requireApiKey } from '../middlewares/security';
 import authRoutes from './auth.routes';
 import conductorRoutes from './conductor.routes';
@@ -113,6 +113,7 @@ router.get('/ottable', getOtTable);
 router.post('/ot', createOt);
 router.put('/ot/:id', updateOt);
 router.get('/ot/:id', getOtById);
+router.delete('/ot/:id', deleteOt);
 
 
 export default router;

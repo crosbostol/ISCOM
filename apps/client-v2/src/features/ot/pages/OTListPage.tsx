@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { esES } from '@mui/x-data-grid/locales';
-import { Alert, Snackbar, Box, Typography, CircularProgress, Button, Stack, Backdrop, Paper, alpha } from '@mui/material';
+import { Alert, Snackbar, Box, Typography, CircularProgress, Button, Stack, Backdrop, Paper, alpha, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PostAddIcon from '@mui/icons-material/PostAdd';
@@ -10,8 +10,10 @@ import isBetween from 'dayjs/plugin/isBetween';
 
 import { useGetOttable } from '../../../api/generated/hooks/useGetOttable';
 import { usePutOtId } from '../../../api/generated/hooks/usePutOtId';
+import { useDeleteOtId } from '../../../api/generated/hooks/useDeleteOtId';
 import { useGetMoviles } from '../../../api/generated/hooks/useGetMoviles';
 import { useGetConductors } from '../../../api/generated/hooks/useGetConductors';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { UploadOTs } from '../components/UploadOTs';
 import { OTFormModal } from '../components/OTFormModal';
@@ -31,6 +33,8 @@ export const OTListPage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedOtId, setSelectedOtId] = useState<number | null>(null);
     const [droppedFile, setDroppedFile] = useState<File | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [otToDelete, setOtToDelete] = useState<OrdenTrabajoDTO | null>(null);
 
     // Filters
     const [searchText, setSearchText] = useState('');
@@ -47,11 +51,13 @@ export const OTListPage: React.FC = () => {
     };
 
     // -- Data --
+    const queryClient = useQueryClient();
     const { data: ots, isLoading: isLoadingOts, isError, error } = useGetOttable();
     const { data: moviles = [], isLoading: isLoadingMoviles } = useGetMoviles();
     const { data: conductors = [], isLoading: isLoadingConductors } = useGetConductors();
 
     const { mutateAsync: updateOt } = usePutOtId();
+    const { mutateAsync: deleteOt, isPending: isDeleting } = useDeleteOtId();
 
     const isLoading = isLoadingOts || isLoadingMoviles || isLoadingConductors;
 
@@ -124,6 +130,33 @@ export const OTListPage: React.FC = () => {
         }
     };
 
+    // -- Delete logic --
+    const handleDeleteClick = (ot: OrdenTrabajoDTO) => {
+        setOtToDelete(ot);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!otToDelete?.id) return;
+
+        try {
+            await deleteOt({ id: otToDelete.id });
+            handleNotify(`OT #${otToDelete.external_ot_id || otToDelete.id} eliminada correctamente`, 'success');
+            queryClient.invalidateQueries({ queryKey: ['ottable'] });
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Error al eliminar OT';
+            handleNotify(errorMessage, 'error');
+        } finally {
+            setDeleteDialogOpen(false);
+            setOtToDelete(null);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteDialogOpen(false);
+        setOtToDelete(null);
+    };
+
     // -- Dropzone --
     const onDrop = useCallback((acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
@@ -140,6 +173,7 @@ export const OTListPage: React.FC = () => {
             setSelectedOtId(ot.id!);
             setModalOpen(true);
         },
+        handleDeleteClick,
         movilesMap,
         conductorsMap
     ), [movilesMap, conductorsMap]);
@@ -214,6 +248,40 @@ export const OTListPage: React.FC = () => {
                     }}
                 />
             </Paper>
+
+            {/* DELETE CONFIRMATION DIALOG */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleCancelDelete}
+                aria-labelledby="delete-dialog-title"
+            >
+                <DialogTitle id="delete-dialog-title">¿Confirmar eliminación?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        ¿Estás seguro de eliminar la OT <strong>#{otToDelete?.external_ot_id || otToDelete?.id}</strong>?
+                        <br />
+                        Se borrarán también sus ítems asociados.
+                        <br />
+                        <Typography component="span" color="error" fontWeight="bold">
+                            Esta acción es irreversible.
+                        </Typography>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelDelete} disabled={isDeleting}>
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleConfirmDelete}
+                        color="error"
+                        variant="contained"
+                        disabled={isDeleting}
+                        autoFocus
+                    >
+                        {isDeleting ? 'Eliminando...' : 'Confirmar'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* DROP OVERLAY */}
             {isDragActive && (
