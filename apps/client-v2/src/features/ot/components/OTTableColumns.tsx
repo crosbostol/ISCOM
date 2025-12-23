@@ -172,16 +172,10 @@ export const getColumns = (
                         onClick={() => handleEditResources(params.row)}
                     />,
                     <GridActionsCellItem
-                        icon={<DeleteIcon />}
+                        icon={<DeleteIcon color={isPagada ? "disabled" : "error"} />}
                         label={isPagada ? "No se puede eliminar OT procesada" : "Eliminar OT"}
-                        onClick={() => handleDelete(params.row)}
+                        onClick={() => !isPagada && handleDelete(params.row)}
                         disabled={isPagada}
-                        sx={{
-                            color: isPagada ? 'action.disabled' : 'error.main',
-                            '&:hover': {
-                                color: isPagada ? 'action.disabled' : 'error.dark'
-                            }
-                        }}
                         showInMenu
                     />
                 ];
