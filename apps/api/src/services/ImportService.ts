@@ -196,7 +196,7 @@ export class ImportService {
                                 if (movil) hydraulicMovilId = movil.movil_id.toString();
                             }
 
-                            const isHydraulic = MOVIL_PATTERNS.HYDRAULIC.some((prefix: string) => code.startsWith(prefix));
+                            const isHydraulic = MOVIL_PATTERNS.HYDRAULIC.some((prefix: string) => code.includes(prefix));
 
                             if (isHydraulic) {
                                 // Capture Hydraulic Start Date (Latest)
