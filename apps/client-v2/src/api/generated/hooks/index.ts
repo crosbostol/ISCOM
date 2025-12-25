@@ -163,3 +163,7 @@ export { putOtIdMutationKey } from "./usePutOtId.ts";
 export { putOtId } from "./usePutOtId.ts";
 export { putOtIdMutationOptions } from "./usePutOtId.ts";
 export { usePutOtId } from "./usePutOtId.ts";
+export { putPayrollBankInfoPersonnelidMutationKey } from "./usePutPayrollBankInfoPersonnelid.ts";
+export { putPayrollBankInfoPersonnelid } from "./usePutPayrollBankInfoPersonnelid.ts";
+export { putPayrollBankInfoPersonnelidMutationOptions } from "./usePutPayrollBankInfoPersonnelid.ts";
+export { usePutPayrollBankInfoPersonnelid } from "./usePutPayrollBankInfoPersonnelid.ts";

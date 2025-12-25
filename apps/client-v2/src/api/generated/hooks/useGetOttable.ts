@@ -18,21 +18,21 @@ export type GetOttableQueryKey = ReturnType<typeof getOttableQueryKey>
  * {@link /ottable}
  */
 export async function getOttable(params?: GetOttableQueryParams, config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
-  const { client: request = fetch, ...requestConfig } = config  
-  
-  const res = await request<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, unknown>({ method : "GET", url : `/ottable`, params, ... requestConfig })  
+  const { client: request = fetch, ...requestConfig } = config
+
+  const res = await request<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, unknown>({ method: "GET", url: `/ottable`, params, ...requestConfig })
   return res.data
 }
 
 export function getOttableQueryOptions(params?: GetOttableQueryParams, config: Partial<RequestConfig> & { client?: typeof fetch } = {}) {
   const queryKey = getOttableQueryKey(params)
   return queryOptions<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, GetOttableQueryResponse, typeof queryKey>({
- 
-   queryKey,
-   queryFn: async ({ signal }) => {
+
+    queryKey,
+    queryFn: async ({ signal }) => {
       config.signal = signal
       return getOttable(params, config)
-   },
+    },
   })
 }
 
@@ -40,20 +40,20 @@ export function getOttableQueryOptions(params?: GetOttableQueryParams, config: P
  * @summary Retrieve a list of OTs for the data grid
  * {@link /ottable}
  */
-export function useGetOttable<TData = GetOttableQueryResponse, TQueryData = GetOttableQueryResponse, TQueryKey extends QueryKey = GetOttableQueryKey>(params?: GetOttableQueryParams, options: 
-{
-  query?: Partial<QueryObserverOptions<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, TData, TQueryData, TQueryKey>> & { client?: QueryClient },
-  client?: Partial<RequestConfig> & { client?: typeof fetch }
-}
- = {}) {
+export function useGetOttable<TData = GetOttableQueryResponse, TQueryData = GetOttableQueryResponse, TQueryKey extends QueryKey = GetOttableQueryKey>(params?: GetOttableQueryParams, options:
+  {
+    query?: Partial<QueryObserverOptions<GetOttableQueryResponse, ResponseErrorConfig<GetOttable500>, TData, TQueryData, TQueryKey>> & { client?: QueryClient },
+    client?: Partial<RequestConfig> & { client?: typeof fetch }
+  }
+  = {}) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {}
   const { client: queryClient, ...queryOptions } = queryConfig
   const queryKey = queryOptions?.queryKey ?? getOttableQueryKey(params)
 
   const query = useQuery({
-   ...getOttableQueryOptions(params, config),
-   queryKey,
-   ...queryOptions
+    ...getOttableQueryOptions(params, config),
+    queryKey,
+    ...queryOptions
   } as unknown as QueryObserverOptions, queryClient) as UseQueryResult<TData, ResponseErrorConfig<GetOttable500>> & { queryKey: TQueryKey }
 
   query.queryKey = queryKey as TQueryKey

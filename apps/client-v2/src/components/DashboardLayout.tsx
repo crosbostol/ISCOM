@@ -17,6 +17,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import BadgeIcon from '@mui/icons-material/Badge';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 const DRAWER_WIDTH = 260;
 
@@ -27,7 +28,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const theme = useTheme();
     const colorMode = useColorMode();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [openMantenedores, setOpenMantenedores] = useState(false);
@@ -109,6 +110,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                             </ListItemIcon>
                             <ListItemText primary="Recursos" />
                         </ListItemButton>
+
+                        {/* REMUNERACIONES (Solo MANAGER) */}
+                        {user?.role === 'MANAGER' && (
+                            <ListItemButton
+                                selected={location.pathname.startsWith('/payroll')}
+                                onClick={() => navigate('/payroll')}
+                                sx={{
+                                    py: 1.5,
+                                    ...(location.pathname.startsWith('/payroll') ? activeStyle : inactiveStyle)
+                                }}
+                            >
+                                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+                                    <AccountBalanceIcon />
+                                </ListItemIcon>
+                                <ListItemText primary="Remuneraciones" primaryTypographyProps={{ fontWeight: 'medium' }} />
+                            </ListItemButton>
+                        )}
 
                         {/* PADRE: REPORTES (Ahora Acordeón) */}
                         <ListItemButton

@@ -7,6 +7,7 @@ import conductorRoutes from './conductor.routes';
 import movilRoutes from './movil.routes';
 import itemRoutes from './item.routes';
 import reportRoutes from './report.routes';
+import payrollRoutes from './payroll.routes';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -30,6 +31,7 @@ router.use('/moviles', movilRoutes);
 router.use('/conductors', conductorRoutes);
 router.use('/items', itemRoutes);
 router.use('/reports', reportRoutes);
+router.use('/payroll', payrollRoutes);
 
 /**
  * @swagger

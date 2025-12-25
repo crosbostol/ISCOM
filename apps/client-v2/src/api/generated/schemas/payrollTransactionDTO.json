@@ -1,0 +1,1 @@
+{"type":"object","required":["employee_id","type","amount","date"],"properties":{"employee_id":{"type":"integer"},"type":{"type":"string","enum":["ADVANCE","ABSENCE","BONUS","SALARY","LOAN"]},"amount":{"type":"integer"},"description":{"type":"string"},"date":{"type":"string","format":"date"}},"x-readme-ref-name":"PayrollTransactionDTO"}
