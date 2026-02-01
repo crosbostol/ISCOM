@@ -9,7 +9,7 @@ import { z } from "zod/v4";
 export const getOttableQueryParamsSchema = z.object({
     "page": z.optional(z.coerce.number().int().describe("Page number")),
 "limit": z.optional(z.coerce.number().int().describe("Items per page")),
-"status": z.optional(z.string().describe("Filter by OT status")),
+"status": z.optional(z.union([z.array(z.string()), z.string()]).describe("Filter by OT status")),
 "startDate": z.optional(z.iso.date().describe("Start date filter (YYYY-MM-DD)")),
 "endDate": z.optional(z.iso.date().describe("End date filter (YYYY-MM-DD)")),
 "search": z.optional(z.string().describe("Search term")),

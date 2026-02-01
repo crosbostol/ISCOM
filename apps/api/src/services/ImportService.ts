@@ -148,7 +148,7 @@ export class ImportService {
                 // Effective OT Code for this group (Fix for when header row is the one missing the code)
                 const effectiveOtCode = (!key.startsWith('ADIC-')) ? key : null;
 
-                const executionDateStr = header['FECHA EJECUCION'];
+                const executionDateStr = this.getDateValue(header) || undefined;
                 const executionDate = parseChileanDate(executionDateStr);
 
                 // Resolve Movil ID & Type & DATES - Iterate ALL items to find both types if present
@@ -162,52 +162,40 @@ export class ImportService {
                 // Check all rows in the group for Movils and Dates
                 for (const row of items) {
                     const code = row['MÓVIL']?.trim();
-                    const rowDateStr = row['FECHA EJECUCION'];
+                    const rowDateStr = this.getDateValue(row) || undefined;
                     const rowDate = parseChileanDate(rowDateStr);
 
                     if (code) {
                         const isCivil = code.includes(MOVIL_PATTERNS.CIVIL) || code.includes(MOVIL_PATTERNS.CIVIL_ALT);
+                        const isDebris = MOVIL_PATTERNS.DEBRIS.some((id: string) => code.includes(id));
+                        // Check Hydraulic using prefix logic
+                        const isHydraulic = !isCivil && !isDebris && MOVIL_PATTERNS.HYDRAULIC.some((prefix: string) => code.includes(prefix));
 
                         if (isCivil) {
                             if (!civilMovilId) {
                                 const movil = await this.movilRepository.findByExternalCode(code);
                                 if (movil) civilMovilId = movil.movil_id.toString();
                             }
-                            // Logic: Use LATEST date if duplicates exist (Requirement 4)
                             if (rowDate) {
-                                if (!derivedCivilDate || rowDate > derivedCivilDate) {
-                                    derivedCivilDate = rowDate;
-                                }
+                                if (!derivedCivilDate || rowDate > derivedCivilDate) derivedCivilDate = rowDate;
                             }
-                        } else if (MOVIL_PATTERNS.DEBRIS.some((id: string) => code.includes(id))) {
+                        } else if (isDebris) {
                             if (!debrisMovilId) {
                                 const movil = await this.movilRepository.findByExternalCode(code);
                                 if (movil) debrisMovilId = movil.movil_id.toString();
                             }
-                            // Capture Debris Date (Latest)
                             if (rowDate) {
-                                if (!derivedDebrisDate || rowDate > derivedDebrisDate) {
-                                    derivedDebrisDate = rowDate;
-                                }
+                                if (!derivedDebrisDate || rowDate > derivedDebrisDate) derivedDebrisDate = rowDate;
                             }
-                        } else {
+                        } else if (isHydraulic) {
                             if (!hydraulicMovilId) {
                                 const movil = await this.movilRepository.findByExternalCode(code);
                                 if (movil) hydraulicMovilId = movil.movil_id.toString();
                             }
-
-                            const isHydraulic = MOVIL_PATTERNS.HYDRAULIC.some((prefix: string) => code.includes(prefix));
-
-                            if (isHydraulic) {
-                                // Capture Hydraulic Start Date (Latest)
-                                if (rowDate) {
-                                    if (!derivedStartedAt || rowDate > derivedStartedAt) {
-                                        derivedStartedAt = rowDate;
-                                    }
-                                }
+                            if (rowDate) {
+                                if (!derivedStartedAt || rowDate > derivedStartedAt) derivedStartedAt = rowDate;
                             }
                         }
-
                     }
                 }
 
@@ -518,6 +506,18 @@ export class ImportService {
             errors,
             warnings
         };
+    }
+
+    private getDateValue(row: any): string | null {
+        // 1. Prioritize Exact Matches for standard headers
+        if (row['FECHA EJECUCION']) return row['FECHA EJECUCION'];
+        if (row['FECHA']) return row['FECHA'];
+
+        // 2. Fuzzy Search for any column containing 'FECHA'
+        const keys = Object.keys(row);
+        const dateKey = keys.find(k => k.toUpperCase().includes('FECHA'));
+
+        return dateKey ? row[dateKey] : null;
     }
 
     private normalizeAddress(row: any): string {

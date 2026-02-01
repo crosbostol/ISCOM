@@ -14,11 +14,16 @@ import {
     useTheme,
     Tooltip,
     alpha,
-    keyframes
+    keyframes,
+    Autocomplete,
+    TextField,
+    Checkbox
 } from '@mui/material';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -32,6 +37,7 @@ import isBetween from 'dayjs/plugin/isBetween';
 
 import { useGetOttable, getOttableQueryKey } from '../../../api/generated/hooks/useGetOttable';
 import { getReportsEdpExport } from '../../../api/generated';
+import { ordenTrabajoDTOOtStateEnum } from '../../../api/generated/models/OrdenTrabajoDTO';
 import type { OrdenTrabajoDTO } from '../../../api/generated/models/OrdenTrabajoDTO';
 import { downloadBlob } from '../../../utils/downloadUtils';
 
@@ -46,6 +52,11 @@ interface OT extends OrdenTrabajoDTO {
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
 };
+
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
+
+const ALL_STATES = Object.values(ordenTrabajoDTOOtStateEnum);
 
 export const PaymentStatusPage: React.FC = () => {
     const theme = useTheme();
@@ -70,6 +81,7 @@ export const PaymentStatusPage: React.FC = () => {
     // -- State --
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('month'));
     const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
+    const [selectedStates, setSelectedStates] = useState<string[]>(['POR_PAGAR']);
     const [confirmationOpen, setConfirmationOpen] = useState(false);
     const [generating, setGenerating] = useState(false);
 
@@ -87,14 +99,15 @@ export const PaymentStatusPage: React.FC = () => {
     const params = useMemo(() => ({
         startDate: startDate?.format('YYYY-MM-DD'),
         endDate: endDate?.format('YYYY-MM-DD'),
-        dateField: 'finished_at' as const
-    }), [startDate, endDate]);
+        status: selectedStates,
+        dateField: 'execution_date' as any
+    }), [startDate, endDate, selectedStates]);
 
-    const { data: ots, isLoading, refetch } = useGetOttable(params, {
+    const { data: ots, isLoading, refetch } = useGetOttable(params as any, {
         query: {
             enabled: false,
             // Use proper query key generation
-            queryKey: getOttableQueryKey(params)
+            queryKey: getOttableQueryKey(params as any)
         }
     });
 
@@ -129,7 +142,7 @@ export const PaymentStatusPage: React.FC = () => {
             const end = endDate.format('YYYY-MM-DD');
 
             const blob = await getReportsEdpExport(
-                { startDate: start, endDate: end },
+                { startDate: start, endDate: end, states: selectedStates },
                 { responseType: 'blob' }
             );
 
@@ -224,6 +237,49 @@ export const PaymentStatusPage: React.FC = () => {
                             slotProps={{ textField: { size: 'small', sx: { minWidth: 180 } } }}
                         />
                     </LocalizationProvider>
+
+                    <Autocomplete
+                        multiple
+                        id="checkboxes-tags-demo"
+                        options={ALL_STATES}
+                        disableCloseOnSelect
+                        value={selectedStates}
+                        onChange={(_event, newValue) => {
+                            setSelectedStates(newValue as string[]);
+                        }}
+                        getOptionLabel={(option) => option}
+                        renderOption={(props, option, { selected }) => (
+                            <li {...props}>
+                                <Checkbox
+                                    icon={icon}
+                                    checkedIcon={checkedIcon}
+                                    style={{ marginRight: 8 }}
+                                    checked={selected}
+                                />
+                                {option}
+                            </li>
+                        )}
+                        style={{ minWidth: 250 }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Estados"
+                                placeholder="Seleccionar..."
+                                size="small"
+                            />
+                        )}
+                    // Select All Logic UI Helper? 
+                    // Native Autocomplete 'limitTags' or custom 'Select All' option could be added but explicit multiselect is often clearer.
+                    // Let's rely on standard multiselect for now or add a small button.
+                    />
+
+                    <Button
+                        size="small"
+                        onClick={() => setSelectedStates(ALL_STATES)}
+                        sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+                    >
+                        Todas
+                    </Button>
                 </Stack>
 
                 <Button

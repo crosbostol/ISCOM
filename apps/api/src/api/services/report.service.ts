@@ -13,8 +13,10 @@ interface ReportRow {
     is_additional: boolean | null;
     movil_code: string | null;
     finished_at: Date | string | null;
+    effective_date?: Date | string | null;
     item_type: string;
     item_value: string | number;
+    ot_state: string; // Added field
 }
 
 export class ReportService {
@@ -24,13 +26,16 @@ export class ReportService {
         this.otRepository = new OtRepository();
     }
 
-    async generatePaymentStatusExcel(startDate: string, endDate: string): Promise<ExcelJS.Buffer> {
+    async generatePaymentStatusExcel(startDate: string, endDate: string, states?: string[] | null): Promise<ExcelJS.Buffer> {
         // 1. Fetch Current Period Data
+        // Failsafe: If states is null/empty/undefined, default to 'POR_PAGAR'
+        const effectiveStates = (states && states.length > 0) ? states : ['POR_PAGAR'];
+
         const filters: OtFilter = {
             startDate,
             endDate,
-            status: 'POR_PAGAR',
-            dateField: 'finished_at' // Strict rule for Financial View
+            status: effectiveStates, // Pass array or single string (repository handles both, but now we pass array likely)
+            dateField: 'execution_date' // Use calculated fallback date
         };
         const rows = await this.otRepository.getReportData(filters) as ReportRow[];
 
@@ -47,9 +52,12 @@ export class ReportService {
         this.addDetailSheet(workbook, 'Detalle OT', rows);
 
         // 6. Add Backlog Sheet (Conditional)
+        // [MODIFIED] SALDO_ANTERIOR Temporarily disabled per requirement
+        /*
         if (backlogRows.length > 0) {
             this.addDetailSheet(workbook, 'SALDO_ANTERIOR', backlogRows, 'FFFF0000'); // Red Tab
         }
+        */
 
         return await workbook.xlsx.writeBuffer();
     }
@@ -98,7 +106,7 @@ export class ReportService {
                 number: row.number_street || '',
                 commune: row.commune,
                 movil: row.movil_code || '',
-                date: row.finished_at,
+                date: row.effective_date || row.finished_at,
                 category: categoria,
                 description: row.item_description,
                 quantity: quantity,

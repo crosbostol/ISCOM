@@ -7,7 +7,8 @@ import { z } from "zod/v4";
 
 export const getReportsEdpExportQueryParamsSchema = z.object({
     "startDate": z.iso.date().describe("Start date (YYYY-MM-DD)"),
-"endDate": z.iso.date().describe("End date (YYYY-MM-DD)")
+"endDate": z.iso.date().describe("End date (YYYY-MM-DD)"),
+"states": z.optional(z.union([z.array(z.string()), z.string()]).describe("Filter by OT states"))
     })
 
 /**

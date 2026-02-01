@@ -56,7 +56,11 @@ export const uploadOtCsv = async (req: Request, res: Response) => {
  *       - in: query
  *         name: status
  *         schema:
- *           type: string
+ *           oneOf:
+ *             - type: string
+ *             - type: array
+ *               items:
+ *                 type: string
  *         description: Filter by OT status
  *       - in: query
  *         name: startDate

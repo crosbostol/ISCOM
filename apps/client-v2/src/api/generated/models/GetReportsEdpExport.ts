@@ -15,6 +15,10 @@ export type GetReportsEdpExportQueryParams = {
      * @type string, date
     */
     endDate: string;
+    /**
+     * @description Filter by OT states
+    */
+    states?: (string | string[]);
 };
 
 /**

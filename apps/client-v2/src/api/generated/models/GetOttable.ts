@@ -25,9 +25,8 @@ export type GetOttableQueryParams = {
     limit?: number;
     /**
      * @description Filter by OT status
-     * @type string | undefined
     */
-    status?: string;
+    status?: (string | string[]);
     /**
      * @description Start date filter (YYYY-MM-DD)
      * @type string | undefined, date

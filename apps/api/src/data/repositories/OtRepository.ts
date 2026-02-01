@@ -111,11 +111,6 @@ export class OtRepository implements IOtRepository {
 
         const paginationClause = (limit && offset !== undefined) ? `LIMIT ${limit} OFFSET ${offset}` : '';
 
-        // Note: buildWhereClause manages param indices starting from 1. 
-        // If limit/offset were parameters, we'd need to offset them. 
-        // But here pagination is injected as string literals (legacy behavior retained for limit/offset, though risky for injection if not sanitized in controller. 
-        // Controller parsesInt so it's safe-ish).
-
         const query = `
             SELECT 
                 o.id,
@@ -187,13 +182,15 @@ export class OtRepository implements IOtRepository {
                 o.is_additional,
             COALESCE(m_assigned.external_code, m_assigned.movil_id) AS movil_code,
             o.finished_at,
-            i.item_value
+            COALESCE(o.finished_at, o.civil_work_at, o.started_at, o.received_at) AS effective_date,
+            i.item_value,
+            o.ot_state
             FROM public.ot o
             JOIN public.itm_ot io ON o.id = io.ot_id
             JOIN public.item i ON io.item_id = i.item_id
             LEFT JOIN public.movil m_assigned ON io.assigned_movil_id = m_assigned.movil_id
             ${whereClause}
-            ORDER BY o.finished_at, o.id
+            ORDER BY effective_date DESC, o.id DESC
             `;
 
         const result = await this.db.query(query, params);
@@ -213,14 +210,16 @@ export class OtRepository implements IOtRepository {
                 o.is_additional,
             COALESCE(m_assigned.external_code, m_assigned.movil_id) AS movil_code,
             o.finished_at,
-            i.item_value
+            COALESCE(o.finished_at, o.civil_work_at, o.started_at, o.received_at) AS effective_date,
+            i.item_value,
+            o.ot_state
             FROM public.ot o
             JOIN public.itm_ot io ON o.id = io.ot_id
             JOIN public.item i ON io.item_id = i.item_id
             LEFT JOIN public.movil m_assigned ON io.assigned_movil_id = m_assigned.movil_id
-            WHERE o.finished_at < $1
+            WHERE COALESCE(o.finished_at, o.civil_work_at, o.started_at, o.received_at) < $1
               AND o.ot_state = 'POR_PAGAR'
-            ORDER BY o.finished_at ASC, o.id ASC
+            ORDER BY effective_date DESC, o.id DESC
         `;
         const result = await this.db.query(query, [dateThreshold]);
         return result.rows;
@@ -231,25 +230,36 @@ export class OtRepository implements IOtRepository {
         let paramIndex = params.length + 1;
 
         if (filters.status) {
-            clauses.push(`o.ot_state = $${paramIndex++} `);
-            params.push(filters.status);
+            if (Array.isArray(filters.status)) {
+                // If it's an array, use ANY for multiple values
+                clauses.push(`o.ot_state = ANY($${paramIndex++}::text[])`);
+                params.push(filters.status);
+            } else {
+                // Single value behavior
+                clauses.push(`o.ot_state = $${paramIndex++} `);
+                params.push(filters.status);
+            }
         }
 
         // Dual Date Logic: Default to 'started_at' logic unless 'finished_at' is explicitly requested
-        const dateField = (filters.dateField === 'finished_at') ? 'finished_at' : 'started_at';
-        const dbDateField = `o.${dateField} `;
+        let dbDateField = 'o.started_at';
+        if (filters.dateField === 'finished_at') {
+            dbDateField = 'o.finished_at';
+        } else if (filters.dateField === 'execution_date') {
+            dbDateField = 'COALESCE(o.finished_at, o.civil_work_at, o.started_at, o.received_at)';
+        }
 
         if (filters.startDate) {
-            clauses.push(`${dbDateField} >= $${paramIndex++}:: date`);
+            clauses.push(`${dbDateField} >= $${paramIndex++}::date`);
             params.push(filters.startDate);
         }
         if (filters.endDate) {
-            clauses.push(`${dbDateField} <= $${paramIndex++}:: date`);
+            clauses.push(`${dbDateField} <= $${paramIndex++}::date`);
             params.push(filters.endDate);
         }
 
         if (filters.search) {
-            const searchPattern = `% ${filters.search}% `;
+            const searchPattern = `%${filters.search}%`;
             clauses.push(`(
                 o.external_ot_id ILIKE $${paramIndex} OR
                 o.street ILIKE $${paramIndex} OR
@@ -264,8 +274,8 @@ export class OtRepository implements IOtRepository {
 
     async getOtTableByState(state: string): Promise<any[]> {
         const query = `
-        SELECT
-        o.id,
+            SELECT
+            o.id,
             o.external_ot_id,
             o.street,
             o.number_street,
@@ -385,4 +395,3 @@ export class OtRepository implements IOtRepository {
         }
     }
 }
-
