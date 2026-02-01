@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { OtRepository } from '../../data/repositories/OtRepository';
 import { OtFilter } from '../../data/dto/OtFilter';
+import { OTState, ItemType, ReportCategory } from '../../api/types/ot.enums';
 
 // Interface ReportRow match DB result from OtRepository.getReportData
 interface ReportRow {
@@ -14,10 +15,41 @@ interface ReportRow {
     movil_code: string | null;
     finished_at: Date | string | null;
     effective_date?: Date | string | null;
+    started_at?: Date | string | null;      // Added field
+    civil_work_at?: Date | string | null;   // Added field
+    received_at?: Date | string | null;     // Added field
     item_type: string;
     item_value: string | number;
-    ot_state: string; // Added field
+    ot_state: string;
 }
+
+// Strategy Pattern Definitions
+type DateResolver = (row: ReportRow) => Date | string | null | undefined;
+
+interface CategoryRule {
+    label: string;
+    resolveDate: DateResolver;
+}
+
+const CATEGORY_RULES: Record<string, CategoryRule> = {
+    [ItemType.CLOSING_ITEM]: {
+        label: ReportCategory.AGUA_POTABLE,
+        resolveDate: (r) => r.started_at || r.received_at
+    },
+    [ItemType.SHARED_ITEMS]: {
+        label: ReportCategory.OBRAS,
+        resolveDate: (r) => r.civil_work_at || r.started_at || r.received_at
+    },
+    // Fallback for mapped values if they exist in DB (Legacy/Safety)
+    [ReportCategory.AGUA_POTABLE]: {
+        label: ReportCategory.AGUA_POTABLE,
+        resolveDate: (r) => r.started_at || r.received_at
+    },
+    [ReportCategory.OBRAS]: {
+        label: ReportCategory.OBRAS,
+        resolveDate: (r) => r.civil_work_at || r.started_at || r.received_at
+    }
+};
 
 export class ReportService {
     private otRepository: OtRepository;
@@ -95,10 +127,24 @@ export class ReportService {
             const total = quantity * unitValue;
             grandTotal += total;
 
-            // Map CATEGORIA_TAREA
-            let categoria = row.item_type || '';
-            if (categoria === 'CLOSING_ITEM') categoria = 'AGUA POTABLE';
-            if (categoria === 'SHARED_ITEMS') categoria = 'OBRAS';
+            // Strategy Pattern Implementation
+            const rule = CATEGORY_RULES[row.item_type];
+
+            // Resolve Category Label (default to raw type if no rule)
+            const categoria = rule ? rule.label : (row.item_type || '');
+
+            // Resolve Date (default to effective_date if no rule or resolution fails)
+            let displayDate = row.effective_date;
+            if (rule) {
+                const resolved = rule.resolveDate(row);
+                if (resolved) {
+                    displayDate = resolved;
+                }
+            } else {
+                // Redundant safety check: if no rule, default logic implies effective_date
+                // but we can add specific handling if needed.
+                // Current default is 'effective_date' initialized above.
+            }
 
             worksheet.addRow({
                 ot: row.external_ot_id || '',
@@ -106,7 +152,7 @@ export class ReportService {
                 number: row.number_street || '',
                 commune: row.commune,
                 movil: row.movil_code || '',
-                date: row.effective_date || row.finished_at,
+                date: displayDate,
                 category: categoria,
                 description: row.item_description,
                 quantity: quantity,
@@ -125,7 +171,7 @@ export class ReportService {
 
         // Format Currency Columns
         ['unit_value', 'total'].forEach(key => {
-            worksheet.getColumn(key).numFmt = '"$"#,##0;[Red]\-"$"#,##0';
+            worksheet.getColumn(key).numFmt = '"$"#,##0;[Red]\\-"$"#,##0';
         });
 
         // Match Header Style (Deep Ocean)
@@ -313,7 +359,7 @@ export class ReportService {
             row.getCell(1).value = key;
             row.getCell(2).value = stats.otSet.size || 1;
             row.getCell(3).value = stats.netTotal;
-            row.getCell(3).numFmt = '"$"#,##0;[Red]\-"$"#,##0';
+            row.getCell(3).numFmt = '"$"#,##0;[Red]\\-"$"#,##0';
 
             [1, 2, 3].forEach(c => {
                 row.getCell(c).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
@@ -325,7 +371,7 @@ export class ReportService {
         const movilTotalRow = summarySheet.getRow(currentRow);
         movilTotalRow.getCell(1).value = 'TOTAL';
         movilTotalRow.getCell(3).value = movilGrandTotal;
-        movilTotalRow.getCell(3).numFmt = '"$"#,##0;[Red]\-"$"#,##0';
+        movilTotalRow.getCell(3).numFmt = '"$"#,##0;[Red]\\-"$"#,##0';
         movilTotalRow.font = { bold: true };
         [1, 2, 3].forEach(c => {
             movilTotalRow.getCell(c).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
@@ -360,7 +406,7 @@ export class ReportService {
             row.getCell(1).value = key;
             row.getCell(2).value = stats.quantity;
             row.getCell(3).value = stats.netTotal;
-            row.getCell(3).numFmt = '"$"#,##0;[Red]\-"$"#,##0';
+            row.getCell(3).numFmt = '"$"#,##0;[Red]\\-"$"#,##0';
 
             [1, 2, 3].forEach(c => {
                 row.getCell(c).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
@@ -372,7 +418,7 @@ export class ReportService {
         const itemTotalRow = summarySheet.getRow(currentRow);
         itemTotalRow.getCell(1).value = 'TOTAL';
         itemTotalRow.getCell(3).value = itemGrandTotal;
-        itemTotalRow.getCell(3).numFmt = '"$"#,##0;[Red]\-"$"#,##0';
+        itemTotalRow.getCell(3).numFmt = '"$"#,##0;[Red]\\-"$"#,##0';
         itemTotalRow.font = { bold: true };
         [1, 2, 3].forEach(c => {
             itemTotalRow.getCell(c).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };

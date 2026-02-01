@@ -12,3 +12,13 @@ export enum OTState {
     ANULADA = 'ANULADA',
     OBSERVADA = 'OBSERVADA'                // New State: Inconsistencia detectada (ej. Retiro sin Civil)
 }
+
+export enum ItemType {
+    CLOSING_ITEM = 'CLOSING_ITEM',
+    SHARED_ITEMS = 'SHARED_ITEMS'
+}
+
+export enum ReportCategory {
+    AGUA_POTABLE = 'AGUA POTABLE',
+    OBRAS = 'OBRAS'
+}

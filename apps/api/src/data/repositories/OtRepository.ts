@@ -181,7 +181,10 @@ export class OtRepository implements IOtRepository {
                 io.quantity,
                 o.is_additional,
             COALESCE(m_assigned.external_code, m_assigned.movil_id) AS movil_code,
-            o.finished_at,
+            o.finished_at AS finished_at,
+            o.started_at AS started_at,
+            o.civil_work_at AS civil_work_at,
+            o.received_at AS received_at,
             COALESCE(o.finished_at, o.civil_work_at, o.started_at, o.received_at) AS effective_date,
             i.item_value,
             o.ot_state
@@ -209,7 +212,10 @@ export class OtRepository implements IOtRepository {
                 io.quantity,
                 o.is_additional,
             COALESCE(m_assigned.external_code, m_assigned.movil_id) AS movil_code,
-            o.finished_at,
+            o.finished_at AS finished_at,
+            o.started_at AS started_at,
+            o.civil_work_at AS civil_work_at,
+            o.received_at AS received_at,
             COALESCE(o.finished_at, o.civil_work_at, o.started_at, o.received_at) AS effective_date,
             i.item_value,
             o.ot_state
